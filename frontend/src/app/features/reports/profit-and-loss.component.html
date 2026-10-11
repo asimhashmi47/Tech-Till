@@ -1,0 +1,138 @@
+<div class="tt-page">
+  <header class="tt-page-head">
+    <div class="tt-page-head__text">
+      <h1 class="tt-page-head__title">Profit and loss</h1>
+      <p class="tt-page-head__sub">
+        {{ shopLabel() }}. Revenue less cost of goods sold gives gross profit; expenses on
+        their own date bring it down to net profit.
+      </p>
+    </div>
+  </header>
+
+  <div class="tt-panel">
+    <div class="tt-panel__body">
+      <div class="filters">
+        <div class="filters__dates">
+          <div class="filters__field">
+            <label class="tt-field__label" for="from">From</label>
+            <input id="from" class="tt-input" type="date" name="from"
+                   [ngModel]="from()" (ngModelChange)="from.set($event)" />
+          </div>
+          <div class="filters__field">
+            <label class="tt-field__label" for="to">To</label>
+            <input id="to" class="tt-input" type="date" name="to"
+                   [ngModel]="to()" (ngModelChange)="to.set($event)" />
+          </div>
+          <button type="button" class="tt-btn tt-btn--primary" (click)="load()">Apply</button>
+        </div>
+
+        <div class="filters__presets">
+          @for (preset of presets; track preset.label; let i = $index) {
+            <button type="button" class="preset" (click)="applyPreset(i)">{{ preset.label }}</button>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="tt-panel">
+      <div class="tt-panel__body skeleton-rows">
+        @for (n of [1, 2, 3, 4, 5]; track n) {
+          <div class="tt-skeleton tt-skeleton-text"></div>
+        }
+      </div>
+    </div>
+  } @else if (failed()) {
+    <div class="tt-panel">
+      <div class="tt-error-state">
+        <p class="tt-empty__title">The report could not load</p>
+        <button type="button" class="tt-btn tt-btn--primary" (click)="load()">Try again</button>
+      </div>
+    </div>
+  } @else if (data(); as report) {
+    <section class="headline">
+      <div class="headline__item headline__item--cyan">
+        <span class="headline__label">Revenue</span>
+        <span class="headline__value">{{ money(report.revenue) }}</span>
+        <span class="headline__note">Void invoices excluded</span>
+      </div>
+      <div class="headline__item headline__item--emerald">
+        <span class="headline__label">Gross profit</span>
+        <span class="headline__value">{{ money(report.grossProfit) }}</span>
+        <span class="headline__note">{{ marginPercent() }}% of revenue</span>
+      </div>
+      <div class="headline__item headline__item--rose">
+        <span class="headline__label">Expenses</span>
+        <span class="headline__value">{{ money(report.expenses) }}</span>
+        <span class="headline__note">{{ report.expenseLines.length }} categories</span>
+      </div>
+      <div class="headline__item headline__item--accent">
+        <span class="headline__label">Net profit</span>
+        <span class="headline__value" [class.tt-neg]="report.netProfit < 0">
+          {{ money(report.netProfit) }}
+        </span>
+        <span class="headline__note">{{ netPercent() }}% of revenue</span>
+      </div>
+    </section>
+
+    <div class="tt-panel">
+      <div class="tt-panel__head">
+        <h2 class="tt-panel__title">Statement</h2>
+        <span class="tt-panel__meta">
+          {{ longDate(report.from) }} to {{ longDate(report.to) }}
+        </span>
+      </div>
+
+      <table class="tt-statement">
+        <tbody>
+          <tr>
+            <td>Revenue</td>
+            <td class="tt-num tt-strong">{{ money(report.revenue) }}</td>
+          </tr>
+          @if (report.discount > 0) {
+            <tr>
+              <td class="tt-statement__indent">Discounts given, already deducted</td>
+              <td class="tt-num tt-muted">{{ money(report.discount) }}</td>
+            </tr>
+          }
+          <tr>
+            <td>Cost of goods sold</td>
+            <td class="tt-num">- {{ money(report.cogs) }}</td>
+          </tr>
+          <tr class="tt-statement__sub">
+            <td>Gross profit</td>
+            <td class="tt-num">{{ money(report.grossProfit) }}</td>
+          </tr>
+
+          <tr>
+            <td colspan="2" class="tt-muted">Expenses</td>
+          </tr>
+          @for (line of report.expenseLines; track line.name) {
+            <tr>
+              <td class="tt-statement__indent">{{ line.name }}</td>
+              <td class="tt-num">- {{ money(line.amount) }}</td>
+            </tr>
+          }
+          @if (report.expenseLines.length === 0) {
+            <tr>
+              <td class="tt-statement__indent tt-muted">No expenses in this period</td>
+              <td class="tt-num tt-muted">0.00</td>
+            </tr>
+          }
+          <tr class="tt-statement__sub">
+            <td>Total expenses</td>
+            <td class="tt-num">- {{ money(report.expenses) }}</td>
+          </tr>
+
+          <tr class="tt-statement__total">
+            <td>Net profit</td>
+            <td class="tt-num" [class.tt-neg]="report.netProfit < 0">
+              {{ money(report.netProfit) }}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  }
+</div>

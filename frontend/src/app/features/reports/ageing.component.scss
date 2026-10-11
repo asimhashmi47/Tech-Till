@@ -1,0 +1,112 @@
+:host {
+  display: block;
+}
+
+.buckets {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: var(--tt-space-3);
+}
+
+// A soft wash per bucket, fading into the card surface. The hue carries the age of the
+// debt, so the ramp itself is the information: cool and quiet when current, warm and then
+// red once the money is months late.
+// The fade mixes in sRGB on purpose: mixing a tint with white in OKLCH drags the hue
+// toward 0, because an achromatic colour has no hue of its own to interpolate with.
+.bucket {
+  --card-tint: var(--tt-slate-soft);
+  --card-edge: var(--tt-neutral-300);
+  --card-ink: var(--tt-ink-muted);
+
+  display: flex;
+  flex-direction: column;
+  gap: var(--tt-space-1);
+  padding: var(--tt-space-4);
+  background:
+    linear-gradient(
+      152deg,
+      var(--card-tint) 0%,
+      color-mix(in srgb, var(--card-tint) 46%, var(--tt-surface)) 56%,
+      var(--tt-surface) 100%
+    );
+  border: 1px solid color-mix(in srgb, var(--card-edge) 20%, var(--tt-border));
+  border-radius: var(--tt-radius-lg);
+  box-shadow: var(--tt-shadow-xs);
+}
+
+.bucket__label {
+  color: var(--card-ink);
+  font-size: var(--tt-text-xs);
+  font-weight: var(--tt-weight-medium);
+}
+
+.bucket__value {
+  color: var(--tt-ink-strong);
+  font-size: var(--tt-text-xl);
+  font-weight: var(--tt-weight-semibold);
+  letter-spacing: var(--tt-tracking-tight);
+}
+
+.bucket__share {
+  color: var(--card-ink);
+  font-size: var(--tt-text-2xs);
+  font-variant-numeric: tabular-nums;
+}
+
+.bucket--slate {
+  --card-tint: var(--tt-cyan-soft);
+  --card-edge: var(--tt-cyan);
+  --card-ink: var(--tt-cyan-text);
+}
+
+.bucket--amber {
+  --card-tint: var(--tt-amber-soft);
+  --card-edge: var(--tt-amber);
+  --card-ink: var(--tt-amber-text);
+}
+
+.bucket--orange {
+  --card-tint: var(--tt-orange-soft);
+  --card-edge: var(--tt-orange);
+  --card-ink: var(--tt-orange-text);
+}
+
+.bucket--orange-deep {
+  --card-tint: var(--tt-pink-soft);
+  --card-edge: var(--tt-pink);
+  --card-ink: var(--tt-pink-text);
+}
+
+// The oldest bucket sits next to a pink one, so it ends the ramp on depth rather than on
+// hue alone: a fuller wash and a heavier edge for the money least likely to arrive.
+.bucket--rose {
+  --card-tint: var(--tt-rose-soft);
+  --card-edge: var(--tt-rose);
+  --card-ink: var(--tt-rose-text);
+
+  background:
+    linear-gradient(
+      152deg,
+      color-mix(in oklch, var(--card-tint) 86%, var(--card-edge)) 0%,
+      var(--card-tint) 60%,
+      color-mix(in srgb, var(--card-tint) 50%, var(--tt-surface)) 100%
+    );
+  border-color: color-mix(in srgb, var(--card-edge) 30%, var(--tt-border));
+}
+
+// The total is the figure the other cards add up to, so it gets a fuller wash and a
+// heavier edge rather than another step on the age ramp.
+.bucket--total {
+  --card-tint: var(--tt-indigo-soft);
+  --card-edge: var(--tt-indigo);
+  --card-ink: var(--tt-indigo-text);
+
+  background:
+    linear-gradient(
+      152deg,
+      color-mix(in oklch, var(--card-tint) 88%, var(--card-edge)) 0%,
+      var(--card-tint) 62%,
+      color-mix(in srgb, var(--card-tint) 55%, var(--tt-surface)) 100%
+    );
+  border-color: color-mix(in srgb, var(--card-edge) 30%, var(--tt-border));
+}

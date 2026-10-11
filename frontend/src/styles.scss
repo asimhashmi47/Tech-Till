@@ -1,0 +1,281 @@
+// TechTill global stylesheet.
+// Tokens come first so everything below can use them. The token file is the same one
+// kept in docs/ui-design/design-tokens.scss; edit them together.
+
+@use 'styles/tokens';
+
+// Inter ships with the build. Nothing is fetched from a CDN at runtime, which is what
+// lets the Content Security Policy stay on 'self' for both scripts and fonts.
+@use '@fontsource/inter/400.css' as inter-400;
+@use '@fontsource/inter/500.css' as inter-500;
+@use '@fontsource/inter/600.css' as inter-600;
+@use '@fontsource/inter/700.css' as inter-700;
+
+@use 'styles/grid-theme';
+@use 'styles/ui';
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  // The app owns its own scroll containers, so the document itself never scrolls.
+  height: 100%;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  height: 100%;
+  margin: 0;
+  background: var(--tt-app-bg);
+  color: var(--tt-ink-body);
+  font-family: var(--tt-font-sans);
+  font-size: var(--tt-text-base);
+  line-height: var(--tt-leading-normal);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  margin: 0;
+  color: var(--tt-ink-strong);
+  font-weight: var(--tt-weight-semibold);
+  letter-spacing: var(--tt-tracking-tight);
+  line-height: var(--tt-leading-tight);
+  text-wrap: balance;
+}
+
+h1 {
+  font-size: var(--tt-text-3xl);
+}
+
+h2 {
+  font-size: var(--tt-text-2xl);
+}
+
+h3 {
+  font-size: var(--tt-text-xl);
+}
+
+h4 {
+  font-size: var(--tt-text-lg);
+}
+
+p {
+  margin: 0;
+  text-wrap: pretty;
+}
+
+a {
+  color: var(--tt-primary-text);
+  text-decoration-color: color-mix(in oklch, currentColor 35%, transparent);
+  text-underline-offset: 2px;
+}
+
+a:hover {
+  text-decoration-color: currentColor;
+}
+
+// A visited in-content link shifts toward violet so a shop owner can see which report or
+// invoice they already opened. Navigation links opt out, since "visited" means nothing
+// for a menu the user is in all day.
+a:visited:not(.nav-link):not(.tt-btn):not(.kpi):not(.brand) {
+  color: var(--tt-violet-text);
+}
+
+// One visible focus treatment for the whole app. Keyboard users never lose the cursor.
+:focus-visible {
+  outline: 2px solid var(--tt-primary);
+  outline-offset: 2px;
+  border-radius: var(--tt-radius-xs);
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+// Money and quantities line up column to column.
+.tt-num {
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.tt-mono {
+  font-family: var(--tt-font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.tt-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+// ---------- Scrollbars ----------
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--tt-neutral-300) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: var(--tt-neutral-300);
+  border: 3px solid transparent;
+  border-radius: var(--tt-radius-pill);
+  background-clip: content-box;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--tt-neutral-400);
+  background-clip: content-box;
+}
+
+// ---------- SweetAlert2 ----------
+// The library's own look is replaced so dialogs and toasts read as part of the app.
+.swal2-container {
+  z-index: var(--tt-z-toast);
+}
+
+.swal2-popup.tt-swal {
+  padding: var(--tt-space-6);
+  border: 1px solid var(--tt-border);
+  border-radius: var(--tt-radius-xl);
+  box-shadow: var(--tt-shadow-xl);
+  font-family: var(--tt-font-sans);
+}
+
+.swal2-popup.tt-swal .swal2-title {
+  padding: 0;
+  color: var(--tt-ink-strong);
+  font-size: var(--tt-text-xl);
+  font-weight: var(--tt-weight-semibold);
+  letter-spacing: var(--tt-tracking-tight);
+}
+
+.swal2-popup.tt-swal .swal2-html-container {
+  margin: var(--tt-space-3) 0 0;
+  color: var(--tt-ink-body);
+  font-size: var(--tt-text-base);
+  line-height: var(--tt-leading-normal);
+}
+
+.swal2-popup.tt-swal .swal2-actions {
+  gap: var(--tt-space-2);
+  margin-top: var(--tt-space-6);
+}
+
+.swal2-popup.tt-swal .swal2-styled {
+  margin: 0;
+  padding: 0 var(--tt-space-5);
+  height: 38px;
+  border-radius: var(--tt-radius-md);
+  box-shadow: none;
+  font-size: var(--tt-text-base);
+  font-weight: var(--tt-weight-medium);
+  transition: background-color var(--tt-duration-fast) var(--tt-ease-out);
+}
+
+.swal2-popup.tt-swal .swal2-styled.swal2-confirm {
+  background: var(--tt-primary);
+  color: var(--tt-ink-inverse);
+}
+
+.swal2-popup.tt-swal .swal2-styled.swal2-confirm:hover {
+  background: var(--tt-primary-hover);
+}
+
+.swal2-popup.tt-swal .swal2-styled.swal2-confirm.tt-swal-danger {
+  background: var(--tt-danger);
+}
+
+.swal2-popup.tt-swal .swal2-styled.swal2-confirm.tt-swal-danger:hover {
+  background: var(--tt-danger-hover);
+}
+
+.swal2-popup.tt-swal .swal2-styled.swal2-cancel {
+  background: var(--tt-surface);
+  border: 1px solid var(--tt-border);
+  color: var(--tt-ink-body);
+}
+
+.swal2-popup.tt-swal .swal2-styled.swal2-cancel:hover {
+  background: var(--tt-surface-hover);
+}
+
+// Toasts sit top-end per the spec and carry a coloured edge on the leading side only
+// as a full border, never a thick side stripe.
+.swal2-popup.tt-toast {
+  grid-column: 1;
+  padding: var(--tt-space-3) var(--tt-space-4);
+  border: 1px solid var(--tt-border);
+  border-radius: var(--tt-radius-lg);
+  box-shadow: var(--tt-shadow-lg);
+  font-family: var(--tt-font-sans);
+}
+
+.swal2-popup.tt-toast .swal2-title {
+  margin: 0;
+  padding: 0;
+  color: var(--tt-ink-strong);
+  font-size: var(--tt-text-base);
+  font-weight: var(--tt-weight-medium);
+  text-align: left;
+}
+
+.swal2-popup.tt-toast .swal2-html-container {
+  margin: 2px 0 0;
+  color: var(--tt-ink-muted);
+  font-size: var(--tt-text-sm);
+  text-align: left;
+}
+
+.swal2-popup.tt-toast.tt-toast-success {
+  border-color: color-mix(in oklch, var(--tt-success) 30%, var(--tt-border));
+  background: var(--tt-success-soft);
+}
+
+.swal2-popup.tt-toast.tt-toast-error {
+  border-color: color-mix(in oklch, var(--tt-danger) 30%, var(--tt-border));
+  background: var(--tt-danger-soft);
+}
+
+.swal2-popup.tt-toast.tt-toast-warning {
+  border-color: color-mix(in oklch, var(--tt-warning) 36%, var(--tt-border));
+  background: var(--tt-warning-soft);
+}
+
+.swal2-popup.tt-toast.tt-toast-info {
+  border-color: color-mix(in oklch, var(--tt-info) 30%, var(--tt-border));
+  background: var(--tt-info-soft);
+}
+
+// ---------- Print ----------
+// Invoices print without the shell. A4 and 80mm are handled in the invoice print styles.
+@media print {
+  .tt-no-print {
+    display: none !important;
+  }
+
+  body {
+    background: #fff;
+  }
+}

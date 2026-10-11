@@ -1,0 +1,134 @@
+<div class="tt-page">
+  <header class="tt-page-head">
+    <div class="tt-page-head__text">
+      <h1 class="tt-page-head__title">Balance sheet</h1>
+      <p class="tt-page-head__sub">
+        {{ shopLabel() }}, as at one date. Assets are cash, what customers owe and stock on
+        hand. Owner equity is whatever is left after the suppliers are paid.
+      </p>
+    </div>
+
+    <div class="tt-page-head__actions">
+      <div class="filters__field">
+        <label class="tt-field__label" for="as-at">As at</label>
+        <input id="as-at" class="tt-input" type="date" name="asAt"
+               [ngModel]="asAt()" (ngModelChange)="asAt.set($event)" />
+      </div>
+      <button type="button" class="tt-btn tt-btn--primary" (click)="load()">Apply</button>
+    </div>
+  </header>
+
+  @if (loading()) {
+    <div class="tt-panel">
+      <div class="tt-panel__body skeleton-rows">
+        @for (n of [1, 2, 3, 4, 5]; track n) {
+          <div class="tt-skeleton tt-skeleton-text"></div>
+        }
+      </div>
+    </div>
+  } @else if (failed()) {
+    <div class="tt-panel">
+      <div class="tt-error-state">
+        <p class="tt-empty__title">The report could not load</p>
+        <button type="button" class="tt-btn tt-btn--primary" (click)="load()">Try again</button>
+      </div>
+    </div>
+  } @else if (data(); as sheet) {
+    <div class="identity" [class.identity--warn]="!balances()" role="status">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        @if (balances()) {
+          <path d="M20 6 9 17l-5-5" />
+        } @else {
+          <path d="M12 8v5m0 3.5v.5M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18Z" />
+        }
+      </svg>
+      @if (balances()) {
+        <span>
+          Assets {{ money(sheet.totalAssets) }} equal liabilities plus equity
+          {{ money(sheet.totalLiabilities + sheet.ownerEquity) }}
+        </span>
+      } @else {
+        <span>
+          The sheet does not balance. Assets {{ money(sheet.totalAssets) }} against
+          {{ money(sheet.totalLiabilities + sheet.ownerEquity) }}
+        </span>
+      }
+    </div>
+
+    <section class="headline">
+      <div class="headline__item headline__item--emerald">
+        <span class="headline__label">Total assets</span>
+        <span class="headline__value">{{ money(sheet.totalAssets) }}</span>
+      </div>
+      <div class="headline__item headline__item--rose">
+        <span class="headline__label">Total liabilities</span>
+        <span class="headline__value">{{ money(sheet.totalLiabilities) }}</span>
+      </div>
+      <div class="headline__item headline__item--accent">
+        <span class="headline__label">Owner equity</span>
+        <span class="headline__value" [class.tt-neg]="sheet.ownerEquity < 0">
+          {{ money(sheet.ownerEquity) }}
+        </span>
+        <span class="headline__note">Includes profit to date</span>
+      </div>
+    </section>
+
+    <div class="report-grid">
+      <div class="tt-panel">
+        <div class="tt-panel__head">
+          <h2 class="tt-panel__title">Assets</h2>
+          <span class="tt-panel__meta">{{ longDate(sheet.asAt) }}</span>
+        </div>
+
+        <table class="tt-statement">
+          <tbody>
+            <tr>
+              <td>Cash and bank</td>
+              <td class="tt-num">{{ money(sheet.cashAndBank) }}</td>
+            </tr>
+            <tr>
+              <td>Receivables</td>
+              <td class="tt-num">{{ money(sheet.receivables) }}</td>
+            </tr>
+            <tr>
+              <td>Inventory at cost</td>
+              <td class="tt-num">{{ money(sheet.inventory) }}</td>
+            </tr>
+            <tr class="tt-statement__total">
+              <td>Total assets</td>
+              <td class="tt-num">{{ money(sheet.totalAssets) }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="tt-panel">
+        <div class="tt-panel__head">
+          <h2 class="tt-panel__title">Liabilities and equity</h2>
+        </div>
+
+        <table class="tt-statement">
+          <tbody>
+            <tr>
+              <td>Payables to suppliers</td>
+              <td class="tt-num">{{ money(sheet.payables) }}</td>
+            </tr>
+            <tr class="tt-statement__sub">
+              <td>Total liabilities</td>
+              <td class="tt-num">{{ money(sheet.totalLiabilities) }}</td>
+            </tr>
+            <tr>
+              <td>Owner equity</td>
+              <td class="tt-num">{{ money(sheet.ownerEquity) }}</td>
+            </tr>
+            <tr class="tt-statement__total">
+              <td>Total liabilities and equity</td>
+              <td class="tt-num">{{ money(sheet.totalLiabilities + sheet.ownerEquity) }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
+</div>

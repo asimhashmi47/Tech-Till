@@ -1,0 +1,117 @@
+:host {
+  display: contents;
+}
+
+.scrim {
+  position: fixed;
+  inset: 0;
+  z-index: var(--tt-z-overlay);
+  background: oklch(21.4% 0.024 264 / 34%);
+  animation: fade-in var(--tt-duration-fast) var(--tt-ease-out);
+}
+
+.drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: var(--tt-z-drawer);
+  display: flex;
+  flex-direction: column;
+  width: min(460px, 100vw);
+  background: var(--tt-surface);
+  border-left: 1px solid var(--tt-border);
+  box-shadow: var(--tt-shadow-xl);
+  animation: slide-in var(--tt-duration-normal) var(--tt-ease-out-quart);
+}
+
+.drawer--wide {
+  width: min(760px, 100vw);
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes slide-in {
+  from {
+    transform: translateX(24px);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scrim,
+  .drawer {
+    animation: none;
+  }
+}
+
+.drawer__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--tt-space-4);
+  padding: var(--tt-space-5);
+  border-bottom: 1px solid var(--tt-border-subtle);
+  flex: none;
+}
+
+.drawer__title {
+  font-size: var(--tt-text-xl);
+}
+
+.drawer__sub {
+  margin-top: var(--tt-space-1);
+  color: var(--tt-ink-muted);
+  font-size: var(--tt-text-sm);
+}
+
+.drawer__close {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  flex: none;
+  background: none;
+  border: 0;
+  border-radius: var(--tt-radius-sm);
+  color: var(--tt-neutral-400);
+  cursor: pointer;
+  transition:
+    background-color var(--tt-duration-fast) var(--tt-ease-out),
+    color var(--tt-duration-fast) var(--tt-ease-out);
+}
+
+.drawer__close:hover {
+  background: var(--tt-surface-hover);
+  color: var(--tt-ink-strong);
+}
+
+.drawer__close svg {
+  width: 17px;
+  height: 17px;
+}
+
+.drawer__body {
+  flex: 1;
+  padding: var(--tt-space-5);
+  overflow-y: auto;
+}
+
+.drawer__foot {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--tt-space-2);
+  padding: var(--tt-space-4) var(--tt-space-5);
+  border-top: 1px solid var(--tt-border-subtle);
+  background: var(--tt-neutral-25);
+  flex: none;
+}
+
+.drawer__foot:empty {
+  display: none;
+}

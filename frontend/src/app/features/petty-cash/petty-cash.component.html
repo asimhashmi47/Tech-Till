@@ -1,0 +1,164 @@
+<div class="tt-page">
+  <header class="tt-page-head">
+    <div class="tt-page-head__text">
+      <h1 class="tt-page-head__title">Petty cash</h1>
+      <p class="tt-page-head__sub">
+        The cash drawer per shop. Cash sales, cash receipts and cash expenses flow in here
+        automatically; use the buttons for a float or a withdrawal.
+      </p>
+    </div>
+
+    @if (canWrite) {
+      <div class="tt-page-head__actions">
+        <button type="button" class="tt-btn tt-btn--accent tt-btn--amber" (click)="openEntry('Out')">
+          Cash out
+        </button>
+        <button type="button" class="tt-btn tt-btn--primary" (click)="openEntry('In')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" aria-hidden="true">
+            <path d="M12 5v14M5 12h14" />
+          </svg>
+          Cash in
+        </button>
+      </div>
+    }
+  </header>
+
+  <!-- Day position per shop -->
+  <div class="tt-panel">
+    <div class="tt-panel__head">
+      <h2 class="tt-panel__title">Day position</h2>
+      <div class="tt-row">
+        <label class="tt-field__label" for="day">Date</label>
+        <input id="day" class="tt-input" type="date" style="width: 170px"
+               [ngModel]="day()" (ngModelChange)="onDayChange($event)" name="day" />
+      </div>
+    </div>
+
+    @if (loadingDays()) {
+      <div class="tt-panel__body tt-stack">
+        @for (n of [1, 2]; track n) {
+          <div class="tt-skeleton tt-skeleton-text"></div>
+        }
+      </div>
+    } @else if (days().length === 0) {
+      <div class="tt-empty">
+        <p class="tt-empty__title">No shop to show</p>
+        <p class="tt-empty__text">Your account is not assigned to a shop yet.</p>
+      </div>
+    } @else {
+      <table class="tt-statement">
+        <thead>
+          <tr>
+            <th scope="col">Shop</th>
+            <th scope="col" class="tt-num">Opening</th>
+            <th scope="col" class="tt-num">Cash in</th>
+            <th scope="col" class="tt-num">Cash out</th>
+            <th scope="col" class="tt-num">Closing</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of days(); track row.shopId) {
+            <tr>
+              <td class="tt-strong">{{ row.shopName }}</td>
+              <td class="tt-num">{{ money(row.opening) }}</td>
+              <td class="tt-num tt-pos">{{ money(row.cashIn) }}</td>
+              <td class="tt-num tt-neg">{{ money(row.cashOut) }}</td>
+              <td class="tt-num tt-strong">{{ money(row.closing) }}</td>
+            </tr>
+          }
+          @if (days().length > 1) {
+            <tr class="tt-statement__total">
+              <td>All shops</td>
+              <td class="tt-num"></td>
+              <td class="tt-num"></td>
+              <td class="tt-num"></td>
+              <td class="tt-num">{{ money(totalClosing()) }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+  </div>
+
+  <div class="tt-panel">
+    <tt-data-grid
+      #grid
+      gridKey="petty-cash"
+      [columns]="columns"
+      [dataSource]="dataSource"
+      [actions]="actions"
+      [defaultSort]="[{ field: 'entryDate', desc: true }]"
+      searchPlaceholder="Search note or shop"
+      emptyTitle="Nothing in the drawer yet"
+      emptyText="Record a float to start, or take a cash sale at the till."
+    />
+  </div>
+</div>
+
+<tt-drawer
+  [open]="drawerOpen()"
+  [heading]="direction() === 'In' ? 'Cash into the drawer' : 'Cash out of the drawer'"
+  (closed)="close()"
+>
+  <form class="tt-form" (ngSubmit)="save()" id="petty-form">
+    <div class="tt-field">
+      <span class="tt-field__label">Direction</span>
+      <div class="tt-segment" role="group" aria-label="Direction">
+        <button type="button" class="tt-segment__opt"
+                [class.tt-segment__opt--on]="direction() === 'In'"
+                (click)="direction.set('In')">Cash in</button>
+        <button type="button" class="tt-segment__opt"
+                [class.tt-segment__opt--on]="direction() === 'Out'"
+                (click)="direction.set('Out')">Cash out</button>
+      </div>
+    </div>
+
+    <div class="tt-field">
+      <label class="tt-field__label" for="entry-shop">Shop</label>
+      <select id="entry-shop" class="tt-select" name="entryShop"
+              [ngModel]="entryShopId()" (ngModelChange)="entryShopId.set(+$event)">
+        @for (shop of shops(); track shop.id) {
+          <option [value]="shop.id">{{ shop.name }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="tt-form tt-form--2col">
+      <div class="tt-field">
+        <label class="tt-field__label" for="entry-date">Date</label>
+        <input id="entry-date" class="tt-input" type="date" name="entryDate"
+               [ngModel]="entryDate()" (ngModelChange)="entryDate.set($event)" />
+      </div>
+
+      <div class="tt-field">
+        <label class="tt-field__label" for="entry-amount">Amount</label>
+        <input id="entry-amount" class="tt-input tt-input--number" type="number" step="0.01" min="0"
+               name="entryAmount" [class.tt-input--invalid]="error()"
+               [ngModel]="amount()" (ngModelChange)="amount.set(+$event)" />
+      </div>
+    </div>
+
+    <div class="tt-field">
+      <label class="tt-field__label" for="entry-note">Note</label>
+      <input id="entry-note" class="tt-input" name="entryNote"
+             [placeholder]="direction() === 'In' ? 'For example: opening float' : 'For example: bank deposit'"
+             [ngModel]="note()" (ngModelChange)="note.set($event)" />
+    </div>
+
+    @if (error()) {
+      <p class="tt-field__error">{{ error() }}</p>
+    }
+
+    <p class="tt-field__hint">
+      For a shop expense use the Expenses screen instead, so profit and the drawer both move.
+    </p>
+  </form>
+
+  <div drawerFooter>
+    <button type="button" class="tt-btn tt-btn--ghost" (click)="close()">Cancel</button>
+    <button type="submit" form="petty-form" class="tt-btn tt-btn--primary" [disabled]="saving()">
+      {{ saving() ? 'Saving' : 'Record entry' }}
+    </button>
+  </div>
+</tt-drawer>

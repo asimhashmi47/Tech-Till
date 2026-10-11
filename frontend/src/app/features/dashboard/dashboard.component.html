@@ -1,0 +1,244 @@
+<div class="tt-page">
+  <header class="tt-page-head">
+    <div class="tt-page-head__text">
+      <h1 class="tt-page-head__title">Dashboard</h1>
+      <p class="tt-page-head__sub">
+        {{ shopLabel() }}@if (rangeLabel()) { <span>, {{ rangeLabel() }}</span> }
+      </p>
+    </div>
+    <div class="tt-page-head__actions">
+      <button type="button" class="tt-btn tt-btn--ghost" (click)="retry()" [disabled]="loading()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M20 12a8 8 0 1 1-2.3-5.7M20 4v5h-5" />
+        </svg>
+        Refresh
+      </button>
+    </div>
+  </header>
+
+  <!-- Date range. Balances read as at the end date, totals cover the whole window. -->
+  <section class="range" aria-label="Date range">
+    <div class="range__dates">
+      <div class="range__field">
+        <label class="tt-field__label" for="range-from">From</label>
+        <input id="range-from" class="tt-input" type="date" name="from" [max]="to()"
+               [ngModel]="from()" (ngModelChange)="from.set($event)" />
+      </div>
+
+      <div class="range__field">
+        <label class="tt-field__label" for="range-to">To</label>
+        <input id="range-to" class="tt-input" type="date" name="to" [min]="from()"
+               [ngModel]="to()" (ngModelChange)="to.set($event)" />
+      </div>
+
+      <button type="button" class="tt-btn tt-btn--primary" (click)="apply()" [disabled]="loading()">
+        Apply
+      </button>
+    </div>
+
+    <div class="range__presets" role="group" aria-label="Quick ranges">
+      @for (preset of presets; track preset.days) {
+        <button type="button" class="range__preset" [class.range__preset--on]="isPresetActive(preset.days)"
+                (click)="applyPreset(preset.days)">
+          {{ preset.label }}
+        </button>
+      }
+    </div>
+
+    @if (rangeInvalid()) {
+      <p class="range__hint" role="status">
+        The start date is after the end date, so the two will be swapped.
+      </p>
+    }
+  </section>
+
+  @if (failed()) {
+    <div class="tt-panel">
+      <div class="tt-error-state">
+        <div class="tt-empty__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+               stroke-linecap="round" aria-hidden="true">
+            <path d="M12 8v5m0 3.5v.5M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18Z" />
+          </svg>
+        </div>
+        <p class="tt-empty__title">The dashboard could not load</p>
+        <p class="tt-empty__text">The server did not answer. Your data is unaffected.</p>
+        <button type="button" class="tt-btn tt-btn--primary" (click)="retry()">Try again</button>
+      </div>
+    </div>
+  } @else {
+    <!-- Eight KPI cards, each with its own accent -->
+    <section class="kpi-grid" aria-label="Key figures">
+      <tt-kpi-card label="Today sales" accent="indigo" [icon]="icons.todaySales"
+                   [value]="kpi()?.todaySales ?? 0" [loading]="loading()"
+                   [link]="links().todaySales" note="Invoices raised today" />
+      <tt-kpi-card label="Sales in range" accent="violet" [icon]="icons.monthSales"
+                   [value]="kpi()?.periodSales ?? 0" [loading]="loading()"
+                   [link]="links().monthSales" [note]="rangeLabel()" />
+      <tt-kpi-card label="Gross profit" accent="emerald" [icon]="icons.grossProfit"
+                   [value]="kpi()?.grossProfit ?? 0" [loading]="loading()"
+                   [link]="links().grossProfit" note="Sales less cost of goods" />
+      <tt-kpi-card label="Expenses" accent="rose" [icon]="icons.expenses"
+                   [value]="kpi()?.expenses ?? 0" [loading]="loading()"
+                   [link]="links().expenses" note="In the selected range" />
+      <tt-kpi-card label="Receivables" accent="amber" [icon]="icons.receivables"
+                   [value]="kpi()?.receivables ?? 0" [loading]="loading()"
+                   [link]="links().receivables" note="Owed as at the end date" />
+      <tt-kpi-card label="Payables" accent="orange" [icon]="icons.payables"
+                   [value]="kpi()?.payables ?? 0" [loading]="loading()"
+                   [link]="links().payables" note="Owed as at the end date" />
+      <tt-kpi-card label="Cash in hand" accent="cyan" [icon]="icons.cash"
+                   [value]="kpi()?.cashInHand ?? 0" [loading]="loading()"
+                   [link]="links().cashInHand" note="Across the drawers" />
+      <tt-kpi-card label="Low stock items" accent="pink" [icon]="icons.lowStock"
+                   [value]="kpi()?.lowStockItems ?? 0" [money]="false" [loading]="loading()"
+                   [link]="links().lowStock" note="At or below reorder level" />
+    </section>
+
+    <!-- Six charts, each a different type -->
+    <section class="chart-grid" aria-label="Charts">
+      <div class="chart-grid__wide">
+        <tt-chart-card title="Sales and expenses" [subtitle]="bucketLabel()" type="bar"
+                       [data]="salesVsExpenses()" [options]="groupedBarOptions"
+                       [loading]="loading()" height="280px" />
+      </div>
+
+      <div class="chart-grid__wide">
+        <tt-chart-card title="Sales trend" [subtitle]="bucketLabel()" type="line"
+                       [data]="dailySales()" [options]="lineOptions"
+                       [loading]="loading()" height="280px" />
+      </div>
+
+      <tt-chart-card title="Sales by category" subtitle="In the selected range" type="doughnut"
+                     [data]="salesByCategory()" [options]="doughnutOptions"
+                     [loading]="loading()" [empty]="!hasData(data()?.salesByCategory)" />
+
+      <tt-chart-card title="Top products" subtitle="In the selected range" type="bar"
+                     [data]="topProducts()" [options]="horizontalBarOptions"
+                     [loading]="loading()" [empty]="!hasData(data()?.topProducts)" />
+
+      <tt-chart-card title="Receivable ageing" subtitle="As at the end date" type="bar"
+                     [data]="ageing()" [options]="stackedOptions"
+                     [loading]="loading()" [empty]="!ageingHasData" />
+
+      <tt-chart-card title="Shop comparison" subtitle="Sales in the selected range" type="polarArea"
+                     [data]="shopSales()" [options]="polarOptions"
+                     [loading]="loading()" [empty]="!hasData(data()?.shopSales)" />
+    </section>
+
+    <!-- Recent invoices and low stock -->
+    <section class="list-grid">
+      <div class="tt-panel">
+        <div class="tt-panel__head">
+          <h2 class="tt-panel__title">Recent invoices</h2>
+          @if (canSeeInvoices()) {
+            <a class="tt-btn tt-btn--quiet" routerLink="/invoices">View all</a>
+          }
+        </div>
+
+        @if (loading()) {
+          <div class="tt-panel__body skeleton-rows">
+            @for (row of [1, 2, 3, 4, 5]; track row) {
+              <div class="tt-skeleton tt-skeleton-text"></div>
+            }
+          </div>
+        } @else if ((data()?.recentInvoices?.length ?? 0) === 0) {
+          <div class="tt-empty">
+            <div class="tt-empty__icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                   stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path [attr.d]="icons.invoice" />
+              </svg>
+            </div>
+            <p class="tt-empty__title">No invoices yet</p>
+            <p class="tt-empty__text">Completed sales from the till appear here.</p>
+          </div>
+        } @else {
+          <table class="mini-table">
+            <thead>
+              <tr>
+                <th scope="col">Invoice</th>
+                <th scope="col">Customer</th>
+                <th scope="col" class="tt-num">Total</th>
+                <th scope="col">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (invoice of data()!.recentInvoices; track invoice.id) {
+                <tr>
+                  <td>
+                    @if (canSeeInvoices()) {
+                      <a [routerLink]="['/invoices', invoice.id]" class="mini-table__link">
+                        {{ invoice.invoiceNo }}
+                      </a>
+                    } @else {
+                      {{ invoice.invoiceNo }}
+                    }
+                  </td>
+                  <td class="mini-table__truncate">{{ invoice.customerName }}</td>
+                  <td class="tt-num">{{ money(invoice.total) }}</td>
+                  <td><span [class]="statusClass(invoice.status)">{{ invoice.status }}</span></td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
+      </div>
+
+      <div class="tt-panel">
+        <div class="tt-panel__head">
+          <h2 class="tt-panel__title">Low stock</h2>
+          @if (canSeeStock()) {
+            <a class="tt-btn tt-btn--quiet" routerLink="/stock">Open stock</a>
+          }
+        </div>
+
+        @if (loading()) {
+          <div class="tt-panel__body skeleton-rows">
+            @for (row of [1, 2, 3, 4, 5]; track row) {
+              <div class="tt-skeleton tt-skeleton-text"></div>
+            }
+          </div>
+        } @else if ((data()?.lowStock?.length ?? 0) === 0) {
+          <div class="tt-empty">
+            <div class="tt-empty__icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                   stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M20 6 9 17l-5-5" />
+              </svg>
+            </div>
+            <p class="tt-empty__title">Every product is above its reorder level</p>
+            <p class="tt-empty__text">Items drop in here when stock runs down.</p>
+          </div>
+        } @else {
+          <table class="mini-table">
+            <thead>
+              <tr>
+                <th scope="col">Product</th>
+                <th scope="col">Shop</th>
+                <th scope="col" class="tt-num">Qty</th>
+                <th scope="col" class="tt-num">Reorder at</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (row of data()!.lowStock; track row.productId + '-' + row.shopId) {
+                <tr>
+                  <td class="mini-table__truncate">
+                    <span class="tt-strong">{{ row.productName }}</span>
+                    <span class="mini-table__sku">{{ row.sku }}</span>
+                  </td>
+                  <td class="mini-table__truncate">{{ row.shopName }}</td>
+                  <td class="tt-num">
+                    <span [class.tt-neg]="row.qty <= 0">{{ row.qty }}</span>
+                  </td>
+                  <td class="tt-num tt-muted">{{ row.reorderLevel }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
+      </div>
+    </section>
+  }
+</div>

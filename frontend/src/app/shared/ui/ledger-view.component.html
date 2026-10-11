@@ -1,0 +1,124 @@
+<div class="tt-page">
+  <header class="tt-page-head">
+    <div class="tt-page-head__text">
+      <nav class="crumbs" aria-label="Breadcrumb">
+        <a [href]="backLink()" (click)="$event.preventDefault()">{{ backLabel() }}</a>
+        <span aria-hidden="true">/</span>
+        <span>Ledger</span>
+      </nav>
+      <h1 class="tt-page-head__title">{{ ledger()?.partyName ?? 'Ledger' }}</h1>
+      <p class="tt-page-head__sub">{{ balanceLabel() }}</p>
+    </div>
+
+    <div class="tt-page-head__actions">
+      <div class="tt-row">
+        <label class="tt-field__label" for="from">From</label>
+        <input id="from" class="tt-input" type="date" style="width: 160px"
+               [ngModel]="from()" (ngModelChange)="from.set($event)" name="from" />
+        <label class="tt-field__label" for="to">To</label>
+        <input id="to" class="tt-input" type="date" style="width: 160px"
+               [ngModel]="to()" (ngModelChange)="to.set($event)" name="to" />
+        <button type="button" class="tt-btn tt-btn--primary" (click)="load()">Apply</button>
+        @if (from() || to()) {
+          <button type="button" class="tt-btn tt-btn--quiet" (click)="clearDates()">Clear</button>
+        }
+      </div>
+    </div>
+  </header>
+
+  @if (loading()) {
+    <div class="tt-panel">
+      <div class="tt-panel__body tt-stack">
+        @for (n of [1,2,3,4,5]; track n) {
+          <div class="tt-skeleton tt-skeleton-text"></div>
+        }
+      </div>
+    </div>
+  } @else if (failed()) {
+    <div class="tt-panel">
+      <div class="tt-error-state">
+        <p class="tt-empty__title">The ledger could not load</p>
+        <p class="tt-empty__text">The server did not answer.</p>
+        <button type="button" class="tt-btn tt-btn--primary" (click)="load()">Try again</button>
+      </div>
+    </div>
+  } @else if (ledger(); as data) {
+    <section class="summary">
+      <div class="summary__item">
+        <span class="summary__label">Opening balance</span>
+        <span class="summary__value tt-num">{{ money(data.opening) }}</span>
+      </div>
+      <div class="summary__item">
+        <span class="summary__label">Total debit</span>
+        <span class="summary__value tt-num">{{ money(totals().debit) }}</span>
+      </div>
+      <div class="summary__item">
+        <span class="summary__label">Total credit</span>
+        <span class="summary__value tt-num">{{ money(totals().credit) }}</span>
+      </div>
+      <div class="summary__item summary__item--strong">
+        <span class="summary__label">Closing balance</span>
+        <span class="summary__value tt-num" [class.tt-neg]="data.closing > 0">
+          {{ money(data.closing) }}
+        </span>
+      </div>
+    </section>
+
+    <div class="tt-panel">
+      @if (data.rows.length === 0) {
+        <div class="tt-empty">
+          <div class="tt-empty__icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M4 7h16M4 12h10M4 17h7" />
+            </svg>
+          </div>
+          <p class="tt-empty__title">Nothing in this period</p>
+          <p class="tt-empty__text">Widen the dates, or clear them to see the whole history.</p>
+        </div>
+      } @else {
+        <table class="tt-statement">
+          <thead>
+            <tr>
+              <th scope="col">Date</th>
+              <th scope="col">Reference</th>
+              <th scope="col">Description</th>
+              <th scope="col" class="tt-num">Debit</th>
+              <th scope="col" class="tt-num">Credit</th>
+              <th scope="col" class="tt-num">Balance</th>
+            </tr>
+          </thead>
+          <tbody>
+            @if (from()) {
+              <tr class="tt-statement__sub">
+                <td>{{ date(from()) }}</td>
+                <td colspan="2">Opening balance</td>
+                <td class="tt-num"></td>
+                <td class="tt-num"></td>
+                <td class="tt-num">{{ money(data.opening) }}</td>
+              </tr>
+            }
+
+            @for (row of data.rows; track $index) {
+              <tr>
+                <td>{{ date(row.date) }}</td>
+                <td class="tt-mono">{{ row.reference }}</td>
+                <td>{{ row.description }}</td>
+                <td class="tt-num">{{ row.debit > 0 ? money(row.debit) : '' }}</td>
+                <td class="tt-num">{{ row.credit > 0 ? money(row.credit) : '' }}</td>
+                <td class="tt-num tt-strong">{{ money(row.balance) }}</td>
+              </tr>
+            }
+
+            <tr class="tt-statement__total">
+              <td colspan="3">Closing balance</td>
+              <td class="tt-num">{{ money(totals().debit) }}</td>
+              <td class="tt-num">{{ money(totals().credit) }}</td>
+              <td class="tt-num">{{ money(data.closing) }}</td>
+            </tr>
+          </tbody>
+        </table>
+      }
+    </div>
+  }
+</div>

@@ -1,0 +1,293 @@
+:host {
+  display: block;
+  min-height: 100vh;
+  background: var(--tt-neutral-50);
+}
+
+// ---------- Screen controls ----------
+
+.bar {
+  position: sticky;
+  top: 0;
+  z-index: var(--tt-z-sticky);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--tt-space-4);
+  padding: var(--tt-space-3) var(--tt-space-5);
+  background: var(--tt-surface);
+  border-bottom: 1px solid var(--tt-border);
+  flex-wrap: wrap;
+}
+
+.bar__group {
+  display: inline-flex;
+  padding: 3px;
+  background: var(--tt-neutral-50);
+  border-radius: var(--tt-radius-md);
+}
+
+.bar__opt {
+  height: 30px;
+  padding: 0 var(--tt-space-3);
+  background: none;
+  border: 0;
+  border-radius: var(--tt-radius-sm);
+  color: var(--tt-ink-body);
+  font-size: var(--tt-text-sm);
+  font-weight: var(--tt-weight-medium);
+  cursor: pointer;
+}
+
+.bar__opt--on {
+  background: var(--tt-surface);
+  box-shadow: var(--tt-shadow-xs);
+  color: var(--tt-primary-text);
+}
+
+.bar__actions {
+  display: flex;
+  gap: var(--tt-space-2);
+}
+
+.status {
+  padding: var(--tt-space-10);
+  color: var(--tt-ink-muted);
+  text-align: center;
+}
+
+// ---------- The document ----------
+// Black ink on white, hairline rules. Nothing here depends on a colour printer.
+
+.doc {
+  width: 210mm;
+  min-height: 297mm;
+  margin: var(--tt-space-6) auto;
+  padding: 16mm 14mm;
+  background: #fff;
+  box-shadow: var(--tt-shadow-md);
+  color: #111;
+  font-size: 11pt;
+  line-height: 1.45;
+}
+
+.doc--thermal {
+  width: 80mm;
+  min-height: auto;
+  padding: 5mm 4mm;
+  font-size: 9pt;
+  line-height: 1.35;
+}
+
+.doc__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10mm;
+  padding-bottom: 5mm;
+  border-bottom: 1px solid #111;
+}
+
+.doc--thermal .doc__head {
+  flex-direction: column;
+  gap: 2mm;
+  text-align: center;
+  align-items: center;
+}
+
+.doc__shop-name {
+  font-size: 15pt;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.doc--thermal .doc__shop-name {
+  font-size: 12pt;
+}
+
+.doc__shop-line {
+  color: #444;
+  font-size: 9.5pt;
+}
+
+.doc__title {
+  text-align: right;
+}
+
+.doc--thermal .doc__title {
+  text-align: center;
+}
+
+.doc__label {
+  color: #444;
+  font-size: 9pt;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.doc__no {
+  font-size: 13pt;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.doc__void {
+  margin-top: 1mm;
+  padding: 0.5mm 2mm;
+  border: 1.5pt solid #111;
+  display: inline-block;
+  font-size: 10pt;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+}
+
+.doc__meta {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 4mm;
+  padding: 5mm 0;
+  border-bottom: 1px solid #ccc;
+}
+
+.doc--thermal .doc__meta {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 2mm;
+  padding: 3mm 0;
+}
+
+.doc__meta-label {
+  color: #555;
+  font-size: 8.5pt;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.doc__meta-value {
+  font-weight: 600;
+}
+
+.doc__meta-sub {
+  color: #555;
+  font-size: 9pt;
+}
+
+.doc__table {
+  width: 100%;
+  margin-top: 5mm;
+  border-collapse: collapse;
+}
+
+.doc__table th {
+  padding: 2mm 1mm;
+  border-bottom: 1px solid #111;
+  font-size: 9pt;
+  font-weight: 700;
+  text-align: left;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.doc__table td {
+  padding: 2.5mm 1mm;
+  border-bottom: 1px solid #e3e3e3;
+  vertical-align: top;
+}
+
+.doc__col-num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.doc__item-name {
+  display: block;
+  font-weight: 500;
+}
+
+.doc__item-sku {
+  color: #666;
+  font-size: 8.5pt;
+  font-variant-numeric: tabular-nums;
+}
+
+.doc__totals {
+  margin: 5mm 0 0 auto;
+  width: 70mm;
+}
+
+.doc--thermal .doc__totals {
+  width: 100%;
+}
+
+.doc__total {
+  display: flex;
+  justify-content: space-between;
+  gap: 4mm;
+  padding: 1mm 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.doc__total--grand {
+  margin-top: 1mm;
+  padding-top: 2mm;
+  border-top: 1px solid #111;
+  font-size: 12pt;
+  font-weight: 700;
+}
+
+.doc__note {
+  margin-top: 5mm;
+  padding: 2mm 3mm;
+  border-left: 1px solid #ccc;
+  color: #333;
+  font-size: 9.5pt;
+}
+
+.doc__foot {
+  margin-top: 8mm;
+  padding-top: 3mm;
+  border-top: 1px solid #ccc;
+  color: #555;
+  font-size: 8.5pt;
+  text-align: center;
+}
+
+.doc__thanks {
+  margin-top: 1mm;
+  color: #111;
+  font-weight: 600;
+}
+
+// ---------- Print ----------
+
+@media print {
+  :host {
+    background: #fff;
+  }
+
+  .doc {
+    width: auto;
+    min-height: 0;
+    margin: 0;
+    padding: 0;
+    box-shadow: none;
+  }
+
+  // The page box follows the chosen size. Thermal rolls print continuous, so the page
+  // height is set to auto rather than a fixed sheet.
+  :host-context(.print-a4) {
+    size: A4;
+  }
+
+  .doc__table thead {
+    display: table-header-group;
+  }
+
+  .doc__table tr {
+    break-inside: avoid;
+  }
+}
+
+@page {
+  margin: 12mm;
+}

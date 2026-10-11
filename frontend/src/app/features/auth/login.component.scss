@@ -1,0 +1,228 @@
+:host {
+  display: block;
+}
+
+.login {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  min-height: 100vh;
+  background: var(--tt-app-bg);
+}
+
+.login__panel {
+  display: grid;
+  place-items: center;
+  padding: var(--tt-space-10) var(--tt-space-6);
+  background: var(--tt-surface);
+}
+
+.login__inner {
+  width: 100%;
+  max-width: 368px;
+}
+
+.login__brand {
+  display: flex;
+  align-items: center;
+  gap: var(--tt-space-3);
+}
+
+.login__mark {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--tt-radius-md);
+  background: var(--tt-primary);
+  color: var(--tt-ink-inverse);
+}
+
+.login__mark svg {
+  width: 20px;
+  height: 20px;
+}
+
+.login__wordmark {
+  color: var(--tt-ink-strong);
+  font-size: var(--tt-text-lg);
+  font-weight: var(--tt-weight-semibold);
+  letter-spacing: var(--tt-tracking-tight);
+}
+
+.login__head {
+  margin: var(--tt-space-10) 0 var(--tt-space-6);
+}
+
+.login__title {
+  font-size: var(--tt-text-3xl);
+}
+
+.login__sub {
+  margin-top: var(--tt-space-2);
+  color: var(--tt-ink-muted);
+  font-size: var(--tt-text-md);
+}
+
+.login__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tt-space-4);
+}
+
+.login__password {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.login__password .tt-input {
+  padding-right: var(--tt-space-10);
+}
+
+.login__reveal {
+  position: absolute;
+  right: var(--tt-space-2);
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  background: none;
+  border: 0;
+  border-radius: var(--tt-radius-sm);
+  color: var(--tt-neutral-400);
+  cursor: pointer;
+  transition: color var(--tt-duration-fast) var(--tt-ease-out);
+}
+
+.login__reveal:hover {
+  color: var(--tt-ink-strong);
+}
+
+.login__reveal svg {
+  width: 17px;
+  height: 17px;
+}
+
+.login__error {
+  padding: var(--tt-space-2) var(--tt-space-3);
+  border: 1px solid color-mix(in oklch, var(--tt-danger) 28%, var(--tt-border));
+  border-radius: var(--tt-radius-md);
+  background: var(--tt-danger-soft);
+  color: var(--tt-danger-text);
+  font-size: var(--tt-text-sm);
+}
+
+.login__spinner {
+  width: 15px;
+  height: 15px;
+  border: 2px solid color-mix(in oklch, currentColor 30%, transparent);
+  border-top-color: currentColor;
+  border-radius: 50%;
+  animation: spin 620ms linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .login__spinner {
+    animation-duration: 2s;
+  }
+}
+
+.login__foot {
+  margin-top: var(--tt-space-8);
+  color: var(--tt-ink-muted);
+  font-size: var(--tt-text-xs);
+}
+
+// ---------- Aside ----------
+
+.login__aside {
+  display: grid;
+  place-items: center;
+  padding: var(--tt-space-10);
+
+  // A flat tinted field rather than a gradient, so it stays quiet behind the form.
+  background: var(--tt-indigo-soft);
+  border-left: 1px solid var(--tt-border-subtle);
+}
+
+.login__aside-inner {
+  max-width: 420px;
+}
+
+.login__aside-lead {
+  color: var(--tt-ink-strong);
+  font-size: var(--tt-text-xl);
+  font-weight: var(--tt-weight-semibold);
+  letter-spacing: var(--tt-tracking-tight);
+  line-height: var(--tt-leading-snug);
+  text-wrap: balance;
+}
+
+.login__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tt-space-4);
+  margin: var(--tt-space-6) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.login__list li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  gap: var(--tt-space-3);
+  color: var(--tt-ink-body);
+  font-size: var(--tt-text-base);
+  line-height: var(--tt-leading-normal);
+}
+
+.login__dot {
+  width: 8px;
+  height: 8px;
+  margin-top: 7px;
+  border-radius: 50%;
+}
+
+.login__dot--indigo {
+  background: var(--tt-indigo);
+}
+
+.login__dot--emerald {
+  background: var(--tt-emerald);
+}
+
+.login__dot--amber {
+  background: var(--tt-amber);
+}
+
+.login__dot--violet {
+  background: var(--tt-violet);
+}
+
+// Below 900px the aside is decoration, so it goes rather than stacking.
+@media (max-width: 900px) {
+  .login {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .login__aside {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .login__panel {
+    padding: var(--tt-space-8) var(--tt-space-4);
+  }
+
+  .login__head {
+    margin-top: var(--tt-space-8);
+  }
+}

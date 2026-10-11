@@ -1,0 +1,80 @@
+// AG Grid, restyled onto the TechTill tokens.
+// The library's quartz theme is loaded for structure, then every visible surface is
+// overridden so the grid reads as part of the app rather than a third party widget.
+
+@use 'ag-grid-community/styles/ag-grid.css';
+@use 'ag-grid-community/styles/ag-theme-quartz.css';
+
+.ag-theme-techtill {
+  --ag-background-color: var(--tt-surface);
+  --ag-foreground-color: var(--tt-ink-body);
+  --ag-border-color: var(--tt-border-subtle);
+  --ag-secondary-border-color: var(--tt-border-subtle);
+  --ag-header-background-color: var(--tt-neutral-25);
+  --ag-header-foreground-color: var(--tt-ink);
+  --ag-header-column-separator-color: var(--tt-border-subtle);
+  --ag-row-hover-color: var(--tt-surface-hover);
+  --ag-selected-row-background-color: var(--tt-primary-soft);
+  --ag-row-border-color: var(--tt-border-subtle);
+  --ag-odd-row-background-color: var(--tt-surface);
+  --ag-input-focus-border-color: var(--tt-primary);
+  --ag-input-focus-box-shadow: var(--tt-focus-ring);
+  --ag-font-family: var(--tt-font-sans);
+  --ag-font-size: var(--tt-text-sm);
+  --ag-grid-size: 6px;
+  --ag-row-height: 42px;
+  --ag-header-height: 40px;
+  --ag-cell-horizontal-padding: var(--tt-space-4);
+  --ag-borders: none;
+  --ag-wrapper-border-radius: 0;
+
+  width: 100%;
+  height: 100%;
+}
+
+.ag-theme-techtill .ag-header {
+  border-bottom: 1px solid var(--tt-border);
+}
+
+.ag-theme-techtill .ag-header-cell-text {
+  font-size: var(--tt-text-xs);
+  font-weight: var(--tt-weight-semibold);
+  letter-spacing: var(--tt-tracking-wide);
+}
+
+.ag-theme-techtill .ag-row {
+  border-bottom: 1px solid var(--tt-border-subtle);
+}
+
+.ag-theme-techtill .ag-row-hover {
+  cursor: default;
+}
+
+// Money columns line up on the decimal point.
+.ag-theme-techtill .tt-cell-number {
+  justify-content: flex-end;
+  font-variant-numeric: tabular-nums;
+}
+
+.ag-theme-techtill .tt-cell-number-strong {
+  justify-content: flex-end;
+  color: var(--tt-ink-strong);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--tt-weight-medium);
+}
+
+.ag-theme-techtill .tt-cell-negative {
+  color: var(--tt-danger-text);
+}
+
+.ag-theme-techtill .ag-paging-panel {
+  height: auto;
+  padding: var(--tt-space-3) var(--tt-space-4);
+  border-top: 1px solid var(--tt-border);
+  color: var(--tt-ink-muted);
+  font-size: var(--tt-text-xs);
+}
+
+.ag-theme-techtill .ag-overlay-no-rows-wrapper {
+  padding-top: var(--tt-space-12);
+}

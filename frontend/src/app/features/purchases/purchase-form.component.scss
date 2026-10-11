@@ -1,0 +1,103 @@
+:host {
+  display: block;
+}
+
+.crumbs {
+  display: flex;
+  align-items: center;
+  gap: var(--tt-space-2);
+  margin-bottom: var(--tt-space-2);
+  color: var(--tt-ink-muted);
+  font-size: var(--tt-text-xs);
+}
+
+.crumbs a {
+  color: var(--tt-ink-muted);
+  text-decoration: none;
+}
+
+.crumbs a:hover {
+  color: var(--tt-primary-text);
+  text-decoration: underline;
+}
+
+.bill {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  gap: var(--tt-space-4);
+  align-items: start;
+}
+
+.bill__side {
+  position: sticky;
+  top: calc(var(--tt-topbar-height) + var(--tt-space-6));
+}
+
+.line-sku {
+  display: block;
+  color: var(--tt-ink-muted);
+  font-size: var(--tt-text-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+// Inputs that sit inside a table cell stay visually lighter than a form field.
+.cell-input {
+  width: 92px;
+  height: 32px;
+  padding: 0 var(--tt-space-2);
+  background: var(--tt-surface);
+  border: 1px solid var(--tt-border);
+  border-radius: var(--tt-radius-sm);
+  color: var(--tt-ink-strong);
+  font-size: var(--tt-text-sm);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  transition:
+    border-color var(--tt-duration-fast) var(--tt-ease-out),
+    box-shadow var(--tt-duration-fast) var(--tt-ease-out);
+}
+
+.cell-input:hover {
+  border-color: var(--tt-border-strong);
+}
+
+.cell-input:focus {
+  outline: none;
+  border-color: var(--tt-primary);
+  box-shadow: var(--tt-focus-ring);
+}
+
+.line-remove {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  background: none;
+  border: 0;
+  border-radius: var(--tt-radius-sm);
+  color: var(--tt-neutral-400);
+  cursor: pointer;
+  transition:
+    background-color var(--tt-duration-fast) var(--tt-ease-out),
+    color var(--tt-duration-fast) var(--tt-ease-out);
+}
+
+.line-remove:hover {
+  background: var(--tt-danger-soft);
+  color: var(--tt-danger-text);
+}
+
+.line-remove svg {
+  width: 14px;
+  height: 14px;
+}
+
+@media (max-width: 1080px) {
+  .bill {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .bill__side {
+    position: static;
+  }
+}

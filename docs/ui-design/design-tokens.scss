@@ -1,0 +1,224 @@
+// TechTill design tokens
+// Light theme only. These are the single source of truth for colour, type, spacing,
+// radius, shadow, z-index and motion. The Angular app imports this file directly, so
+// editing it here changes the product.
+//
+// Colour is defined in OKLCH. The neutral ramp carries a small amount of chroma toward
+// the indigo brand hue (264) so white surfaces sit against the app background without
+// looking like two unrelated greys.
+
+:root {
+  // ---------- Neutrals ----------
+  // Lightness descends evenly; chroma stays at or below 0.012 so these read as neutral.
+  --tt-neutral-0: oklch(100% 0 0); // pure white, card and sheet surfaces
+  --tt-neutral-25: oklch(98.4% 0.004 264); // app background, #F6F7FB in the spec
+  --tt-neutral-50: oklch(96.6% 0.006 264); // subtle fills, table stripes
+  --tt-neutral-100: oklch(93.4% 0.008 264); // hairlines, dividers
+  --tt-neutral-200: oklch(88.6% 0.01 264); // borders, disabled edges
+  --tt-neutral-300: oklch(80.4% 0.012 264); // input borders on hover
+  --tt-neutral-400: oklch(68.2% 0.014 264); // icons at rest, placeholders
+  --tt-neutral-500: oklch(55% 0.016 264); // secondary text, measured 4.8:1 on white
+  --tt-neutral-600: oklch(47.8% 0.018 264); // body text on tinted fills
+  --tt-neutral-700: oklch(38.4% 0.02 264); // strong body text
+  --tt-neutral-800: oklch(28.6% 0.022 264); // headings
+  --tt-neutral-900: oklch(21.4% 0.024 264); // display headings, sidebar ink
+
+  // ---------- Text ----------
+  // Body sits at neutral-700 rather than a light grey. Light grey body copy is the
+  // fastest way to make a dashboard unreadable under shop lighting.
+  --tt-ink: var(--tt-neutral-800);
+  --tt-ink-strong: var(--tt-neutral-900);
+  --tt-ink-body: var(--tt-neutral-700);
+  --tt-ink-muted: var(--tt-neutral-500);
+  --tt-ink-inverse: var(--tt-neutral-0);
+
+  // ---------- Surfaces ----------
+  --tt-surface: var(--tt-neutral-0);
+  --tt-surface-sunken: var(--tt-neutral-25);
+  --tt-surface-raised: var(--tt-neutral-0);
+  --tt-surface-hover: var(--tt-neutral-50);
+  --tt-app-bg: var(--tt-neutral-25);
+  --tt-border: var(--tt-neutral-200);
+  --tt-border-subtle: var(--tt-neutral-100);
+  --tt-border-strong: var(--tt-neutral-300);
+
+  // ---------- Accent palette ----------
+  // Eight accents, each with a solid for fills, a text shade that clears 4.5:1 on its
+  // own soft background, and a soft tint for chips and card washes.
+  --tt-indigo: oklch(54% 0.214 264);
+  --tt-indigo-text: oklch(42% 0.18 264);
+  --tt-indigo-soft: oklch(96% 0.028 264);
+  --tt-indigo-ring: oklch(54% 0.214 264 / 32%);
+
+  --tt-violet: oklch(54% 0.228 294);
+  --tt-violet-text: oklch(42% 0.19 294);
+  --tt-violet-soft: oklch(96% 0.03 294);
+
+  --tt-emerald: oklch(56% 0.144 162);
+  --tt-emerald-text: oklch(42% 0.116 162);
+  --tt-emerald-soft: oklch(95.6% 0.038 162);
+
+  --tt-amber: oklch(72% 0.166 70);
+  --tt-amber-text: oklch(46% 0.118 62);
+  --tt-amber-soft: oklch(96.4% 0.054 82);
+
+  --tt-rose: oklch(58% 0.216 16);
+  --tt-rose-text: oklch(45% 0.18 16);
+  --tt-rose-soft: oklch(96% 0.028 16);
+
+  --tt-cyan: oklch(62% 0.122 215);
+  --tt-cyan-text: oklch(44% 0.098 222);
+  --tt-cyan-soft: oklch(96% 0.034 215);
+
+  --tt-orange: oklch(64% 0.186 44);
+  --tt-orange-text: oklch(46% 0.146 42);
+  --tt-orange-soft: oklch(96% 0.042 48);
+
+  --tt-pink: oklch(60% 0.2 350);
+  --tt-pink-text: oklch(45% 0.168 350);
+  --tt-pink-soft: oklch(96% 0.03 350);
+
+  --tt-slate: var(--tt-neutral-500);
+  --tt-slate-text: var(--tt-neutral-700);
+  --tt-slate-soft: var(--tt-neutral-50);
+
+  // ---------- Semantic roles ----------
+  --tt-primary: var(--tt-indigo);
+  --tt-primary-text: var(--tt-indigo-text);
+  --tt-primary-soft: var(--tt-indigo-soft);
+  --tt-primary-hover: oklch(48% 0.214 264);
+  --tt-primary-active: oklch(43% 0.2 264);
+
+  --tt-success: var(--tt-emerald);
+  --tt-success-text: var(--tt-emerald-text);
+  --tt-success-soft: var(--tt-emerald-soft);
+
+  --tt-warning: var(--tt-amber);
+  --tt-warning-text: var(--tt-amber-text);
+  --tt-warning-soft: var(--tt-amber-soft);
+
+  --tt-danger: var(--tt-rose);
+  --tt-danger-text: var(--tt-rose-text);
+  --tt-danger-soft: var(--tt-rose-soft);
+  --tt-danger-hover: oklch(52% 0.216 16);
+
+  --tt-info: var(--tt-cyan);
+  --tt-info-text: var(--tt-cyan-text);
+  --tt-info-soft: var(--tt-cyan-soft);
+
+  // Invoice status chips, fixed by the spec.
+  --tt-status-paid: var(--tt-emerald-text);
+  --tt-status-paid-bg: var(--tt-emerald-soft);
+  --tt-status-partial: var(--tt-amber-text);
+  --tt-status-partial-bg: var(--tt-amber-soft);
+  --tt-status-unpaid: var(--tt-rose-text);
+  --tt-status-unpaid-bg: var(--tt-rose-soft);
+  --tt-status-void: var(--tt-slate-text);
+  --tt-status-void-bg: var(--tt-slate-soft);
+
+  // ---------- Typography ----------
+  // Inter ships with the app. No CDN, so the strict connect-src and font-src policy holds.
+  --tt-font-sans: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --tt-font-mono: 'JetBrains Mono', ui-monospace, 'Cascadia Mono', 'Consolas', monospace;
+
+  // A 1.25 ratio between steps, so hierarchy reads without relying on colour.
+  --tt-text-2xs: 0.6875rem; // 11px, table micro labels
+  --tt-text-xs: 0.75rem; // 12px, captions and helper text
+  --tt-text-sm: 0.8125rem; // 13px, grid body and dense forms
+  --tt-text-base: 0.875rem; // 14px, app body
+  --tt-text-md: 1rem; // 16px, form inputs, prevents mobile zoom
+  --tt-text-lg: 1.125rem; // 18px, card titles
+  --tt-text-xl: 1.375rem; // 22px, h3
+  --tt-text-2xl: 1.75rem; // 28px, h2 and KPI values
+  --tt-text-3xl: 2.125rem; // 34px, h1
+  --tt-text-4xl: 2.625rem; // 42px, POS total
+
+  --tt-weight-regular: 400;
+  --tt-weight-medium: 500;
+  --tt-weight-semibold: 600;
+  --tt-weight-bold: 700;
+
+  --tt-leading-tight: 1.15;
+  --tt-leading-snug: 1.35;
+  --tt-leading-normal: 1.55;
+  --tt-leading-relaxed: 1.7;
+
+  --tt-tracking-tight: -0.018em;
+  --tt-tracking-normal: 0;
+  --tt-tracking-wide: 0.01em;
+
+  // ---------- Spacing ----------
+  // A 4px base. Named steps keep rhythm varied without inventing values inline.
+  --tt-space-0: 0;
+  --tt-space-1: 0.25rem;
+  --tt-space-2: 0.5rem;
+  --tt-space-3: 0.75rem;
+  --tt-space-4: 1rem;
+  --tt-space-5: 1.25rem;
+  --tt-space-6: 1.5rem;
+  --tt-space-8: 2rem;
+  --tt-space-10: 2.5rem;
+  --tt-space-12: 3rem;
+  --tt-space-16: 4rem;
+  --tt-space-20: 5rem;
+
+  // ---------- Radius ----------
+  --tt-radius-xs: 4px;
+  --tt-radius-sm: 6px;
+  --tt-radius-md: 8px;
+  --tt-radius-lg: 12px;
+  --tt-radius-xl: 16px;
+  --tt-radius-2xl: 20px;
+  --tt-radius-pill: 999px;
+
+  // ---------- Elevation ----------
+  // Shadows are tinted with the brand hue rather than pure black, which keeps edges
+  // from looking dirty against the tinted background.
+  --tt-shadow-xs: 0 1px 2px oklch(21.4% 0.024 264 / 6%);
+  --tt-shadow-sm: 0 1px 3px oklch(21.4% 0.024 264 / 8%), 0 1px 2px oklch(21.4% 0.024 264 / 4%);
+  --tt-shadow-md: 0 4px 10px oklch(21.4% 0.024 264 / 8%), 0 1px 3px oklch(21.4% 0.024 264 / 5%);
+  --tt-shadow-lg: 0 12px 28px oklch(21.4% 0.024 264 / 11%), 0 4px 10px oklch(21.4% 0.024 264 / 6%);
+  --tt-shadow-xl: 0 24px 56px oklch(21.4% 0.024 264 / 14%);
+  --tt-focus-ring: 0 0 0 3px var(--tt-indigo-ring);
+
+  // ---------- Layout ----------
+  --tt-sidebar-width: 256px;
+  --tt-sidebar-width-collapsed: 68px;
+  --tt-topbar-height: 60px;
+  --tt-content-max: 1600px;
+  --tt-prose-max: 68ch; // keeps help text inside a readable measure
+
+  // ---------- Z-index ----------
+  // A semantic scale. Nothing in the app uses a raw value such as 999.
+  --tt-z-base: 0;
+  --tt-z-raised: 10;
+  --tt-z-sticky: 100;
+  --tt-z-sidebar: 200;
+  --tt-z-dropdown: 300;
+  --tt-z-overlay: 400;
+  --tt-z-drawer: 500;
+  --tt-z-modal: 600;
+  --tt-z-toast: 700;
+  --tt-z-tooltip: 800;
+  --tt-z-progress: 900; // the top progress bar outranks everything
+
+  // ---------- Motion ----------
+  // Exponential ease-out curves. No bounce, no elastic.
+  --tt-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --tt-ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+  --tt-ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --tt-duration-instant: 80ms;
+  --tt-duration-fast: 140ms;
+  --tt-duration-normal: 220ms;
+  --tt-duration-slow: 320ms;
+}
+
+// Motion is opt-out, not opt-in. Anything that moves has a still alternative.
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --tt-duration-instant: 1ms;
+    --tt-duration-fast: 1ms;
+    --tt-duration-normal: 1ms;
+    --tt-duration-slow: 1ms;
+  }
+}

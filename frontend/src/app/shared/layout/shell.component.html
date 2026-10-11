@@ -1,0 +1,147 @@
+<tt-progress-bar [active]="progress.isActive()" />
+
+<div class="shell" [class.shell--collapsed]="collapsed()" [class.shell--mobile-open]="mobileOpen()">
+  <!-- Sidebar -->
+  <aside class="sidebar" aria-label="Main navigation">
+    <div class="sidebar__brand">
+      <a class="brand" routerLink="/dashboard" (click)="closeMobile()">
+        <span class="brand__mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 7h16M4 12h16M4 17h9" />
+          </svg>
+        </span>
+        <span class="brand__text">
+          <span class="brand__name">TechTill</span>
+          <span class="brand__tag">Shop operations</span>
+        </span>
+      </a>
+
+      <button type="button" class="icon-btn sidebar__collapse" (click)="toggleSidebar()"
+              [attr.aria-label]="collapsed() ? 'Expand sidebar' : 'Collapse sidebar'"
+              [attr.aria-expanded]="!collapsed()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path [attr.d]="collapsed() ? 'M9 6l6 6-6 6' : 'M15 6l-6 6 6 6'" />
+        </svg>
+      </button>
+    </div>
+
+    <nav class="sidebar__nav">
+      @for (group of groups(); track group.label) {
+        <div class="nav-group">
+          <h2 class="nav-group__label">{{ group.label }}</h2>
+          <ul class="nav-group__list">
+            @for (item of group.items; track item.route) {
+              <li>
+                <a class="nav-link" [ngClass]="'nav-link--' + item.accent"
+                   [class.nav-link--active]="activeRoute() === item.route"
+                   [attr.aria-current]="activeRoute() === item.route ? 'page' : null"
+                   [routerLink]="item.route"
+                   (click)="closeMobile()" [title]="item.label">
+                  <svg class="nav-link__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                       stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path [attr.d]="item.icon" />
+                  </svg>
+                  <span class="nav-link__label">{{ item.label }}</span>
+                </a>
+              </li>
+            }
+          </ul>
+        </div>
+      }
+    </nav>
+
+    <div class="sidebar__foot">
+      <p class="sidebar__version">MVP build</p>
+    </div>
+  </aside>
+
+  <!-- Backdrop for the mobile drawer -->
+  <div class="shell__backdrop" (click)="closeMobile()" aria-hidden="true"></div>
+
+  <div class="shell__main">
+    <!-- Top bar -->
+    <header class="topbar">
+      <button type="button" class="icon-btn topbar__burger" (click)="toggleMobile()"
+              aria-label="Open navigation" [attr.aria-expanded]="mobileOpen()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" aria-hidden="true">
+          <path d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
+
+      <!-- Shop switcher -->
+      <div class="topbar__shop" data-menu>
+        <button type="button" class="shop-switch" (click)="toggleShopMenu()"
+                [attr.aria-expanded]="shopMenuOpen()" aria-haspopup="listbox">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M4 9h16v11H4V9Zm-1-5h18l-2 5H5L3 4Z" />
+          </svg>
+          <span class="shop-switch__text">
+            <span class="shop-switch__label">Shop</span>
+            <span class="shop-switch__value">{{ activeShopName() }}</span>
+          </span>
+          <svg class="shop-switch__caret" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="2" stroke-linecap="round" aria-hidden="true">
+            <path d="M6 9l6 6 6-6" />
+          </svg>
+        </button>
+
+        @if (shopMenuOpen()) {
+          <ul class="menu" role="listbox" aria-label="Choose a shop">
+            <li>
+              <button type="button" class="menu__item" [class.menu__item--selected]="activeShopId() === null"
+                      (click)="pickShop(null)" role="option" [attr.aria-selected]="activeShopId() === null">
+                All shops
+              </button>
+            </li>
+            @for (shop of shops(); track shop.id) {
+              <li>
+                <button type="button" class="menu__item" [class.menu__item--selected]="activeShopId() === shop.id"
+                        (click)="pickShop(shop.id)" role="option" [attr.aria-selected]="activeShopId() === shop.id">
+                  <span>{{ shop.name }}</span>
+                  <span class="menu__meta">{{ shop.code }}</span>
+                </button>
+              </li>
+            }
+          </ul>
+        }
+      </div>
+
+      <div class="topbar__spacer"></div>
+
+      <!-- User menu -->
+      <div class="topbar__user" data-menu>
+        <button type="button" class="user-chip" (click)="toggleUserMenu()"
+                [attr.aria-expanded]="userMenuOpen()" aria-haspopup="menu">
+          <span class="user-chip__avatar" aria-hidden="true">{{ initials() }}</span>
+          <span class="user-chip__text">
+            <span class="user-chip__name">{{ profile()?.fullName }}</span>
+            <span class="user-chip__role">{{ profile()?.role === 'Admin' ? 'Owner' : 'Staff' }}</span>
+          </span>
+        </button>
+
+        @if (userMenuOpen()) {
+          <div class="menu menu--right" role="menu">
+            <div class="menu__head">
+              <p class="menu__head-name">{{ profile()?.fullName }}</p>
+              <p class="menu__head-meta">{{ profile()?.username }}</p>
+            </div>
+            <button type="button" class="menu__item" (click)="goToPasswordChange()" role="menuitem">
+              Change password
+            </button>
+            <button type="button" class="menu__item menu__item--danger" (click)="signOut()" role="menuitem">
+              Sign out
+            </button>
+          </div>
+        }
+      </div>
+    </header>
+
+    <main class="content" id="main-content">
+      <router-outlet />
+    </main>
+  </div>
+</div>

@@ -1,0 +1,214 @@
+<div class="tt-page">
+  <header class="tt-page-head">
+    <div class="tt-page-head__text">
+      <nav class="crumbs" aria-label="Breadcrumb">
+        <a routerLink="/purchases">Purchases</a>
+        <span aria-hidden="true">/</span>
+        <span>New bill</span>
+      </nav>
+      <h1 class="tt-page-head__title">New purchase bill</h1>
+      <p class="tt-page-head__sub">
+        Saving this adds the quantities to the shop's stock and sets each product's cost to
+        the unit cost you enter here.
+      </p>
+    </div>
+  </header>
+
+  <div class="bill">
+    <!-- Header fields and lines -->
+    <div class="tt-stack">
+      <div class="tt-panel">
+        <div class="tt-panel__head">
+          <h2 class="tt-panel__title">Bill details</h2>
+        </div>
+        <div class="tt-panel__body">
+          <div class="tt-form tt-form--2col">
+            <div class="tt-field">
+              <label class="tt-field__label" for="shop">Receiving shop</label>
+              <select id="shop" class="tt-select" name="shop"
+                      [ngModel]="shopId()" (ngModelChange)="shopId.set(+$event)">
+                @for (shop of shops(); track shop.id) {
+                  <option [value]="shop.id">{{ shop.name }}</option>
+                }
+              </select>
+            </div>
+
+            <div class="tt-field">
+              <label class="tt-field__label" for="supplier">Supplier</label>
+              <select id="supplier" class="tt-select" name="supplier"
+                      [ngModel]="supplierId()" (ngModelChange)="supplierId.set(+$event)">
+                <option [value]="0" disabled>Choose a supplier</option>
+                @for (supplier of suppliers(); track supplier.id) {
+                  <option [value]="supplier.id">{{ supplier.name }}</option>
+                }
+              </select>
+            </div>
+
+            <div class="tt-field">
+              <label class="tt-field__label" for="bill-date">Bill date</label>
+              <input id="bill-date" class="tt-input" type="date" name="billDate"
+                     [ngModel]="billDate()" (ngModelChange)="billDate.set($event)" />
+              <p class="tt-field__hint">Ageing is measured from this date.</p>
+            </div>
+
+            <div class="tt-field">
+              <label class="tt-field__label" for="note">Note</label>
+              <input id="note" class="tt-input" name="note"
+                     placeholder="Supplier's own bill number, for example"
+                     [ngModel]="note()" (ngModelChange)="note.set($event)" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tt-panel">
+        <div class="tt-panel__head">
+          <h2 class="tt-panel__title">Items received</h2>
+          <span class="tt-panel__meta">{{ lines().length }} lines</span>
+        </div>
+
+        <div class="tt-panel__body">
+          <div class="tt-field">
+            <label class="tt-field__label" for="product-search">Add a product</label>
+            <input id="product-search" class="tt-input" name="search" autocomplete="off"
+                   placeholder="Search by SKU or name"
+                   [ngModel]="search()" (ngModelChange)="onSearch($event)" />
+
+            @if (results().length > 0) {
+              <ul class="pick-list">
+                @for (product of results(); track product.id) {
+                  <li>
+                    <button type="button" class="pick-list__item" (click)="addProduct(product)">
+                      <span>
+                        <span class="tt-strong">{{ product.name }}</span>
+                        <span class="tt-muted"> {{ product.sku }}</span>
+                      </span>
+                      <span class="tt-muted">{{ product.qty }} on hand</span>
+                    </button>
+                  </li>
+                }
+              </ul>
+            }
+          </div>
+        </div>
+
+        @if (lines().length === 0) {
+          <div class="tt-empty">
+            <div class="tt-empty__icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                   stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M3 7l9-4 9 4-9 4-9-4Zm0 0v10l9 4 9-4V7" />
+              </svg>
+            </div>
+            <p class="tt-empty__title">No lines yet</p>
+            <p class="tt-empty__text">Search above to add what arrived from the supplier.</p>
+          </div>
+        } @else {
+          <table class="tt-statement">
+            <thead>
+              <tr>
+                <th scope="col">Product</th>
+                <th scope="col" class="tt-num">Qty</th>
+                <th scope="col" class="tt-num">Unit cost</th>
+                <th scope="col" class="tt-num">Line total</th>
+                <th scope="col"></th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (line of lines(); track line.productId) {
+                <tr>
+                  <td>
+                    <span class="tt-strong">{{ line.name }}</span>
+                    <span class="line-sku">{{ line.sku }}</span>
+                  </td>
+                  <td class="tt-num">
+                    <input class="cell-input" type="number" min="1" step="1"
+                           [ngModel]="line.qty" (ngModelChange)="setQty(line.productId, +$event)"
+                           [name]="'qty' + line.productId" aria-label="Quantity" />
+                  </td>
+                  <td class="tt-num">
+                    <input class="cell-input" type="number" min="0" step="0.01"
+                           [ngModel]="line.unitCost" (ngModelChange)="setCost(line.productId, +$event)"
+                           [name]="'cost' + line.productId" aria-label="Unit cost" />
+                  </td>
+                  <td class="tt-num tt-strong">{{ money(line.qty * line.unitCost) }}</td>
+                  <td>
+                    <button type="button" class="line-remove" (click)="removeLine(line.productId)"
+                            [attr.aria-label]="'Remove ' + line.name">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                           stroke-linecap="round" aria-hidden="true">
+                        <path d="M6 6l12 12M18 6 6 18" />
+                      </svg>
+                    </button>
+                  </td>
+                </tr>
+              }
+              <tr class="tt-statement__total">
+                <td colspan="3">Bill total</td>
+                <td class="tt-num">{{ money(total()) }}</td>
+                <td></td>
+              </tr>
+            </tbody>
+          </table>
+        }
+      </div>
+    </div>
+
+    <!-- Payment side -->
+    <aside class="bill__side">
+      <div class="tt-panel">
+        <div class="tt-panel__head">
+          <h2 class="tt-panel__title">Payment</h2>
+        </div>
+        <div class="tt-panel__body tt-stack">
+          <div class="owed">
+            <span>Bill total</span>
+            <strong class="tt-num">{{ money(total()) }}</strong>
+          </div>
+
+          <div class="tt-field">
+            <label class="tt-field__label" for="method">Paying by</label>
+            <select id="method" class="tt-select" name="method"
+                    [ngModel]="method()" (ngModelChange)="method.set($event)">
+              <option value="Bank">Bank</option>
+              <option value="Cash">Cash, from the drawer</option>
+              <option value="Card">Card</option>
+              <option value="Credit">Credit, pay later</option>
+            </select>
+          </div>
+
+          <div class="tt-field">
+            <label class="tt-field__label" for="paid">Paid now</label>
+            <div class="inline-add">
+              <input id="paid" class="tt-input tt-input--number" type="number" step="0.01" min="0"
+                     [max]="total()" name="paidNow"
+                     [ngModel]="paidNow()" (ngModelChange)="paidNow.set(+$event)" />
+              <button type="button" class="tt-btn tt-btn--ghost" (click)="payFull()">Full</button>
+            </div>
+            <p class="tt-field__hint">Leave at zero to put the whole bill on the supplier account.</p>
+          </div>
+
+          <div class="owed">
+            <span>Becomes payable</span>
+            <strong class="tt-num" [class.tt-neg]="outstanding() > 0">
+              {{ money(outstanding()) }}
+            </strong>
+          </div>
+
+          @if (error()) {
+            <p class="tt-field__error">{{ error() }}</p>
+          }
+
+          <button type="button" class="tt-btn tt-btn--primary tt-btn--lg tt-btn--block"
+                  (click)="save()" [disabled]="!canSave()">
+            {{ submitting() ? 'Saving bill' : 'Save bill and add stock' }}
+          </button>
+
+          <button type="button" class="tt-btn tt-btn--ghost tt-btn--block" (click)="cancel()">
+            Cancel
+          </button>
+        </div>
+      </div>
+    </aside>
+  </div>
+</div>

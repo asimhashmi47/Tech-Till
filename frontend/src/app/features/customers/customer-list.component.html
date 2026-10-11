@@ -1,0 +1,145 @@
+<div class="tt-page">
+  <header class="tt-page-head">
+    <div class="tt-page-head__text">
+      <h1 class="tt-page-head__title">Customers</h1>
+      <p class="tt-page-head__sub">
+        Receivable is what each account still owes across the shops you can see.
+      </p>
+    </div>
+
+    @if (canWrite) {
+      <div class="tt-page-head__actions">
+        <button type="button" class="tt-btn tt-btn--primary" (click)="create()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" aria-hidden="true">
+            <path d="M12 5v14M5 12h14" />
+          </svg>
+          Add customer
+        </button>
+      </div>
+    }
+  </header>
+
+  <div class="tt-panel">
+    <tt-data-grid
+      #grid
+      gridKey="customers"
+      [columns]="columns"
+      [dataSource]="dataSource"
+      [actions]="actions"
+      [defaultSort]="[{ field: 'name', desc: false }]"
+      searchPlaceholder="Search name, phone or address"
+      emptyTitle="No customers yet"
+      emptyText="Walk-in sales do not need an account. Add one for anyone who buys on credit."
+    />
+  </div>
+</div>
+
+<!-- Create and edit -->
+<tt-drawer
+  [open]="drawerOpen()"
+  [heading]="editingId() ? 'Edit customer' : 'Add customer'"
+  (closed)="close()"
+>
+  <form class="tt-form" (ngSubmit)="save()" id="customer-form">
+    <div class="tt-field">
+      <label class="tt-field__label" for="name">Customer name</label>
+      <input id="name" class="tt-input" name="name" required
+             [class.tt-input--invalid]="error()"
+             [ngModel]="form().name" (ngModelChange)="patch('name', $event)" />
+      @if (error()) {
+        <p class="tt-field__error">{{ error() }}</p>
+      }
+    </div>
+
+    <div class="tt-field">
+      <label class="tt-field__label" for="phone">Phone</label>
+      <input id="phone" class="tt-input" name="phone" inputmode="tel"
+             [ngModel]="form().phone" (ngModelChange)="patch('phone', $event)" />
+    </div>
+
+    <div class="tt-field">
+      <label class="tt-field__label" for="address">Address</label>
+      <textarea id="address" class="tt-textarea" name="address"
+                [ngModel]="form().address" (ngModelChange)="patch('address', $event)"></textarea>
+    </div>
+
+    <label class="tt-checkbox">
+      <input type="checkbox" name="isActive" [ngModel]="form().isActive"
+             (ngModelChange)="patch('isActive', $event)" />
+      Available at the till
+    </label>
+  </form>
+
+  <div drawerFooter>
+    <button type="button" class="tt-btn tt-btn--ghost" (click)="close()">Cancel</button>
+    <button type="submit" form="customer-form" class="tt-btn tt-btn--primary" [disabled]="saving()">
+      {{ saving() ? 'Saving' : editingId() ? 'Save changes' : 'Add customer' }}
+    </button>
+  </div>
+</tt-drawer>
+
+<!-- Record a receipt against the account -->
+<tt-drawer
+  [open]="receiptOpen()"
+  heading="Record a receipt"
+  [subheading]="receiptCustomer()?.name ?? ''"
+  (closed)="closeReceipt()"
+>
+  @if (receiptCustomer(); as customer) {
+    <form class="tt-form" (ngSubmit)="saveReceipt()" id="receipt-form">
+      <div class="owed">
+        <span>Currently owed</span>
+        <strong class="tt-num">{{ money(customer.receivable) }}</strong>
+      </div>
+
+      <div class="tt-field">
+        <label class="tt-field__label" for="receipt-shop">Shop receiving the money</label>
+        <select id="receipt-shop" class="tt-select" name="receiptShop"
+                [ngModel]="receiptShopId()" (ngModelChange)="receiptShopId.set(+$event)">
+          @for (shop of shops(); track shop.id) {
+            <option [value]="shop.id">{{ shop.name }}</option>
+          }
+        </select>
+        <p class="tt-field__hint">
+          Payments are allocated to that shop's oldest open invoices first.
+        </p>
+      </div>
+
+      <div class="tt-field">
+        <label class="tt-field__label" for="amount">Amount</label>
+        <input id="amount" class="tt-input tt-input--number" type="number" step="0.01" min="0"
+               name="amount" [class.tt-input--invalid]="receiptError()"
+               [ngModel]="receiptAmount()" (ngModelChange)="receiptAmount.set(+$event)" />
+        @if (receiptError()) {
+          <p class="tt-field__error">{{ receiptError() }}</p>
+        }
+      </div>
+
+      <div class="tt-field">
+        <label class="tt-field__label" for="method">Method</label>
+        <select id="method" class="tt-select" name="method"
+                [ngModel]="receiptMethod()" (ngModelChange)="receiptMethod.set($event)">
+          <option value="Cash">Cash</option>
+          <option value="Card">Card</option>
+          <option value="Bank">Bank</option>
+        </select>
+        <p class="tt-field__hint">Cash also goes through the shop's drawer.</p>
+      </div>
+
+      <div class="tt-field">
+        <label class="tt-field__label" for="note">Note</label>
+        <input id="note" class="tt-input" name="note"
+               [ngModel]="receiptNote()" (ngModelChange)="receiptNote.set($event)" />
+      </div>
+    </form>
+  }
+
+  <div drawerFooter>
+    <button type="button" class="tt-btn tt-btn--ghost" (click)="closeReceipt()">Cancel</button>
+    <button type="submit" form="receipt-form" class="tt-btn tt-btn--primary"
+            [disabled]="receiptSaving()">
+      {{ receiptSaving() ? 'Recording' : 'Record receipt' }}
+    </button>
+  </div>
+</tt-drawer>

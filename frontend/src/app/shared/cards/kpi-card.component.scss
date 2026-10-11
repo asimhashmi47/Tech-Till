@@ -1,0 +1,204 @@
+:host {
+  display: block;
+}
+
+// Each card is a filled surface in its own accent. Gradient stops stay deep enough that
+// white text clears 4.5:1 against the lighter end, which is the whole reason the ramps
+// start around 50% lightness rather than at the accent's own value.
+.kpi {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: var(--tt-space-4);
+  border-radius: var(--tt-radius-lg);
+  color: var(--tt-ink-inverse);
+  text-decoration: none;
+  overflow: hidden;
+  box-shadow: var(--tt-shadow-sm);
+  transition:
+    transform var(--tt-duration-fast) var(--tt-ease-out),
+    box-shadow var(--tt-duration-fast) var(--tt-ease-out);
+}
+
+// A soft highlight in the top corner keeps the fill from reading as flat paint.
+.kpi::after {
+  content: '';
+  position: absolute;
+  top: -40%;
+  right: -20%;
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    color-mix(in oklch, white 20%, transparent),
+    transparent 70%
+  );
+  pointer-events: none;
+}
+
+a.kpi:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--tt-shadow-lg);
+}
+
+a.kpi:active {
+  transform: translateY(0);
+}
+
+a.kpi:focus-visible {
+  outline: 2px solid var(--tt-ink-strong);
+  outline-offset: 2px;
+}
+
+.kpi__icon {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--tt-radius-md);
+
+  // A translucent tile rather than a second colour, so the icon belongs to the card.
+  background: color-mix(in oklch, white 22%, transparent);
+  color: var(--tt-ink-inverse);
+}
+
+.kpi__icon svg {
+  width: 19px;
+  height: 19px;
+}
+
+.kpi__label {
+  margin-top: var(--tt-space-4);
+  // Full white: at 12px this is small text and has to clear 4.5:1 on the lighter
+  // gradient stop. Hierarchy comes from size and weight instead of from opacity.
+  color: var(--tt-ink-inverse);
+  font-size: var(--tt-text-xs);
+  font-weight: var(--tt-weight-medium);
+}
+
+.kpi__value {
+  margin-top: var(--tt-space-1);
+  color: var(--tt-ink-inverse);
+  font-size: var(--tt-text-2xl);
+  font-weight: var(--tt-weight-semibold);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--tt-tracking-tight);
+  line-height: 1.1;
+
+  // A long figure in a wide currency shrinks rather than spilling out of the card.
+  overflow-wrap: anywhere;
+}
+
+.kpi__note {
+  margin-top: var(--tt-space-2);
+  color: color-mix(in oklch, white 92%, transparent);
+  font-size: var(--tt-text-2xs);
+}
+
+.kpi__skeleton {
+  width: 70%;
+  height: 26px;
+  margin-top: var(--tt-space-2);
+  border-radius: var(--tt-radius-sm);
+  background: color-mix(in oklch, white 26%, transparent);
+  animation: kpi-pulse 1400ms var(--tt-ease-in-out) infinite;
+}
+
+@keyframes kpi-pulse {
+  50% {
+    opacity: 0.45;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kpi__skeleton {
+    animation: none;
+  }
+
+  a.kpi:hover {
+    transform: none;
+  }
+}
+
+// The arrow only appears on a card that leads somewhere, and only on hover or focus,
+// so eight arrows do not compete with eight figures at rest.
+.kpi__go {
+  position: absolute;
+  top: var(--tt-space-4);
+  right: var(--tt-space-4);
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: var(--tt-radius-pill);
+  background: color-mix(in oklch, white 20%, transparent);
+  color: var(--tt-ink-inverse);
+  opacity: 0;
+  transform: translateX(-4px);
+  transition:
+    opacity var(--tt-duration-fast) var(--tt-ease-out),
+    transform var(--tt-duration-fast) var(--tt-ease-out);
+}
+
+.kpi__go svg {
+  width: 14px;
+  height: 14px;
+}
+
+a.kpi:hover .kpi__go,
+a.kpi:focus-visible .kpi__go {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+// ---------- Accent ramps ----------
+
+.kpi--indigo {
+  background: linear-gradient(135deg, oklch(50% 0.21 268), oklch(38% 0.17 280));
+}
+
+.kpi--violet {
+  background: linear-gradient(135deg, oklch(50% 0.22 298), oklch(38% 0.18 312));
+}
+
+.kpi--emerald {
+  background: linear-gradient(135deg, oklch(50% 0.13 164), oklch(38% 0.1 176));
+}
+
+.kpi--rose {
+  background: linear-gradient(135deg, oklch(51% 0.2 14), oklch(39% 0.16 6));
+}
+
+.kpi--amber {
+  // Amber is naturally light, so the ramp sits lower than the token to hold contrast.
+  background: linear-gradient(135deg, oklch(52% 0.14 68), oklch(40% 0.11 54));
+}
+
+.kpi--orange {
+  background: linear-gradient(135deg, oklch(52% 0.16 45), oklch(40% 0.13 33));
+}
+
+.kpi--cyan {
+  background: linear-gradient(135deg, oklch(50% 0.11 218), oklch(38% 0.09 232));
+}
+
+.kpi--pink {
+  background: linear-gradient(135deg, oklch(51% 0.19 350), oklch(39% 0.16 338));
+}
+
+// Windows high contrast mode drops background images, so the text needs a real colour
+// to sit on rather than whatever the card falls back to.
+@media (forced-colors: active) {
+  .kpi {
+    border: 1px solid CanvasText;
+    color: CanvasText;
+  }
+
+  .kpi__icon,
+  .kpi__go {
+    background: transparent;
+    border: 1px solid CanvasText;
+  }
+}

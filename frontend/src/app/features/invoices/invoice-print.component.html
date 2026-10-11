@@ -1,0 +1,126 @@
+<!-- Controls never print -->
+<div class="bar tt-no-print">
+  <div class="bar__group" role="group" aria-label="Paper size">
+    <button type="button" class="bar__opt" [class.bar__opt--on]="paper() === 'a4'"
+            (click)="setPaper('a4')">A4</button>
+    <button type="button" class="bar__opt" [class.bar__opt--on]="paper() === 'thermal'"
+            (click)="setPaper('thermal')">80mm roll</button>
+  </div>
+
+  <div class="bar__actions">
+    <button type="button" class="tt-btn tt-btn--ghost" (click)="close()">Close</button>
+    <button type="button" class="tt-btn tt-btn--primary" (click)="print()" [disabled]="loading()">
+      Print invoice
+    </button>
+  </div>
+</div>
+
+@if (loading()) {
+  <p class="status">Loading the invoice</p>
+} @else if (!invoice()) {
+  <p class="status">That invoice could not be loaded.</p>
+} @else {
+  <article class="doc" [class.doc--thermal]="paper() === 'thermal'">
+    <header class="doc__head">
+      <div class="doc__shop">
+        <p class="doc__shop-name">{{ invoice()!.shopName }}</p>
+        @if (invoice()!.shopAddress) {
+          <p class="doc__shop-line">{{ invoice()!.shopAddress }}</p>
+        }
+        @if (invoice()!.shopPhone) {
+          <p class="doc__shop-line">{{ invoice()!.shopPhone }}</p>
+        }
+      </div>
+
+      <div class="doc__title">
+        <p class="doc__label">Sales invoice</p>
+        <p class="doc__no">{{ invoice()!.invoiceNo }}</p>
+        @if (invoice()!.status === 'Void') {
+          <p class="doc__void">VOID</p>
+        }
+      </div>
+    </header>
+
+    <section class="doc__meta">
+      <div>
+        <p class="doc__meta-label">Date</p>
+        <p class="doc__meta-value">{{ dateTime(invoice()!.invoiceDate) }}</p>
+      </div>
+      <div>
+        <p class="doc__meta-label">Customer</p>
+        <p class="doc__meta-value">{{ invoice()!.customerName }}</p>
+        @if (invoice()!.customerPhone) {
+          <p class="doc__meta-sub">{{ invoice()!.customerPhone }}</p>
+        }
+      </div>
+      <div>
+        <p class="doc__meta-label">Payment</p>
+        <p class="doc__meta-value">{{ invoice()!.paymentMethod }} / {{ invoice()!.status }}</p>
+      </div>
+      <div>
+        <p class="doc__meta-label">Served by</p>
+        <p class="doc__meta-value">{{ invoice()!.createdBy }}</p>
+      </div>
+    </section>
+
+    <table class="doc__table">
+      <thead>
+        <tr>
+          <th scope="col" class="doc__col-item">Item</th>
+          <th scope="col" class="doc__col-num">Qty</th>
+          <th scope="col" class="doc__col-num">Price</th>
+          <th scope="col" class="doc__col-num">Amount</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (item of invoice()!.items; track item.productId) {
+          <tr>
+            <td class="doc__col-item">
+              <span class="doc__item-name">{{ item.productName }}</span>
+              <span class="doc__item-sku">{{ item.sku }}</span>
+            </td>
+            <td class="doc__col-num">{{ item.qty }}</td>
+            <td class="doc__col-num">{{ money(item.unitPrice) }}</td>
+            <td class="doc__col-num">{{ money(item.lineTotal) }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+
+    <section class="doc__totals">
+      <div class="doc__total">
+        <span>Sub total</span>
+        <span>{{ money(invoice()!.subTotal) }}</span>
+      </div>
+      @if (invoice()!.discount > 0) {
+        <div class="doc__total">
+          <span>Discount</span>
+          <span>- {{ money(invoice()!.discount) }}</span>
+        </div>
+      }
+      <div class="doc__total doc__total--grand">
+        <span>Total</span>
+        <span>{{ money(invoice()!.total) }}</span>
+      </div>
+      <div class="doc__total">
+        <span>Paid</span>
+        <span>{{ money(invoice()!.paidAmount) }}</span>
+      </div>
+      @if (invoice()!.outstanding > 0) {
+        <div class="doc__total">
+          <span>Balance due</span>
+          <span>{{ money(invoice()!.outstanding) }}</span>
+        </div>
+      }
+    </section>
+
+    @if (invoice()!.note) {
+      <p class="doc__note">{{ invoice()!.note }}</p>
+    }
+
+    <footer class="doc__foot">
+      <p>Goods are checked at the counter. Keep this invoice for any warranty claim.</p>
+      <p class="doc__thanks">Thank you for your business.</p>
+    </footer>
+  </article>
+}

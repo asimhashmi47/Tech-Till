@@ -1,0 +1,317 @@
+:host {
+  display: block;
+}
+
+.grid-wrap {
+  display: flex;
+  flex-direction: column;
+}
+
+// ---------- Toolbar ----------
+
+.grid-toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--tt-space-2);
+  padding: var(--tt-space-3) var(--tt-space-4);
+  border-bottom: 1px solid var(--tt-border-subtle);
+  flex-wrap: wrap;
+}
+
+.grid-toolbar__spacer {
+  flex: 1;
+  min-width: var(--tt-space-4);
+}
+
+.grid-count {
+  color: var(--tt-ink-muted);
+  font-size: var(--tt-text-xs);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.grid-search {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-width: 220px;
+  flex: 0 1 300px;
+}
+
+.grid-search__icon {
+  position: absolute;
+  left: var(--tt-space-3);
+  width: 16px;
+  height: 16px;
+  color: var(--tt-neutral-400);
+  pointer-events: none;
+}
+
+.grid-search__input {
+  width: 100%;
+  height: 36px;
+  padding: 0 var(--tt-space-8) 0 var(--tt-space-8);
+  background: var(--tt-surface);
+  border: 1px solid var(--tt-border);
+  border-radius: var(--tt-radius-md);
+  color: var(--tt-ink-strong);
+  font-size: var(--tt-text-base);
+  transition:
+    border-color var(--tt-duration-fast) var(--tt-ease-out),
+    box-shadow var(--tt-duration-fast) var(--tt-ease-out);
+}
+
+.grid-search__input::placeholder {
+  color: var(--tt-neutral-500);
+}
+
+.grid-search__input::-webkit-search-cancel-button {
+  display: none;
+}
+
+.grid-search__input:hover {
+  border-color: var(--tt-border-strong);
+}
+
+.grid-search__input:focus {
+  outline: none;
+  border-color: var(--tt-primary);
+  box-shadow: var(--tt-focus-ring);
+}
+
+.grid-search__clear {
+  position: absolute;
+  right: var(--tt-space-2);
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  background: none;
+  border: 0;
+  border-radius: var(--tt-radius-sm);
+  color: var(--tt-neutral-400);
+  cursor: pointer;
+}
+
+.grid-search__clear:hover {
+  background: var(--tt-surface-hover);
+  color: var(--tt-ink-strong);
+}
+
+.grid-search__clear svg {
+  width: 14px;
+  height: 14px;
+}
+
+.grid-badge {
+  display: grid;
+  place-items: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: var(--tt-radius-pill);
+  background: var(--tt-primary);
+  color: var(--tt-ink-inverse);
+  font-size: var(--tt-text-2xs);
+  font-weight: var(--tt-weight-semibold);
+}
+
+// ---------- Popovers ----------
+
+.grid-pop {
+  position: relative;
+}
+
+.grid-panel {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: var(--tt-z-dropdown);
+  width: 280px;
+  background: var(--tt-surface);
+  border: 1px solid var(--tt-border);
+  border-radius: var(--tt-radius-lg);
+  box-shadow: var(--tt-shadow-lg);
+  animation: panel-in var(--tt-duration-fast) var(--tt-ease-out);
+}
+
+.grid-panel--wide {
+  width: min(620px, calc(100vw - var(--tt-space-8)));
+}
+
+@keyframes panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .grid-panel {
+    animation: none;
+  }
+}
+
+.grid-panel__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--tt-space-3);
+  padding: var(--tt-space-3) var(--tt-space-4);
+  border-bottom: 1px solid var(--tt-border-subtle);
+}
+
+.grid-panel__title {
+  font-size: var(--tt-text-base);
+  font-weight: var(--tt-weight-semibold);
+}
+
+.grid-panel__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tt-space-2);
+  max-height: 340px;
+  padding: var(--tt-space-3) var(--tt-space-4);
+  overflow-y: auto;
+}
+
+.grid-panel__body--list {
+  gap: var(--tt-space-1);
+}
+
+.grid-panel__body--list .tt-checkbox {
+  padding: var(--tt-space-1) var(--tt-space-2);
+  border-radius: var(--tt-radius-sm);
+  font-size: var(--tt-text-sm);
+}
+
+.grid-panel__body--list .tt-checkbox:hover {
+  background: var(--tt-surface-hover);
+}
+
+.grid-panel__foot {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--tt-space-2);
+  padding: var(--tt-space-3) var(--tt-space-4);
+  border-top: 1px solid var(--tt-border-subtle);
+}
+
+.grid-join {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--tt-space-2);
+  color: var(--tt-ink-muted);
+  font-size: var(--tt-text-xs);
+}
+
+// ---------- Filter builder rows ----------
+
+.builder-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--tt-space-2);
+}
+
+// A between rule adds a fourth input, so the grid gains a column.
+.builder-row:has(input[name^='val2']) {
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) minmax(0, 0.8fr) minmax(0, 0.8fr) auto;
+}
+
+.builder-row__remove {
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  color: var(--tt-neutral-400);
+}
+
+.builder-row__remove svg {
+  width: 14px;
+  height: 14px;
+}
+
+.builder-row__remove:hover {
+  color: var(--tt-danger-text);
+  background: var(--tt-danger-soft);
+}
+
+:host ::ng-deep .tt-select--sm,
+:host ::ng-deep .tt-input--sm {
+  height: 32px;
+  font-size: var(--tt-text-sm);
+}
+
+@media (max-width: 720px) {
+  .builder-row,
+  .builder-row:has(input[name^='val2']) {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+}
+
+// ---------- Grid host ----------
+
+.grid-host {
+  position: relative;
+  width: 100%;
+}
+
+.grid-host__grid {
+  width: 100%;
+  height: 100%;
+}
+
+// The empty state sits under the grid rather than inside it, so the filter row is
+// still reachable when a filter returns nothing.
+.grid-empty {
+  border-top: 1px solid var(--tt-border-subtle);
+}
+
+:host ::ng-deep .tt-grid-overlay {
+  color: var(--tt-ink-muted);
+  font-size: var(--tt-text-sm);
+}
+
+:host ::ng-deep .tt-cell-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: var(--tt-space-2) !important;
+}
+
+:host ::ng-deep .tt-grid-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+:host ::ng-deep .tt-grid-action {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  background: none;
+  border: 0;
+  border-radius: var(--tt-radius-sm);
+  color: var(--tt-neutral-400);
+  cursor: pointer;
+  transition:
+    background-color var(--tt-duration-fast) var(--tt-ease-out),
+    color var(--tt-duration-fast) var(--tt-ease-out);
+}
+
+:host ::ng-deep .tt-grid-action svg {
+  width: 16px;
+  height: 16px;
+}
+
+:host ::ng-deep .tt-grid-action:hover {
+  background: var(--tt-primary-soft);
+  color: var(--tt-primary-text);
+}
+
+:host ::ng-deep .tt-grid-action--danger:hover {
+  background: var(--tt-danger-soft);
+  color: var(--tt-danger-text);
+}

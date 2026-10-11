@@ -1,0 +1,153 @@
+<div class="tt-page">
+  <header class="tt-page-head">
+    <div class="tt-page-head__text">
+      <h1 class="tt-page-head__title">Cash flow</h1>
+      <p class="tt-page-head__sub">
+        {{ shopLabel() }}, direct method. Money actually received against money actually
+        paid out, so a credit sale only appears once the customer pays.
+      </p>
+    </div>
+  </header>
+
+  <div class="tt-panel">
+    <div class="tt-panel__body">
+      <div class="filters">
+        <div class="filters__dates">
+          <div class="filters__field">
+            <label class="tt-field__label" for="from">From</label>
+            <input id="from" class="tt-input" type="date" name="from"
+                   [ngModel]="from()" (ngModelChange)="from.set($event)" />
+          </div>
+          <div class="filters__field">
+            <label class="tt-field__label" for="to">To</label>
+            <input id="to" class="tt-input" type="date" name="to"
+                   [ngModel]="to()" (ngModelChange)="to.set($event)" />
+          </div>
+          <button type="button" class="tt-btn tt-btn--primary" (click)="load()">Apply</button>
+        </div>
+
+        <div class="filters__presets">
+          @for (preset of presets; track preset.label; let i = $index) {
+            <button type="button" class="preset" (click)="applyPreset(i)">{{ preset.label }}</button>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="tt-panel">
+      <div class="tt-panel__body skeleton-rows">
+        @for (n of [1, 2, 3, 4, 5]; track n) {
+          <div class="tt-skeleton tt-skeleton-text"></div>
+        }
+      </div>
+    </div>
+  } @else if (failed()) {
+    <div class="tt-panel">
+      <div class="tt-error-state">
+        <p class="tt-empty__title">The report could not load</p>
+        <button type="button" class="tt-btn tt-btn--primary" (click)="load()">Try again</button>
+      </div>
+    </div>
+  } @else if (data(); as flow) {
+    <section class="headline">
+      <div class="headline__item headline__item--cyan">
+        <span class="headline__label">Opening cash</span>
+        <span class="headline__value">{{ money(flow.openingCash) }}</span>
+      </div>
+      <div class="headline__item headline__item--emerald">
+        <span class="headline__label">Money in</span>
+        <span class="headline__value tt-pos">{{ money(flow.totalInflow) }}</span>
+      </div>
+      <div class="headline__item headline__item--amber">
+        <span class="headline__label">Money out</span>
+        <span class="headline__value tt-neg">{{ money(flow.totalOutflow) }}</span>
+      </div>
+      <div class="headline__item headline__item--accent">
+        <span class="headline__label">Closing cash</span>
+        <span class="headline__value">{{ money(flow.closingCash) }}</span>
+        <span class="headline__note">
+          Net {{ flow.netCashFlow >= 0 ? 'inflow' : 'outflow' }}
+          {{ money(flow.netCashFlow) }}
+        </span>
+      </div>
+    </section>
+
+    @if (!reconciles()) {
+      <div class="identity identity--warn" role="status">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" aria-hidden="true">
+          <path d="M12 8v5m0 3.5v.5M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18Z" />
+        </svg>
+        <span>Opening cash plus the net movement does not reach the closing figure.</span>
+      </div>
+    }
+
+    <div class="tt-panel">
+      <div class="tt-panel__head">
+        <h2 class="tt-panel__title">Statement</h2>
+        <span class="tt-panel__meta">
+          {{ longDate(flow.from) }} to {{ longDate(flow.to) }}
+        </span>
+      </div>
+
+      <table class="tt-statement">
+        <tbody>
+          <tr class="tt-statement__sub">
+            <td>Opening cash and bank</td>
+            <td class="tt-num">{{ money(flow.openingCash) }}</td>
+          </tr>
+
+          <tr>
+            <td colspan="2" class="tt-muted">Operating inflows</td>
+          </tr>
+          <tr>
+            <td class="tt-statement__indent">Customer receipts, including cash sales</td>
+            <td class="tt-num">{{ money(flow.customerReceipts) }}</td>
+          </tr>
+          <tr>
+            <td class="tt-statement__indent">Other cash in, such as an owner float</td>
+            <td class="tt-num">{{ money(flow.otherCashIn) }}</td>
+          </tr>
+          <tr class="tt-statement__sub">
+            <td>Total in</td>
+            <td class="tt-num tt-pos">{{ money(flow.totalInflow) }}</td>
+          </tr>
+
+          <tr>
+            <td colspan="2" class="tt-muted">Operating outflows</td>
+          </tr>
+          <tr>
+            <td class="tt-statement__indent">Supplier payments</td>
+            <td class="tt-num">- {{ money(flow.supplierPayments) }}</td>
+          </tr>
+          <tr>
+            <td class="tt-statement__indent">Expenses paid</td>
+            <td class="tt-num">- {{ money(flow.expensePayments) }}</td>
+          </tr>
+          <tr>
+            <td class="tt-statement__indent">Other cash out, such as a bank deposit</td>
+            <td class="tt-num">- {{ money(flow.otherCashOut) }}</td>
+          </tr>
+          <tr class="tt-statement__sub">
+            <td>Total out</td>
+            <td class="tt-num tt-neg">- {{ money(flow.totalOutflow) }}</td>
+          </tr>
+
+          <tr class="tt-statement__sub">
+            <td>Net movement</td>
+            <td class="tt-num" [class.tt-neg]="flow.netCashFlow < 0">
+              {{ money(flow.netCashFlow) }}
+            </td>
+          </tr>
+
+          <tr class="tt-statement__total">
+            <td>Closing cash and bank</td>
+            <td class="tt-num">{{ money(flow.closingCash) }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  }
+</div>

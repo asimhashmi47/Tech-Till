@@ -1,0 +1,691 @@
+// Shared component classes. These are global on purpose: every feature page uses the
+// same buttons, cards, chips and form fields, and a single definition keeps them in step.
+
+// ---------- Page scaffolding ----------
+
+.tt-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tt-space-5);
+}
+
+.tt-page-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--tt-space-4);
+  flex-wrap: wrap;
+}
+
+.tt-page-head__text {
+  min-width: 0;
+}
+
+.tt-page-head__title {
+  font-size: var(--tt-text-2xl);
+}
+
+.tt-page-head__sub {
+  margin-top: var(--tt-space-1);
+  max-width: var(--tt-prose-max);
+  color: var(--tt-ink-muted);
+  font-size: var(--tt-text-base);
+}
+
+.tt-page-head__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--tt-space-2);
+  flex-wrap: wrap;
+}
+
+// ---------- Panel ----------
+// The flat surface used for grids, forms and report tables. Panels are never nested.
+
+.tt-panel {
+  background: var(--tt-surface);
+  border: 1px solid var(--tt-border);
+  border-radius: var(--tt-radius-xl);
+  box-shadow: var(--tt-shadow-xs);
+  overflow: hidden;
+}
+
+.tt-panel__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--tt-space-4);
+  padding: var(--tt-space-4) var(--tt-space-5);
+  border-bottom: 1px solid var(--tt-border-subtle);
+  flex-wrap: wrap;
+}
+
+.tt-panel__title {
+  font-size: var(--tt-text-lg);
+}
+
+.tt-panel__meta {
+  color: var(--tt-ink-muted);
+  font-size: var(--tt-text-sm);
+}
+
+.tt-panel__body {
+  padding: var(--tt-space-5);
+}
+
+.tt-panel__body--flush {
+  padding: 0;
+}
+
+// ---------- Buttons ----------
+
+.tt-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--tt-space-2);
+  height: 38px;
+  padding: 0 var(--tt-space-4);
+  border: 1px solid transparent;
+  border-radius: var(--tt-radius-md);
+  font-size: var(--tt-text-base);
+  font-weight: var(--tt-weight-medium);
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background-color var(--tt-duration-fast) var(--tt-ease-out),
+    border-color var(--tt-duration-fast) var(--tt-ease-out),
+    color var(--tt-duration-fast) var(--tt-ease-out);
+}
+
+.tt-btn svg {
+  width: 16px;
+  height: 16px;
+  flex: none;
+}
+
+.tt-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.tt-btn--primary {
+  background: var(--tt-primary);
+  color: var(--tt-ink-inverse);
+}
+
+.tt-btn--primary:hover:not(:disabled) {
+  background: var(--tt-primary-hover);
+}
+
+.tt-btn--primary:active:not(:disabled) {
+  background: var(--tt-primary-active);
+}
+
+.tt-btn--soft {
+  background: var(--tt-primary-soft);
+  color: var(--tt-primary-text);
+}
+
+.tt-btn--soft:hover:not(:disabled) {
+  background: color-mix(in oklch, var(--tt-primary) 12%, var(--tt-surface));
+}
+
+.tt-btn--ghost {
+  background: var(--tt-surface);
+  border-color: var(--tt-border);
+  color: var(--tt-ink-body);
+}
+
+.tt-btn--ghost:hover:not(:disabled) {
+  background: var(--tt-surface-hover);
+  border-color: var(--tt-border-strong);
+  color: var(--tt-ink-strong);
+}
+
+.tt-btn--danger {
+  background: var(--tt-danger);
+  color: var(--tt-ink-inverse);
+}
+
+.tt-btn--danger:hover:not(:disabled) {
+  background: var(--tt-danger-hover);
+}
+
+.tt-btn--quiet {
+  height: 32px;
+  padding: 0 var(--tt-space-2);
+  background: none;
+  color: var(--tt-ink-muted);
+  font-weight: var(--tt-weight-regular);
+}
+
+.tt-btn--quiet:hover:not(:disabled) {
+  background: var(--tt-surface-hover);
+  color: var(--tt-ink-strong);
+}
+
+.tt-btn--lg {
+  height: 48px;
+  padding: 0 var(--tt-space-6);
+  font-size: var(--tt-text-md);
+}
+
+.tt-btn--block {
+  width: 100%;
+}
+
+// ---------- Chips ----------
+
+.tt-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--tt-space-1);
+  height: 22px;
+  padding: 0 var(--tt-space-2);
+  border-radius: var(--tt-radius-sm);
+  font-size: var(--tt-text-xs);
+  font-weight: var(--tt-weight-medium);
+  white-space: nowrap;
+}
+
+.tt-chip--paid {
+  background: var(--tt-status-paid-bg);
+  color: var(--tt-status-paid);
+}
+
+.tt-chip--partial {
+  background: var(--tt-status-partial-bg);
+  color: var(--tt-status-partial);
+}
+
+.tt-chip--unpaid {
+  background: var(--tt-status-unpaid-bg);
+  color: var(--tt-status-unpaid);
+}
+
+.tt-chip--void {
+  background: var(--tt-status-void-bg);
+  color: var(--tt-status-void);
+  text-decoration: line-through;
+}
+
+.tt-chip--neutral {
+  background: var(--tt-neutral-50);
+  color: var(--tt-ink-body);
+}
+
+.tt-chip--info {
+  background: var(--tt-info-soft);
+  color: var(--tt-info-text);
+}
+
+.tt-chip--warning {
+  background: var(--tt-warning-soft);
+  color: var(--tt-warning-text);
+}
+
+.tt-chip--success {
+  background: var(--tt-success-soft);
+  color: var(--tt-success-text);
+}
+
+// ---------- Forms ----------
+
+.tt-form {
+  display: grid;
+  gap: var(--tt-space-4);
+}
+
+.tt-form--2col {
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+.tt-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tt-space-2);
+  min-width: 0;
+}
+
+.tt-field__label {
+  color: var(--tt-ink);
+  font-size: var(--tt-text-sm);
+  font-weight: var(--tt-weight-medium);
+}
+
+.tt-field__hint {
+  color: var(--tt-ink-muted);
+  font-size: var(--tt-text-xs);
+}
+
+.tt-field__error {
+  color: var(--tt-danger-text);
+  font-size: var(--tt-text-xs);
+}
+
+.tt-input,
+.tt-select,
+.tt-textarea {
+  width: 100%;
+  min-width: 0;
+  height: 38px;
+  padding: 0 var(--tt-space-3);
+  background: var(--tt-surface);
+  border: 1px solid var(--tt-border);
+  border-radius: var(--tt-radius-md);
+  color: var(--tt-ink-strong);
+
+  // 16px prevents iOS from zooming the page when a field takes focus.
+  font-size: var(--tt-text-md);
+  transition:
+    border-color var(--tt-duration-fast) var(--tt-ease-out),
+    box-shadow var(--tt-duration-fast) var(--tt-ease-out);
+}
+
+.tt-textarea {
+  height: auto;
+  min-height: 84px;
+  padding: var(--tt-space-2) var(--tt-space-3);
+  line-height: var(--tt-leading-normal);
+  resize: vertical;
+}
+
+.tt-input::placeholder,
+.tt-textarea::placeholder {
+  // Placeholders clear 4.5:1, not the browser's washed out default.
+  color: var(--tt-neutral-500);
+}
+
+.tt-input:hover,
+.tt-select:hover,
+.tt-textarea:hover {
+  border-color: var(--tt-border-strong);
+}
+
+.tt-input:focus,
+.tt-select:focus,
+.tt-textarea:focus {
+  outline: none;
+  border-color: var(--tt-primary);
+  box-shadow: var(--tt-focus-ring);
+}
+
+.tt-input--invalid,
+.tt-select--invalid {
+  border-color: var(--tt-danger);
+}
+
+.tt-input--number {
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.tt-select {
+  appearance: none;
+  padding-right: var(--tt-space-8);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right var(--tt-space-3) center;
+  background-size: 16px;
+}
+
+.tt-checkbox {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--tt-space-2);
+  font-size: var(--tt-text-base);
+  cursor: pointer;
+}
+
+.tt-checkbox input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--tt-primary);
+  cursor: pointer;
+}
+
+.tt-form-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--tt-space-2);
+  padding-top: var(--tt-space-2);
+}
+
+// ---------- States ----------
+
+.tt-empty {
+  display: grid;
+  place-items: center;
+  gap: var(--tt-space-3);
+  padding: var(--tt-space-12) var(--tt-space-5);
+  text-align: center;
+}
+
+.tt-empty__icon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--tt-radius-lg);
+  background: var(--tt-neutral-50);
+  color: var(--tt-neutral-400);
+}
+
+.tt-empty__icon svg {
+  width: 22px;
+  height: 22px;
+}
+
+.tt-empty__title {
+  color: var(--tt-ink-strong);
+  font-size: var(--tt-text-lg);
+  font-weight: var(--tt-weight-semibold);
+}
+
+.tt-empty__text {
+  max-width: 44ch;
+  color: var(--tt-ink-muted);
+  font-size: var(--tt-text-base);
+}
+
+.tt-error-state {
+  display: grid;
+  gap: var(--tt-space-3);
+  place-items: center;
+  padding: var(--tt-space-10) var(--tt-space-5);
+  text-align: center;
+}
+
+// Skeletons shimmer only while something is genuinely loading.
+.tt-skeleton {
+  border-radius: var(--tt-radius-sm);
+  background: linear-gradient(
+    90deg,
+    var(--tt-neutral-50) 25%,
+    var(--tt-neutral-100) 37%,
+    var(--tt-neutral-50) 63%
+  );
+  background-size: 400% 100%;
+  animation: tt-shimmer 1400ms var(--tt-ease-in-out) infinite;
+}
+
+@keyframes tt-shimmer {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: 0 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tt-skeleton {
+    animation: none;
+    background: var(--tt-neutral-50);
+  }
+}
+
+.tt-skeleton-text {
+  height: 12px;
+}
+
+// ---------- Small helpers ----------
+
+.tt-toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--tt-space-2);
+  flex-wrap: wrap;
+}
+
+.tt-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tt-space-4);
+}
+
+.tt-row {
+  display: flex;
+  align-items: center;
+  gap: var(--tt-space-3);
+  flex-wrap: wrap;
+}
+
+.tt-muted {
+  color: var(--tt-ink-muted);
+}
+
+.tt-strong {
+  color: var(--tt-ink-strong);
+  font-weight: var(--tt-weight-medium);
+}
+
+.tt-pos {
+  color: var(--tt-success-text);
+}
+
+.tt-neg {
+  color: var(--tt-danger-text);
+}
+
+// A read-only figure shown above a form field, for example the balance a receipt is
+// being taken against.
+.owed {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--tt-space-4);
+  padding: var(--tt-space-3) var(--tt-space-4);
+  border: 1px solid var(--tt-border-subtle);
+  border-radius: var(--tt-radius-md);
+  background: var(--tt-neutral-25);
+  color: var(--tt-ink-muted);
+  font-size: var(--tt-text-sm);
+}
+
+.owed strong {
+  color: var(--tt-ink-strong);
+  font-size: var(--tt-text-lg);
+  font-weight: var(--tt-weight-semibold);
+}
+
+// Segmented control used by report pages to switch view.
+.tt-segment {
+  display: inline-flex;
+  padding: 3px;
+  background: var(--tt-neutral-50);
+  border-radius: var(--tt-radius-md);
+}
+
+.tt-segment__opt {
+  height: 30px;
+  padding: 0 var(--tt-space-3);
+  background: none;
+  border: 0;
+  border-radius: var(--tt-radius-sm);
+  color: var(--tt-ink-body);
+  font-size: var(--tt-text-sm);
+  font-weight: var(--tt-weight-medium);
+  cursor: pointer;
+  transition:
+    background-color var(--tt-duration-fast) var(--tt-ease-out),
+    color var(--tt-duration-fast) var(--tt-ease-out);
+}
+
+.tt-segment__opt:hover {
+  color: var(--tt-ink-strong);
+}
+
+.tt-segment__opt--on {
+  background: var(--tt-surface);
+  box-shadow: var(--tt-shadow-xs);
+  color: var(--tt-primary-text);
+}
+
+// Report tables: a statement rather than a data grid.
+.tt-statement {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--tt-text-sm);
+}
+
+.tt-statement th {
+  padding: var(--tt-space-2) var(--tt-space-5);
+  background: var(--tt-neutral-25);
+  border-bottom: 1px solid var(--tt-border-subtle);
+  color: var(--tt-ink);
+  font-size: var(--tt-text-xs);
+  font-weight: var(--tt-weight-semibold);
+  text-align: left;
+  letter-spacing: var(--tt-tracking-wide);
+}
+
+.tt-statement th.tt-num {
+  text-align: right;
+}
+
+.tt-statement td {
+  padding: var(--tt-space-3) var(--tt-space-5);
+  border-bottom: 1px solid var(--tt-border-subtle);
+}
+
+.tt-statement tbody tr:hover {
+  background: var(--tt-surface-hover);
+}
+
+.tt-statement tr.tt-statement__total td {
+  background: var(--tt-neutral-25);
+  border-top: 1px solid var(--tt-border);
+  border-bottom: 0;
+  color: var(--tt-ink-strong);
+  font-weight: var(--tt-weight-semibold);
+}
+
+.tt-statement tr.tt-statement__sub td {
+  color: var(--tt-ink-strong);
+  font-weight: var(--tt-weight-medium);
+}
+
+.tt-statement__indent {
+  padding-left: var(--tt-space-8) !important;
+  color: var(--tt-ink-body);
+}
+
+// An input with a button beside it, for adding a lookup value inline.
+.inline-add {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--tt-space-2);
+}
+
+// Search results shown under a lookup input.
+.pick-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0;
+  padding: var(--tt-space-1);
+  border: 1px solid var(--tt-border);
+  border-radius: var(--tt-radius-md);
+  background: var(--tt-surface);
+  box-shadow: var(--tt-shadow-sm);
+  list-style: none;
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.pick-list__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--tt-space-3);
+  width: 100%;
+  padding: var(--tt-space-2) var(--tt-space-3);
+  background: none;
+  border: 0;
+  border-radius: var(--tt-radius-sm);
+  color: var(--tt-ink-body);
+  font-size: var(--tt-text-sm);
+  text-align: left;
+  cursor: pointer;
+}
+
+.pick-list__item:hover {
+  background: var(--tt-primary-soft);
+  color: var(--tt-primary-text);
+}
+
+// A wide statement table scrolls inside its panel rather than pushing the page wider.
+.table-scroll {
+  width: 100%;
+  overflow-x: auto;
+}
+
+// ---------- Accent buttons ----------
+// Soft tinted buttons, one per accent. Tint plus accent text clears AA, which a solid
+// fill at these hues would not at small sizes.
+
+.tt-btn--accent {
+  background: var(--btn-soft);
+  color: var(--btn-text);
+  border-color: transparent;
+}
+
+.tt-btn--accent:hover:not(:disabled) {
+  background: color-mix(in oklch, var(--btn-base) 16%, var(--tt-surface));
+  border-color: color-mix(in oklch, var(--btn-base) 30%, transparent);
+}
+
+.tt-btn--accent:active:not(:disabled) {
+  background: color-mix(in oklch, var(--btn-base) 24%, var(--tt-surface));
+}
+
+.tt-btn--emerald {
+  --btn-base: var(--tt-emerald);
+  --btn-text: var(--tt-emerald-text);
+  --btn-soft: var(--tt-emerald-soft);
+}
+
+.tt-btn--violet {
+  --btn-base: var(--tt-violet);
+  --btn-text: var(--tt-violet-text);
+  --btn-soft: var(--tt-violet-soft);
+}
+
+.tt-btn--amber {
+  --btn-base: var(--tt-amber);
+  --btn-text: var(--tt-amber-text);
+  --btn-soft: var(--tt-amber-soft);
+}
+
+.tt-btn--cyan {
+  --btn-base: var(--tt-cyan);
+  --btn-text: var(--tt-cyan-text);
+  --btn-soft: var(--tt-cyan-soft);
+}
+
+.tt-btn--orange {
+  --btn-base: var(--tt-orange);
+  --btn-text: var(--tt-orange-text);
+  --btn-soft: var(--tt-orange-soft);
+}
+
+.tt-btn--pink {
+  --btn-base: var(--tt-pink);
+  --btn-text: var(--tt-pink-text);
+  --btn-soft: var(--tt-pink-soft);
+}
+
+// ---------- Panel accents ----------
+// A thin coloured rule along the top of a panel head, used sparingly to tell report
+// panels apart. A full border, never a thick side stripe.
+
+.tt-panel--accent .tt-panel__head {
+  border-bottom-color: color-mix(in oklch, var(--panel-accent) 34%, var(--tt-border-subtle));
+}
+
+.tt-panel--accent .tt-panel__title {
+  color: var(--panel-accent-text);
+}

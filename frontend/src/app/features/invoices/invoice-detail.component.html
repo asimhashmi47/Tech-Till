@@ -1,0 +1,191 @@
+<div class="tt-page">
+  <header class="tt-page-head">
+    <div class="tt-page-head__text">
+      <nav class="crumbs" aria-label="Breadcrumb">
+        <a routerLink="/invoices">Invoices</a>
+        <span aria-hidden="true">/</span>
+        <span>{{ invoice()?.invoiceNo ?? 'Loading' }}</span>
+      </nav>
+
+      <h1 class="tt-page-head__title">
+        {{ invoice()?.invoiceNo ?? '' }}
+        @if (invoice(); as inv) {
+          <span [class]="'tt-chip tt-chip--' + inv.status.toLowerCase()">{{ inv.status }}</span>
+        }
+      </h1>
+
+      @if (invoice(); as inv) {
+        <p class="tt-page-head__sub">
+          {{ dateTime(inv.invoiceDate) }} at {{ inv.shopName }}, sold by {{ inv.createdBy }}
+        </p>
+      }
+    </div>
+
+    <div class="tt-page-head__actions">
+      <button type="button" class="tt-btn tt-btn--ghost" (click)="back()">Back to list</button>
+
+      @if (invoice()) {
+        <button type="button" class="tt-btn tt-btn--accent tt-btn--cyan" (click)="print()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M7 9V3h10v6M7 19H5v-7h14v7h-2M7 15h10v6H7v-6Z" />
+          </svg>
+          Print
+        </button>
+      }
+
+      @if (isAdmin() && invoice() && invoice()!.status !== 'Void') {
+        <button type="button" class="tt-btn tt-btn--danger" (click)="voidInvoice()"
+                [disabled]="voiding()">
+          {{ voiding() ? 'Voiding' : 'Void invoice' }}
+        </button>
+      }
+    </div>
+  </header>
+
+  @if (loading()) {
+    <div class="tt-panel">
+      <div class="tt-panel__body skeleton">
+        @for (n of [1,2,3,4,5,6]; track n) {
+          <div class="tt-skeleton tt-skeleton-text"></div>
+        }
+      </div>
+    </div>
+  } @else if (!invoice()) {
+    <div class="tt-panel">
+      <div class="tt-empty">
+        <p class="tt-empty__title">That invoice could not be loaded</p>
+        <p class="tt-empty__text">It may have been removed, or you may not have access to its shop.</p>
+        <button type="button" class="tt-btn tt-btn--primary" (click)="load()">Try again</button>
+      </div>
+    </div>
+  } @else {
+    @if (invoice()!.status === 'Void') {
+      <div class="void-note" role="status">
+        <strong>This invoice is void.</strong>
+        {{ invoice()!.voidReason }}
+      </div>
+    }
+
+    <div class="detail-grid">
+      <!-- Lines -->
+      <div class="tt-panel">
+        <div class="tt-panel__head">
+          <h2 class="tt-panel__title">Items</h2>
+          <span class="tt-panel__meta">{{ invoice()!.items.length }} lines</span>
+        </div>
+
+        <table class="lines">
+          <thead>
+            <tr>
+              <th scope="col">Product</th>
+              <th scope="col" class="tt-num">Qty</th>
+              <th scope="col" class="tt-num">Unit price</th>
+              <th scope="col" class="tt-num">Line total</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (item of invoice()!.items; track item.productId) {
+              <tr>
+                <td>
+                  <span class="lines__name">{{ item.productName }}</span>
+                  <span class="lines__sku">{{ item.sku }}</span>
+                </td>
+                <td class="tt-num">{{ item.qty }}</td>
+                <td class="tt-num">{{ money(item.unitPrice) }}</td>
+                <td class="tt-num tt-strong">{{ money(item.lineTotal) }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+
+        <div class="totals">
+          <div class="totals__row">
+            <span>Sub total</span>
+            <span class="tt-num">{{ money(invoice()!.subTotal) }}</span>
+          </div>
+          @if (invoice()!.discount > 0) {
+            <div class="totals__row">
+              <span>Discount</span>
+              <span class="tt-num">- {{ money(invoice()!.discount) }}</span>
+            </div>
+          }
+          <div class="totals__row totals__row--grand">
+            <span>Total</span>
+            <span class="tt-num">{{ money(invoice()!.total) }}</span>
+          </div>
+          <div class="totals__row">
+            <span>Paid</span>
+            <span class="tt-num">{{ money(invoice()!.paidAmount) }}</span>
+          </div>
+          <div class="totals__row">
+            <span>Outstanding</span>
+            <span class="tt-num" [class.tt-neg]="invoice()!.outstanding > 0">
+              {{ money(invoice()!.outstanding) }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Meta -->
+      <div class="tt-stack">
+        <div class="tt-panel">
+          <div class="tt-panel__head">
+            <h2 class="tt-panel__title">Customer</h2>
+          </div>
+          <div class="tt-panel__body">
+            <dl class="facts">
+              <dt>Name</dt>
+              <dd>
+                <a [routerLink]="['/customers', invoice()!.customerId, 'ledger']">
+                  {{ invoice()!.customerName }}
+                </a>
+              </dd>
+
+              @if (invoice()!.customerPhone) {
+                <dt>Phone</dt>
+                <dd>{{ invoice()!.customerPhone }}</dd>
+              }
+
+              <dt>Payment</dt>
+              <dd>{{ invoice()!.paymentMethod }}</dd>
+            </dl>
+          </div>
+        </div>
+
+        <div class="tt-panel">
+          <div class="tt-panel__head">
+            <h2 class="tt-panel__title">Shop</h2>
+          </div>
+          <div class="tt-panel__body">
+            <dl class="facts">
+              <dt>Name</dt>
+              <dd>{{ invoice()!.shopName }}</dd>
+
+              @if (invoice()!.shopAddress) {
+                <dt>Address</dt>
+                <dd>{{ invoice()!.shopAddress }}</dd>
+              }
+
+              @if (invoice()!.shopPhone) {
+                <dt>Phone</dt>
+                <dd>{{ invoice()!.shopPhone }}</dd>
+              }
+            </dl>
+          </div>
+        </div>
+
+        @if (invoice()!.note) {
+          <div class="tt-panel">
+            <div class="tt-panel__head">
+              <h2 class="tt-panel__title">Note</h2>
+            </div>
+            <div class="tt-panel__body">
+              <p>{{ invoice()!.note }}</p>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  }
+</div>

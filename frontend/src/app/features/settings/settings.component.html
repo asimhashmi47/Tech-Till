@@ -1,0 +1,73 @@
+<div class="tt-page">
+  <header class="tt-page-head">
+    <div class="tt-page-head__text">
+      <h1 class="tt-page-head__title">Settings</h1>
+      <p class="tt-page-head__sub">
+        Options that apply to the whole business. Only the owner account can change them.
+      </p>
+    </div>
+  </header>
+
+  <div class="tt-panel settings-panel">
+    <div class="tt-panel__head">
+      <h2 class="tt-panel__title">Currency</h2>
+      <span class="tt-panel__meta">Currently {{ current().name }}</span>
+    </div>
+
+    @if (loading()) {
+      <div class="tt-panel__body tt-stack">
+        @for (n of [1, 2, 3]; track n) {
+          <div class="tt-skeleton tt-skeleton-text"></div>
+        }
+      </div>
+    } @else {
+      <div class="tt-panel__body tt-stack">
+        <p class="settings-note">
+          Every amount in the app is shown in this currency: the dashboard, the till,
+          invoices, ledgers, reports and the Excel exports. Figures already recorded are
+          not converted, only relabelled, so pick the currency the shop actually trades in.
+        </p>
+
+        <div class="currency-row">
+          <div class="tt-field">
+            <label class="tt-field__label" for="currency">Currency</label>
+            <select id="currency" class="tt-select" name="currency"
+                    [ngModel]="selected()" (ngModelChange)="selected.set($event)">
+              @for (option of options(); track option.code) {
+                <option [value]="option.code">
+                  {{ option.code }}, {{ option.name }} ({{ option.symbol }})
+                </option>
+              }
+            </select>
+          </div>
+
+          <div class="preview">
+            <span class="preview__label">Money will look like</span>
+            <span class="preview__value">{{ sample() }}</span>
+            @if (chosen(); as option) {
+              <span class="preview__meta">
+                {{ option.decimals }} decimal {{ option.decimals === 1 ? 'place' : 'places' }}
+              </span>
+            }
+          </div>
+        </div>
+
+        @if (isDirty()) {
+          <p class="settings-warning" role="status">
+            Not saved yet. Saving changes what every signed in user sees.
+          </p>
+        }
+
+        <div class="tt-form-actions">
+          @if (isDirty()) {
+            <button type="button" class="tt-btn tt-btn--ghost" (click)="revert()">Revert</button>
+          }
+          <button type="button" class="tt-btn tt-btn--primary" (click)="save()"
+                  [disabled]="saving() || !isDirty()">
+            {{ saving() ? 'Saving' : 'Save currency' }}
+          </button>
+        </div>
+      </div>
+    }
+  </div>
+</div>

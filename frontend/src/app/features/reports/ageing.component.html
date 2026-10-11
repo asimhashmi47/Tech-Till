@@ -1,0 +1,51 @@
+<div class="tt-page">
+  <header class="tt-page-head">
+    <div class="tt-page-head__text">
+      <h1 class="tt-page-head__title">{{ title() }}</h1>
+      <p class="tt-page-head__sub">
+        {{ blurb() }} The MVP has no due dates, so age runs from the document date.
+      </p>
+    </div>
+
+    <div class="tt-page-head__actions">
+      <div class="tt-segment" role="group" aria-label="Choose a view">
+        <button type="button" class="tt-segment__opt" [class.tt-segment__opt--on]="!byDocument()"
+                (click)="setView(false)">
+          By {{ partyHeader().toLowerCase() }}
+        </button>
+        <button type="button" class="tt-segment__opt" [class.tt-segment__opt--on]="byDocument()"
+                (click)="setView(true)">
+          By {{ documentHeader().toLowerCase() }}
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Bucket summary. The two views sum to the same total, which is the point. -->
+  <section class="buckets" aria-label="Ageing buckets">
+    @for (bucket of buckets(); track bucket.label) {
+      <div class="bucket" [class]="'bucket--' + bucket.tone">
+        <span class="bucket__label">{{ bucket.label }}</span>
+        <span class="bucket__value tt-num">{{ money(bucket.value) }}</span>
+        <span class="bucket__share">{{ share(bucket.value) }}% of total</span>
+      </div>
+    }
+    <div class="bucket bucket--total">
+      <span class="bucket__label">Total outstanding</span>
+      <span class="bucket__value tt-num">{{ money(summary().total) }}</span>
+      <span class="bucket__share">{{ byDocument() ? 'By document' : 'By party' }}</span>
+    </div>
+  </section>
+
+  <div class="tt-panel">
+    <tt-data-grid
+      [gridKey]="gridKey()"
+      [columns]="columns()"
+      [dataSource]="dataSource()"
+      [defaultSort]="[{ field: 'total', desc: true }]"
+      searchPlaceholder="Search name or document"
+      emptyTitle="Nothing outstanding"
+      emptyText="Every balance in scope is settled."
+    />
+  </div>
+</div>

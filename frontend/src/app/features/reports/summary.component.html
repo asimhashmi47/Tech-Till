@@ -1,0 +1,136 @@
+<div class="tt-page">
+  <header class="tt-page-head">
+    <div class="tt-page-head__text">
+      <h1 class="tt-page-head__title">Summary</h1>
+      <p class="tt-page-head__sub">
+        {{ shopLabel() }}. Sales, cost, profit and cash movement per {{ mode() === 'daily' ? 'day' : 'month' }}.
+      </p>
+    </div>
+
+    <div class="tt-page-head__actions">
+      <div class="tt-segment" role="group" aria-label="Choose a period">
+        <button type="button" class="tt-segment__opt" [class.tt-segment__opt--on]="mode() === 'daily'"
+                (click)="setMode('daily')">Daily</button>
+        <button type="button" class="tt-segment__opt" [class.tt-segment__opt--on]="mode() === 'monthly'"
+                (click)="setMode('monthly')">Monthly</button>
+      </div>
+
+      <button type="button" class="tt-btn tt-btn--accent tt-btn--emerald" (click)="exportExcel()" [disabled]="exporting()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M12 3v12m0 0 4-4m-4 4-4-4M4 19h16" />
+        </svg>
+        {{ exporting() ? 'Preparing' : 'Excel' }}
+      </button>
+    </div>
+  </header>
+
+  <div class="tt-panel">
+    <div class="tt-panel__body">
+      <div class="filters">
+        <div class="filters__dates">
+          <div class="filters__field">
+            <label class="tt-field__label" for="from">From</label>
+            <input id="from" class="tt-input" type="date" name="from"
+                   [ngModel]="from()" (ngModelChange)="from.set($event)" />
+          </div>
+          <div class="filters__field">
+            <label class="tt-field__label" for="to">To</label>
+            <input id="to" class="tt-input" type="date" name="to"
+                   [ngModel]="to()" (ngModelChange)="to.set($event)" />
+          </div>
+          <button type="button" class="tt-btn tt-btn--primary" (click)="load()">Apply</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  @if (failed()) {
+    <div class="tt-panel">
+      <div class="tt-error-state">
+        <p class="tt-empty__title">The report could not load</p>
+        <button type="button" class="tt-btn tt-btn--primary" (click)="load()">Try again</button>
+      </div>
+    </div>
+  } @else {
+    <tt-chart-card
+      title="Net profit"
+      [subtitle]="mode() === 'daily' ? 'Per day over the selected range' : 'Per month over the selected range'"
+      type="bar"
+      [data]="chart()"
+      [options]="chartOptions"
+      [loading]="loading()"
+      [empty]="!loading() && !hasData()"
+      height="240px"
+    />
+
+    <div class="tt-panel">
+      <div class="tt-panel__head">
+        <h2 class="tt-panel__title">{{ mode() === 'daily' ? 'Day by day' : 'Month by month' }}</h2>
+        <span class="tt-panel__meta">{{ rows().length }} rows</span>
+      </div>
+
+      @if (loading()) {
+        <div class="tt-panel__body skeleton-rows">
+          @for (n of [1, 2, 3, 4, 5, 6]; track n) {
+            <div class="tt-skeleton tt-skeleton-text"></div>
+          }
+        </div>
+      } @else if (rows().length === 0) {
+        <div class="tt-empty">
+          <p class="tt-empty__title">Nothing in this range</p>
+          <p class="tt-empty__text">Widen the dates and apply again.</p>
+        </div>
+      } @else {
+        <div class="table-scroll">
+          <table class="tt-statement">
+            <thead>
+              <tr>
+                <th scope="col">Period</th>
+                <th scope="col" class="tt-num">Invoices</th>
+                <th scope="col" class="tt-num">Sales</th>
+                <th scope="col" class="tt-num">COGS</th>
+                <th scope="col" class="tt-num">Gross profit</th>
+                <th scope="col" class="tt-num">Expenses</th>
+                <th scope="col" class="tt-num">Net profit</th>
+                <th scope="col" class="tt-num">Receipts</th>
+                <th scope="col" class="tt-num">Purchases</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (row of rows(); track row.periodStart) {
+                <tr>
+                  <td class="tt-strong">{{ row.period }}</td>
+                  <td class="tt-num">{{ row.invoiceCount }}</td>
+                  <td class="tt-num">{{ money(row.sales) }}</td>
+                  <td class="tt-num">{{ money(row.cogs) }}</td>
+                  <td class="tt-num">{{ money(row.grossProfit) }}</td>
+                  <td class="tt-num">{{ money(row.expenses) }}</td>
+                  <td class="tt-num tt-strong" [class.tt-neg]="row.netProfit < 0">
+                    {{ money(row.netProfit) }}
+                  </td>
+                  <td class="tt-num">{{ money(row.receipts) }}</td>
+                  <td class="tt-num">{{ money(row.purchases) }}</td>
+                </tr>
+              }
+
+              <tr class="tt-statement__total">
+                <td>Total</td>
+                <td class="tt-num">{{ totals().invoiceCount }}</td>
+                <td class="tt-num">{{ money(totals().sales) }}</td>
+                <td class="tt-num">{{ money(totals().cogs) }}</td>
+                <td class="tt-num">{{ money(totals().grossProfit) }}</td>
+                <td class="tt-num">{{ money(totals().expenses) }}</td>
+                <td class="tt-num" [class.tt-neg]="totals().netProfit < 0">
+                  {{ money(totals().netProfit) }}
+                </td>
+                <td class="tt-num">{{ money(totals().receipts) }}</td>
+                <td class="tt-num">{{ money(totals().purchases) }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+  }
+</div>

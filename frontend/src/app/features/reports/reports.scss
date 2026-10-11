@@ -1,0 +1,215 @@
+:host {
+  display: block;
+}
+
+.filters {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--tt-space-3);
+  flex-wrap: wrap;
+}
+
+.filters__dates {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--tt-space-2);
+}
+
+.filters__field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tt-space-1);
+}
+
+.filters__field .tt-input {
+  width: 160px;
+}
+
+.filters__presets {
+  display: flex;
+  gap: var(--tt-space-1);
+  flex-wrap: wrap;
+}
+
+.preset {
+  height: 32px;
+  padding: 0 var(--tt-space-3);
+  background: var(--tt-surface);
+  border: 1px solid var(--tt-border);
+  border-radius: var(--tt-radius-pill);
+  color: var(--tt-ink-body);
+  font-size: var(--tt-text-xs);
+  cursor: pointer;
+  transition:
+    background-color var(--tt-duration-fast) var(--tt-ease-out),
+    border-color var(--tt-duration-fast) var(--tt-ease-out);
+}
+
+.preset:hover {
+  background: var(--tt-surface-hover);
+  border-color: var(--tt-border-strong);
+  color: var(--tt-ink-strong);
+}
+
+.headline {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--tt-space-4);
+}
+
+// Each figure carries its own hue as a soft wash that fades into the card surface, so a
+// row of four reads as four different things rather than one block of white boxes. The
+// gradient stays inside the soft end of the ramp: the value itself is the loud element.
+// The fade mixes in sRGB on purpose: mixing a tint with white in OKLCH drags the hue
+// toward 0, because an achromatic colour has no hue of its own to interpolate with.
+.headline__item {
+  --card-tint: var(--tt-slate-soft);
+  --card-edge: var(--tt-neutral-300);
+  --card-ink: var(--tt-ink-muted);
+
+  display: flex;
+  flex-direction: column;
+  gap: var(--tt-space-1);
+  padding: var(--tt-space-4);
+  background:
+    linear-gradient(
+      152deg,
+      var(--card-tint) 0%,
+      color-mix(in srgb, var(--card-tint) 46%, var(--tt-surface)) 56%,
+      var(--tt-surface) 100%
+    );
+  border: 1px solid color-mix(in srgb, var(--card-edge) 20%, var(--tt-border));
+  border-radius: var(--tt-radius-lg);
+  box-shadow: var(--tt-shadow-xs);
+}
+
+.headline__item--indigo {
+  --card-tint: var(--tt-indigo-soft);
+  --card-edge: var(--tt-indigo);
+  --card-ink: var(--tt-indigo-text);
+}
+
+.headline__item--violet {
+  --card-tint: var(--tt-violet-soft);
+  --card-edge: var(--tt-violet);
+  --card-ink: var(--tt-violet-text);
+}
+
+.headline__item--emerald {
+  --card-tint: var(--tt-emerald-soft);
+  --card-edge: var(--tt-emerald);
+  --card-ink: var(--tt-emerald-text);
+}
+
+.headline__item--cyan {
+  --card-tint: var(--tt-cyan-soft);
+  --card-edge: var(--tt-cyan);
+  --card-ink: var(--tt-cyan-text);
+}
+
+.headline__item--amber {
+  --card-tint: var(--tt-amber-soft);
+  --card-edge: var(--tt-amber);
+  --card-ink: var(--tt-amber-text);
+}
+
+.headline__item--orange {
+  --card-tint: var(--tt-orange-soft);
+  --card-edge: var(--tt-orange);
+  --card-ink: var(--tt-orange-text);
+}
+
+.headline__item--rose {
+  --card-tint: var(--tt-rose-soft);
+  --card-edge: var(--tt-rose);
+  --card-ink: var(--tt-rose-text);
+}
+
+.headline__item--pink {
+  --card-tint: var(--tt-pink-soft);
+  --card-edge: var(--tt-pink);
+  --card-ink: var(--tt-pink-text);
+}
+
+// The headline figure of the set: a fuller wash and a heavier edge, since it is the one
+// number a shop owner looks for first.
+.headline__item--accent {
+  --card-tint: var(--tt-indigo-soft);
+  --card-edge: var(--tt-indigo);
+  --card-ink: var(--tt-indigo-text);
+
+  background:
+    linear-gradient(
+      152deg,
+      color-mix(in oklch, var(--card-tint) 88%, var(--card-edge)) 0%,
+      var(--card-tint) 62%,
+      color-mix(in srgb, var(--card-tint) 55%, var(--tt-surface)) 100%
+    );
+  border-color: color-mix(in srgb, var(--card-edge) 30%, var(--tt-border));
+}
+
+.headline__label {
+  // On a tinted card the muted neutral loses contrast, so the label and note take the
+  // card's own hue, which clears 4.5:1 against its own soft background.
+  color: var(--card-ink);
+  font-size: var(--tt-text-xs);
+}
+
+.headline__value {
+  color: var(--tt-ink-strong);
+  font-size: var(--tt-text-2xl);
+  font-weight: var(--tt-weight-semibold);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--tt-tracking-tight);
+  line-height: 1.1;
+}
+
+.headline__note {
+  color: var(--card-ink);
+  font-size: var(--tt-text-2xs);
+}
+
+// Shown when a statement proves its own identity, for example assets equalling
+// liabilities plus equity.
+.identity {
+  display: flex;
+  align-items: center;
+  gap: var(--tt-space-2);
+  padding: var(--tt-space-3) var(--tt-space-4);
+  border: 1px solid color-mix(in oklch, var(--tt-success) 24%, var(--tt-border));
+  border-radius: var(--tt-radius-lg);
+  background: var(--tt-success-soft);
+  color: var(--tt-success-text);
+  font-size: var(--tt-text-sm);
+}
+
+.identity svg {
+  width: 16px;
+  height: 16px;
+  flex: none;
+}
+
+.identity--warn {
+  border-color: color-mix(in oklch, var(--tt-danger) 24%, var(--tt-border));
+  background: var(--tt-danger-soft);
+  color: var(--tt-danger-text);
+}
+
+.report-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  gap: var(--tt-space-4);
+  align-items: start;
+}
+
+.skeleton-rows {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tt-space-3);
+}
+
+@media (max-width: 680px) {
+  .filters__field .tt-input {
+    width: 140px;
+  }
+}

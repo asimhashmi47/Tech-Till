@@ -1,0 +1,48 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.12" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.12">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Serilog.AspNetCore" Version="10.0.0" />
+    <PackageReference Include="Serilog.Sinks.Console" Version="6.1.1" />
+    <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="10.3.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\TechTill.Infrastructure\TechTill.Infrastructure.csproj" />
+  </ItemGroup>
+
+  <!--
+    Windows keeps an exclusive lock on the host executable of a running app, so a build
+    started while the API is still up fails on copying apphost.exe over TechTill.Api.exe
+    ("the file is locked by: TechTill.Api"). Rather than make every rebuild a two step
+    ritual, a Debug build stops the previous instance first.
+
+    Only the local host executable is touched, only on Windows, and only in Debug. Pass
+    -p:StopRunningApiBeforeBuild=false to keep a running instance alive.
+  -->
+  <PropertyGroup Condition="'$(StopRunningApiBeforeBuild)' == ''">
+    <StopRunningApiBeforeBuild>true</StopRunningApiBeforeBuild>
+  </PropertyGroup>
+
+  <Target Name="StopRunningApiHost"
+          BeforeTargets="PrepareForBuild"
+          Condition="'$(OS)' == 'Windows_NT' AND '$(Configuration)' == 'Debug' AND '$(StopRunningApiBeforeBuild)' == 'true'">
+    <!-- IgnoreExitCode keeps "process not found", the normal case, from reporting a problem. -->
+    <Exec Command="taskkill /F /IM $(AssemblyName).exe 1&gt;nul 2&gt;nul"
+          IgnoreExitCode="true"
+          StandardOutputImportance="low"
+          StandardErrorImportance="low" />
+  </Target>
+
+</Project>

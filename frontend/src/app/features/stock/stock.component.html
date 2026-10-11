@@ -1,0 +1,194 @@
+<div class="tt-page">
+  <header class="tt-page-head">
+    <div class="tt-page-head__text">
+      <h1 class="tt-page-head__title">Stock</h1>
+      <p class="tt-page-head__sub">
+        Quantity on hand per shop. Every change writes a movement, so the total always matches
+        the sum of its history.
+      </p>
+    </div>
+
+    @if (canWrite) {
+      <div class="tt-page-head__actions">
+        <button type="button" class="tt-btn tt-btn--accent tt-btn--violet" (click)="openTransfer()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M4 8h12l-3-3m3 11H4l3 3" />
+          </svg>
+          Transfer between shops
+        </button>
+      </div>
+    }
+  </header>
+
+  <div class="tt-toolbar">
+    <div class="tt-segment" role="group" aria-label="Choose a view">
+      <button type="button" class="tt-segment__opt" [class.tt-segment__opt--on]="tab() === 'levels'"
+              (click)="setTab('levels')">On hand</button>
+      <button type="button" class="tt-segment__opt" [class.tt-segment__opt--on]="tab() === 'movements'"
+              (click)="setTab('movements')">Movements</button>
+    </div>
+  </div>
+
+  <div class="tt-panel">
+    @if (tab() === 'levels') {
+      <tt-data-grid
+        #levelGrid
+        gridKey="stock-levels"
+        [columns]="levelColumns"
+        [dataSource]="levelSource"
+        [actions]="levelActions"
+        [defaultSort]="[{ field: 'qty', desc: false }]"
+        searchPlaceholder="Search SKU, product or category"
+        emptyTitle="No stock records yet"
+        emptyText="Stock appears once a purchase is received or an opening balance is set."
+      />
+    } @else {
+      <tt-data-grid
+        #movementGrid
+        gridKey="stock-movements"
+        [columns]="movementColumns"
+        [dataSource]="movementSource"
+        [defaultSort]="[{ field: 'movedAt', desc: true }]"
+        searchPlaceholder="Search product, reference or reason"
+        emptyTitle="No movements yet"
+        emptyText="Purchases, sales, adjustments and transfers all land here."
+      />
+    }
+  </div>
+</div>
+
+<!-- Adjust -->
+<tt-drawer
+  [open]="adjustOpen()"
+  heading="Adjust stock"
+  [subheading]="adjustRow() ? adjustRow()!.productName + ' at ' + adjustRow()!.shopName : ''"
+  (closed)="closeAdjust()"
+>
+  @if (adjustRow(); as row) {
+    <form class="tt-form" (ngSubmit)="saveAdjust()" id="adjust-form">
+      <div class="owed">
+        <span>On hand now</span>
+        <strong class="tt-num">{{ row.qty }}</strong>
+      </div>
+
+      <div class="tt-field">
+        <span class="tt-field__label">Direction</span>
+        <div class="tt-segment" role="group" aria-label="Adjustment direction">
+          <button type="button" class="tt-segment__opt"
+                  [class.tt-segment__opt--on]="adjustDirection() === 'in'"
+                  (click)="adjustDirection.set('in')">Add stock</button>
+          <button type="button" class="tt-segment__opt"
+                  [class.tt-segment__opt--on]="adjustDirection() === 'out'"
+                  (click)="adjustDirection.set('out')">Remove stock</button>
+        </div>
+      </div>
+
+      <div class="tt-field">
+        <label class="tt-field__label" for="adjust-qty">Quantity</label>
+        <input id="adjust-qty" class="tt-input tt-input--number" type="number" min="1" step="1"
+               name="adjustQty" [ngModel]="adjustQty()" (ngModelChange)="adjustQty.set(+$event)" />
+      </div>
+
+      @if (adjustPreview(); as preview) {
+        <p class="tt-field__hint">
+          {{ preview.from }} becomes <strong class="tt-strong">{{ preview.to }}</strong>
+        </p>
+      }
+
+      <div class="tt-field">
+        <label class="tt-field__label" for="adjust-reason">Reason</label>
+        <textarea id="adjust-reason" class="tt-textarea" name="adjustReason" required
+                  placeholder="For example: damaged in transit, or stock count correction"
+                  [ngModel]="adjustReason()" (ngModelChange)="adjustReason.set($event)"></textarea>
+        <p class="tt-field__hint">Kept with the movement and shown in the audit log.</p>
+      </div>
+
+      @if (adjustError()) {
+        <p class="tt-field__error">{{ adjustError() }}</p>
+      }
+    </form>
+  }
+
+  <div drawerFooter>
+    <button type="button" class="tt-btn tt-btn--ghost" (click)="closeAdjust()">Cancel</button>
+    <button type="submit" form="adjust-form" class="tt-btn tt-btn--primary" [disabled]="adjustSaving()">
+      {{ adjustSaving() ? 'Saving' : 'Apply adjustment' }}
+    </button>
+  </div>
+</tt-drawer>
+
+<!-- Transfer -->
+<tt-drawer [open]="transferOpen()" heading="Transfer stock" (closed)="closeTransfer()">
+  <form class="tt-form" (ngSubmit)="saveTransfer()" id="transfer-form">
+    <div class="tt-field">
+      <label class="tt-field__label" for="from-shop">From shop</label>
+      <select id="from-shop" class="tt-select" name="transferFrom"
+              [ngModel]="transferFrom()" (ngModelChange)="transferFrom.set(+$event)">
+        @for (shop of shops(); track shop.id) {
+          <option [value]="shop.id">{{ shop.name }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="tt-field">
+      <label class="tt-field__label" for="transfer-product">Product</label>
+      <input id="transfer-product" class="tt-input" name="transferSearch" autocomplete="off"
+             placeholder="Search by SKU or name"
+             [ngModel]="transferSearch()" (ngModelChange)="searchTransferProduct($event)" />
+
+      @if (transferResults().length > 0) {
+        <ul class="pick-list">
+          @for (product of transferResults(); track product.id) {
+            <li>
+              <button type="button" class="pick-list__item" (click)="pickTransferProduct(product)">
+                <span>
+                  <span class="tt-strong">{{ product.name }}</span>
+                  <span class="tt-muted"> {{ product.sku }}</span>
+                </span>
+                <span class="tt-num">{{ product.qty }}</span>
+              </button>
+            </li>
+          }
+        </ul>
+      }
+
+      <p class="tt-field__hint">Only products with stock at the source shop can move.</p>
+    </div>
+
+    <div class="tt-field">
+      <label class="tt-field__label" for="to-shop">To shop</label>
+      <select id="to-shop" class="tt-select" name="transferTo"
+              [ngModel]="transferTo()" (ngModelChange)="transferTo.set(+$event)">
+        <option [ngValue]="null" disabled>Choose the destination</option>
+        @for (shop of transferTargets(); track shop.id) {
+          <option [value]="shop.id">{{ shop.name }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="tt-field">
+      <label class="tt-field__label" for="transfer-qty">Quantity</label>
+      <input id="transfer-qty" class="tt-input tt-input--number" type="number" min="1" step="1"
+             name="transferQty" [ngModel]="transferQty()" (ngModelChange)="transferQty.set(+$event)" />
+    </div>
+
+    <div class="tt-field">
+      <label class="tt-field__label" for="transfer-note">Note</label>
+      <input id="transfer-note" class="tt-input" name="transferNote"
+             [ngModel]="transferNote()" (ngModelChange)="transferNote.set($event)" />
+    </div>
+
+    @if (transferError()) {
+      <p class="tt-field__error">{{ transferError() }}</p>
+    }
+  </form>
+
+  <div drawerFooter>
+    <button type="button" class="tt-btn tt-btn--ghost" (click)="closeTransfer()">Cancel</button>
+    <button type="submit" form="transfer-form" class="tt-btn tt-btn--primary"
+            [disabled]="transferSaving()">
+      {{ transferSaving() ? 'Moving' : 'Transfer stock' }}
+    </button>
+  </div>
+</tt-drawer>

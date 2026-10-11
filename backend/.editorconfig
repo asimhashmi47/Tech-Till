@@ -1,0 +1,25 @@
+root = true
+
+[*.cs]
+indent_style = space
+indent_size = 4
+end_of_line = crlf
+charset = utf-8
+insert_final_newline = true
+
+# The spec names these types (Section 5 and 6). Keeping the domain vocabulary is worth
+# more here than the generic naming guidance, so these two rules are turned off.
+dotnet_diagnostic.CA1716.severity = none
+dotnet_diagnostic.CA1711.severity = none
+
+# Entity and DTO collections are set by EF Core and the serialiser.
+dotnet_diagnostic.CA2227.severity = none
+dotnet_diagnostic.CA1002.severity = none
+
+# EF Core generates these files. They are checked in but not hand written, so the style
+# and performance analyzers do not apply to them.
+[**/Persistence/Migrations/*.cs]
+dotnet_analyzer_diagnostic.severity = none
+dotnet_diagnostic.CA1861.severity = none
+dotnet_diagnostic.CA1062.severity = none
+generated_code = true

@@ -1,0 +1,201 @@
+<div class="tt-page">
+  <header class="tt-page-head">
+    <div class="tt-page-head__text">
+      <h1 class="tt-page-head__title">Users and permissions</h1>
+      <p class="tt-page-head__sub">
+        Access is set per module and per shop. The server checks the same matrix on every
+        request, so hiding a menu is not what protects the data.
+      </p>
+    </div>
+
+    <div class="tt-page-head__actions">
+      <button type="button" class="tt-btn tt-btn--primary" (click)="create()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" aria-hidden="true">
+          <path d="M12 5v14M5 12h14" />
+        </svg>
+        Add user
+      </button>
+    </div>
+  </header>
+
+  <div class="tt-panel">
+    <tt-data-grid
+      #grid
+      gridKey="users"
+      [columns]="columns"
+      [dataSource]="dataSource"
+      [actions]="actions"
+      [defaultSort]="[{ field: 'username', desc: false }]"
+      searchPlaceholder="Search username or name"
+      emptyTitle="No users yet"
+      emptyText="Add the staff who will use the till."
+      [useShopScope]="false"
+      (rowClicked)="edit($event.id)"
+    />
+  </div>
+</div>
+
+<tt-drawer
+  [open]="drawerOpen()"
+  [heading]="editingId() ? 'Edit user' : 'Add user'"
+  subheading="Changes apply the next time this account calls the server."
+  [wide]="true"
+  (closed)="close()"
+>
+  @if (loadingDetail()) {
+    <div class="tt-stack">
+      @for (n of [1, 2, 3, 4, 5]; track n) {
+        <div class="tt-skeleton tt-skeleton-text"></div>
+      }
+    </div>
+  } @else {
+    <form class="tt-stack" (ngSubmit)="save()" id="user-form">
+      <div class="tt-form tt-form--2col">
+        <div class="tt-field">
+          <label class="tt-field__label" for="username">Username</label>
+          <input id="username" class="tt-input" name="username" autocapitalize="none"
+                 spellcheck="false" required [class.tt-input--invalid]="errors()['username']"
+                 [ngModel]="username()" (ngModelChange)="username.set($event)" />
+          @if (errors()['username']) {
+            <p class="tt-field__error">{{ errors()['username'] }}</p>
+          }
+        </div>
+
+        <div class="tt-field">
+          <label class="tt-field__label" for="fullName">Full name</label>
+          <input id="fullName" class="tt-input" name="fullName" required
+                 [class.tt-input--invalid]="errors()['fullName']"
+                 [ngModel]="fullName()" (ngModelChange)="fullName.set($event)" />
+          @if (errors()['fullName']) {
+            <p class="tt-field__error">{{ errors()['fullName'] }}</p>
+          }
+        </div>
+      </div>
+
+      <div class="tt-form tt-form--2col">
+        <div class="tt-field">
+          <label class="tt-field__label" for="role">Role</label>
+          <select id="role" class="tt-select" name="role"
+                  [ngModel]="role()" (ngModelChange)="role.set($event)">
+            <option value="Standard">Staff, access set below</option>
+            <option value="Admin">Owner, full access to everything</option>
+          </select>
+        </div>
+
+        <div class="tt-field">
+          <label class="tt-field__label" for="password">
+            {{ editingId() ? 'New password' : 'Password' }}
+          </label>
+          <input id="password" class="tt-input" type="password" name="password"
+                 autocomplete="new-password"
+                 [placeholder]="editingId() ? 'Leave blank to keep the current one' : ''"
+                 [class.tt-input--invalid]="errors()['password']"
+                 [ngModel]="password()" (ngModelChange)="password.set($event)" />
+          @if (errors()['password']) {
+            <p class="tt-field__error">{{ errors()['password'] }}</p>
+          } @else {
+            <p class="tt-field__hint">At least 8 characters.</p>
+          }
+        </div>
+      </div>
+
+      <label class="tt-checkbox">
+        <input type="checkbox" name="isActive" [ngModel]="isActive()"
+               (ngModelChange)="isActive.set($event)" />
+        Allowed to sign in
+      </label>
+
+      <!-- Shops -->
+      <section class="block">
+        <div class="block__head">
+          <h3 class="block__title">Shops</h3>
+          @if (isAdminRole()) {
+            <span class="tt-chip tt-chip--info">Owner sees every shop</span>
+          }
+        </div>
+
+        @if (!isAdminRole()) {
+          <div class="shop-grid">
+            @for (shop of shops(); track shop.id) {
+              <label class="tt-checkbox">
+                <input type="checkbox" [checked]="hasShop(shop.id)"
+                       (change)="toggleShop(shop.id, $any($event.target).checked)" />
+                {{ shop.name }}
+              </label>
+            }
+          </div>
+
+          @if (errors()['shops']) {
+            <p class="tt-field__error">{{ errors()['shops'] }}</p>
+          }
+        }
+      </section>
+
+      <!-- Permission matrix -->
+      <section class="block">
+        <div class="block__head">
+          <h3 class="block__title">Module access</h3>
+          @if (isAdminRole()) {
+            <span class="tt-chip tt-chip--info">Owner has write on everything</span>
+          } @else {
+            <div class="tt-row">
+              <span class="tt-muted" style="font-size: var(--tt-text-xs)">
+                {{ grantedCount() }} of {{ assignable.length }} granted
+              </span>
+              <button type="button" class="tt-btn tt-btn--quiet" (click)="grantAll(false)">
+                All read
+              </button>
+              <button type="button" class="tt-btn tt-btn--quiet" (click)="grantAll(true)">
+                All write
+              </button>
+              <button type="button" class="tt-btn tt-btn--quiet" (click)="clearAll()">Clear</button>
+            </div>
+          }
+        </div>
+
+        @if (!isAdminRole()) {
+          <table class="matrix">
+            <thead>
+              <tr>
+                <th scope="col">Module</th>
+                <th scope="col" class="matrix__check">Read</th>
+                <th scope="col" class="matrix__check">Write</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (row of assignable; track row.module) {
+                <tr>
+                  <td>{{ row.label }}</td>
+                  <td class="matrix__check">
+                    <input type="checkbox" [checked]="access(row.module).read"
+                           (change)="setAccess(row.module, 'read', $any($event.target).checked)"
+                           [attr.aria-label]="'Read ' + row.label" />
+                  </td>
+                  <td class="matrix__check">
+                    <input type="checkbox" [checked]="access(row.module).write"
+                           (change)="setAccess(row.module, 'write', $any($event.target).checked)"
+                           [attr.aria-label]="'Write ' + row.label" />
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+
+          <p class="tt-field__hint">
+            Write includes read. Users and the audit log stay with the owner account and
+            cannot be granted here.
+          </p>
+        }
+      </section>
+    </form>
+  }
+
+  <div drawerFooter>
+    <button type="button" class="tt-btn tt-btn--ghost" (click)="close()">Cancel</button>
+    <button type="submit" form="user-form" class="tt-btn tt-btn--primary"
+            [disabled]="saving() || loadingDetail()">
+      {{ saving() ? 'Saving' : editingId() ? 'Save changes' : 'Create user' }}
+    </button>
+  </div>
+</tt-drawer>

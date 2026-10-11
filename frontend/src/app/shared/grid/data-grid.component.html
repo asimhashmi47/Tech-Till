@@ -1,0 +1,210 @@
+<div class="grid-wrap">
+  <!-- Toolbar -->
+  <div class="grid-toolbar">
+    <div class="grid-search">
+      <svg class="grid-search__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+        <circle cx="11" cy="11" r="7" />
+        <path d="m20 20-3.5-3.5" />
+      </svg>
+      <input
+        class="grid-search__input"
+        type="search"
+        [attr.placeholder]="searchPlaceholder"
+        [attr.aria-label]="searchPlaceholder"
+        [ngModel]="quickSearch()"
+        (ngModelChange)="onQuickSearch($event)"
+        name="quickSearch"
+      />
+      @if (quickSearch()) {
+        <button type="button" class="grid-search__clear" (click)="clearQuickSearch()"
+                aria-label="Clear search">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" aria-hidden="true">
+            <path d="M6 6l12 12M18 6 6 18" />
+          </svg>
+        </button>
+      }
+    </div>
+
+    <div class="grid-toolbar__spacer"></div>
+
+    @if (totalCount() !== null) {
+      <span class="grid-count">{{ totalCount() }} {{ totalCount() === 1 ? 'row' : 'rows' }}</span>
+    }
+
+    <!-- Advanced filter builder -->
+    <div class="grid-pop" data-menu>
+      <button type="button" class="tt-btn tt-btn--ghost" (click)="toggleBuilder()"
+              [attr.aria-expanded]="builderOpen()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M3 5h18l-7 8v6l-4-2v-4L3 5Z" />
+        </svg>
+        Filters
+        @if (activeFilterCount() > 0) {
+          <span class="grid-badge">{{ activeFilterCount() }}</span>
+        }
+      </button>
+
+      @if (builderOpen()) {
+        <div class="grid-panel grid-panel--wide" role="dialog" aria-label="Advanced filter">
+          <div class="grid-panel__head">
+            <h3 class="grid-panel__title">Advanced filter</h3>
+            <label class="grid-join">
+              Match
+              <select class="tt-select tt-select--sm" [ngModel]="builderJoin()"
+                      (ngModelChange)="builderJoin.set($event)" name="join"
+                      aria-label="Join rules with and or or">
+                <option [value]="1">all rules</option>
+                <option [value]="2">any rule</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="grid-panel__body">
+            @for (rule of builderRules(); track $index) {
+              <div class="builder-row">
+                <select class="tt-select tt-select--sm" [(ngModel)]="rule.field"
+                        [name]="'field' + $index" aria-label="Field">
+                  @for (column of columns; track column.field) {
+                    <option [value]="column.field">{{ column.header }}</option>
+                  }
+                </select>
+
+                <select class="tt-select tt-select--sm" [(ngModel)]="rule.operator"
+                        [name]="'op' + $index" aria-label="Condition">
+                  @for (option of operatorsFor(rule.field); track option.value) {
+                    <option [value]="option.value">{{ option.label }}</option>
+                  }
+                </select>
+
+                @if (!needsNoValue(rule.operator)) {
+                  @if (enumOptionsFor(rule.field).length > 0) {
+                    <select class="tt-select tt-select--sm" [(ngModel)]="rule.value"
+                            [name]="'val' + $index" aria-label="Value">
+                      <option value="">Choose</option>
+                      @for (option of enumOptionsFor(rule.field); track option) {
+                        <option [value]="option">{{ option }}</option>
+                      }
+                    </select>
+                  } @else {
+                    <input class="tt-input tt-input--sm" [type]="builderInputType(rule.field)"
+                           [(ngModel)]="rule.value" [name]="'val' + $index"
+                           placeholder="Value" aria-label="Value" />
+                  }
+
+                  @if (needsSecondValue(rule.operator)) {
+                    <input class="tt-input tt-input--sm" [type]="builderInputType(rule.field)"
+                           [(ngModel)]="rule.value2" [name]="'val2' + $index"
+                           placeholder="and" aria-label="Second value" />
+                  }
+                }
+
+                <button type="button" class="tt-btn tt-btn--quiet builder-row__remove"
+                        (click)="removeBuilderRule($index)" aria-label="Remove rule">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                       stroke-linecap="round" aria-hidden="true">
+                    <path d="M6 6l12 12M18 6 6 18" />
+                  </svg>
+                </button>
+              </div>
+            }
+
+            <button type="button" class="tt-btn tt-btn--quiet" (click)="addBuilderRule()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                   stroke-linecap="round" aria-hidden="true">
+                <path d="M12 5v14M5 12h14" />
+              </svg>
+              Add rule
+            </button>
+          </div>
+
+          <div class="grid-panel__foot">
+            <button type="button" class="tt-btn tt-btn--ghost" (click)="clearBuilder()">Clear all</button>
+            <button type="button" class="tt-btn tt-btn--primary" (click)="applyBuilder()">Apply filter</button>
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- Column chooser -->
+    <div class="grid-pop" data-menu>
+      <button type="button" class="tt-btn tt-btn--ghost" (click)="toggleChooser()"
+              [attr.aria-expanded]="chooserOpen()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M4 5h16M4 12h16M4 19h16" />
+        </svg>
+        Columns
+      </button>
+
+      @if (chooserOpen()) {
+        <div class="grid-panel" role="dialog" aria-label="Choose columns">
+          <div class="grid-panel__head">
+            <h3 class="grid-panel__title">Columns</h3>
+            <button type="button" class="tt-btn tt-btn--quiet" (click)="showAllColumns()">Show all</button>
+          </div>
+          <div class="grid-panel__body grid-panel__body--list">
+            @for (column of columns; track column.field) {
+              <label class="tt-checkbox">
+                <input type="checkbox" [checked]="isColumnVisible(column.field)"
+                       (change)="toggleColumn(column.field, $any($event.target).checked)" />
+                {{ column.header }}
+              </label>
+            }
+          </div>
+        </div>
+      }
+    </div>
+
+    @if (dataSource.export) {
+      <button type="button" class="tt-btn tt-btn--accent tt-btn--emerald" (click)="exportToExcel()"
+              [disabled]="exporting()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M12 3v12m0 0 4-4m-4 4-4-4M4 19h16" />
+        </svg>
+        {{ exporting() ? 'Preparing' : 'Excel' }}
+      </button>
+    }
+  </div>
+
+  <!-- Error state replaces the grid, because a failed query has nothing to show -->
+  @if (loadFailed()) {
+    <div class="tt-error-state">
+      <div class="tt-empty__icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+             stroke-linecap="round" aria-hidden="true">
+          <path d="M12 8v5m0 3.5v.5M10.3 3.9 2.5 18a1.6 1.6 0 0 0 1.4 2.4h16.2a1.6 1.6 0 0 0 1.4-2.4L13.7 3.9a1.6 1.6 0 0 0-2.8 0Z" />
+        </svg>
+      </div>
+      <p class="tt-empty__title">That list could not load</p>
+      <p class="tt-empty__text">The server did not answer. Check the connection and try again.</p>
+      <button type="button" class="tt-btn tt-btn--primary" (click)="refresh()">Try again</button>
+    </div>
+  } @else {
+    <div class="ag-theme-techtill grid-host" [style.height]="height">
+      <ag-grid-angular
+        class="grid-host__grid"
+        [gridOptions]="gridOptions"
+        [columnDefs]="columnDefs"
+        (gridReady)="onGridReady($event)"
+        (rowClicked)="rowClicked.emit($any($event).data)"
+      />
+    </div>
+
+    @if (totalCount() === 0) {
+      <div class="tt-empty grid-empty">
+        <div class="tt-empty__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M4 7h16M4 12h10M4 17h7" />
+          </svg>
+        </div>
+        <p class="tt-empty__title">{{ emptyTitle }}</p>
+        <p class="tt-empty__text">{{ emptyText }}</p>
+      </div>
+    }
+  }
+</div>

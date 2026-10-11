@@ -1,0 +1,38 @@
+<div class="err">
+  <div class="err__card">
+    <span class="err__icon" [class]="'err__icon--' + copy().tone" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"
+           stroke-linecap="round" stroke-linejoin="round">
+        <path [attr.d]="copy().icon" />
+      </svg>
+    </span>
+
+    <p class="err__code">{{ copy().code }}</p>
+    <h1 class="err__title">{{ copy().title }}</h1>
+    <p class="err__message">{{ copy().message }}</p>
+
+    @if (copy().hint) {
+      <p class="err__hint">{{ copy().hint }}</p>
+    }
+
+    @if (reference()) {
+      <p class="err__ref">Reference <span class="tt-mono">{{ reference() }}</span></p>
+    }
+
+    <div class="err__actions">
+      @if (copy().code === '401') {
+        <button type="button" class="tt-btn tt-btn--primary" (click)="signIn()">Sign in again</button>
+      } @else if (copy().code === 'Offline' || copy().code === '500') {
+        <button type="button" class="tt-btn tt-btn--primary" (click)="retry()">Try again</button>
+        <button type="button" class="tt-btn tt-btn--ghost" (click)="goBack()">Go back</button>
+      } @else {
+        @if (isSignedIn()) {
+          <a class="tt-btn tt-btn--primary" routerLink="/dashboard">Go to dashboard</a>
+        } @else {
+          <a class="tt-btn tt-btn--primary" routerLink="/login">Go to sign in</a>
+        }
+        <button type="button" class="tt-btn tt-btn--ghost" (click)="goBack()">Go back</button>
+      }
+    </div>
+  </div>
+</div>
