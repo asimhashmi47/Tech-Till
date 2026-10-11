@@ -148,6 +148,8 @@ The API listens on `http://localhost:5080`. Swagger UI is at `http://localhost:5
 
 In `Development` a placeholder signing key ships in `appsettings.Development.json`, so `dotnet run` works without the user-secrets step while you are trying it out. Set a real secret before running anything that matters.
 
+Windows holds an exclusive lock on the host executable of a running app, so building while the API is up normally fails on copying `apphost.exe`. A Debug build on Windows therefore stops the previous instance first. Pass `-p:StopRunningApiBeforeBuild=false` to keep a running instance alive.
+
 **Web**
 
 ```bash
