@@ -96,6 +96,8 @@ public sealed class UserService(
             throw ValidationFailedException.ForField(nameof(request.Password), "Use at least 8 characters.");
         }
 
+        await ValidateAsync(request, ct).ConfigureAwait(false);
+
         var username = request.Username.Trim();
         if (await db.Users.AnyAsync(u => u.Username == username && !u.IsDeleted, ct).ConfigureAwait(false))
         {
@@ -126,6 +128,8 @@ public sealed class UserService(
 
     public async Task<UserDetailDto> UpdateAsync(long id, SaveUserRequest request, CancellationToken ct = default)
     {
+        await ValidateAsync(request, ct).ConfigureAwait(false);
+
         var user = await db.Users
             .Include(u => u.UserShops)
             .Include(u => u.Permissions)
@@ -194,6 +198,27 @@ public sealed class UserService(
             .ConfigureAwait(false);
     }
 
+    private async Task ValidateAsync(SaveUserRequest request, CancellationToken ct)
+    {
+        if (string.IsNullOrWhiteSpace(request.Username))
+        {
+            throw ValidationFailedException.ForField(nameof(request.Username), "Username is required.");
+        }
+
+        if (string.IsNullOrWhiteSpace(request.FullName))
+        {
+            throw ValidationFailedException.ForField(nameof(request.FullName), "Full name is required.");
+        }
+
+        var shopIds = request.ShopIds.Distinct().ToList();
+        var known = await db.Shops.CountAsync(s => shopIds.Contains(s.Id) && !s.IsDeleted, ct).ConfigureAwait(false);
+
+        if (known != shopIds.Count)
+        {
+            throw ValidationFailedException.ForField(nameof(request.ShopIds), "Pick valid shops.");
+        }
+    }
+
     private async Task ApplyAssignmentsAsync(AppUser user, SaveUserRequest request, CancellationToken ct)
     {
         var existingShops = await db.UserShops.Where(us => us.UserId == user.Id).ToListAsync(ct).ConfigureAwait(false);
@@ -260,16 +285,16 @@ public sealed class UserService(
 
         return rows
             .Select(u => new UserListDto
-    {
-        Id = u.Id,
-        Username = u.Username,
-        FullName = u.FullName,
-        Role = u.Role,
-        IsActive = u.IsActive,
-        Shops = u.Role == UserRole.Admin ? "All shops" : string.Join(", ", u.ShopNames.Order()),
-        LastLoginAt = u.LastLoginAt,
-        CreatedAt = u.CreatedAt
-    })
+            {
+                Id = u.Id,
+                Username = u.Username,
+                FullName = u.FullName,
+                Role = u.Role,
+                IsActive = u.IsActive,
+                Shops = u.Role == UserRole.Admin ? "All shops" : string.Join(", ", u.ShopNames.Order()),
+                LastLoginAt = u.LastLoginAt,
+                CreatedAt = u.CreatedAt
+            })
             .ToList();
     }
 }

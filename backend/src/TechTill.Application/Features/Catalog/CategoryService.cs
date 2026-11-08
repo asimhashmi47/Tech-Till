@@ -50,6 +50,8 @@ public sealed class CategoryService(
     public async Task<CategoryDto> CreateAsync(SaveCategoryRequest request, CancellationToken ct = default)
     {
         var name = request.Name.Trim();
+        EnsureNamed(name);
+
         if (await db.Categories.AnyAsync(c => c.Name == name && !c.IsDeleted, ct).ConfigureAwait(false))
         {
             throw ValidationFailedException.ForField(nameof(request.Name), "That category already exists.");
@@ -70,12 +72,12 @@ public sealed class CategoryService(
         await audit.LogAsync(Module.Products, AuditAction.Create, nameof(Category), entity.Id, name, ct: ct)
             .ConfigureAwait(false);
         return new CategoryDto
-    {
-        Id = entity.Id,
-        Name = entity.Name,
-        IsActive = entity.IsActive,
-        ProductCount = 0
-    };
+        {
+            Id = entity.Id,
+            Name = entity.Name,
+            IsActive = entity.IsActive,
+            ProductCount = 0
+        };
     }
 
     public async Task<CategoryDto> UpdateAsync(long id, SaveCategoryRequest request, CancellationToken ct = default)
@@ -84,6 +86,8 @@ public sealed class CategoryService(
             ?? throw new NotFoundException(nameof(Category), id);
 
         var name = request.Name.Trim();
+        EnsureNamed(name);
+
         if (await db.Categories.AnyAsync(c => c.Name == name && c.Id != id && !c.IsDeleted, ct).ConfigureAwait(false))
         {
             throw ValidationFailedException.ForField(nameof(request.Name), "That category already exists.");
@@ -130,15 +134,23 @@ public sealed class CategoryService(
             .ConfigureAwait(false);
     }
 
+    private static void EnsureNamed(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            throw ValidationFailedException.ForField(nameof(SaveCategoryRequest.Name), "Category name is required.");
+        }
+    }
+
     private IQueryable<CategoryDto> Projected()
         => db.Categories
             .AsNoTracking()
             .Where(c => !c.IsDeleted)
             .Select(c => new CategoryDto
-    {
-        Id = c.Id,
-        Name = c.Name,
-        IsActive = c.IsActive,
-        ProductCount = c.Products.Count(p => !p.IsDeleted)
-    });
+            {
+                Id = c.Id,
+                Name = c.Name,
+                IsActive = c.IsActive,
+                ProductCount = c.Products.Count(p => !p.IsDeleted)
+            });
 }

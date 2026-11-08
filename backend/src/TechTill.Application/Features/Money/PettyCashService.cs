@@ -203,17 +203,17 @@ public sealed class PettyCashService(
             .AsNoTracking()
             .Where(p => !p.IsDeleted && shopIds.Contains(p.ShopId))
             .Select(p => new PettyCashEntryDto
-    {
-        Id = p.Id,
-        EntryDate = p.EntryDate,
-        ShopId = p.ShopId,
-        ShopName = p.Shop.Name,
-        Direction = p.Direction,
-        CashIn = p.Direction == PettyCashDirection.In ? p.Amount : 0m,
-        CashOut = p.Direction == PettyCashDirection.Out ? p.Amount : 0m,
-        Note = p.Note,
-        FromExpense = p.ExpenseId != null,
-        CreatedBy = p.CreatedBy
-    });
+            {
+                Id = p.Id,
+                EntryDate = p.EntryDate,
+                ShopId = p.ShopId,
+                ShopName = p.Shop.Name,
+                Direction = p.Direction,
+                CashIn = p.Direction == PettyCashDirection.In ? p.Amount : 0m,
+                CashOut = p.Direction == PettyCashDirection.Out ? p.Amount : 0m,
+                Note = p.Note,
+                FromExpense = p.ExpenseId != null,
+                CreatedBy = p.CreatedBy
+            });
     }
 }

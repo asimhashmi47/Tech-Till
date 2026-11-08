@@ -6,9 +6,8 @@ using TechTill.Infrastructure.Persistence;
 namespace TechTill.Infrastructure.Services;
 
 /// <summary>
-/// Single writer for the audit trail. Rows are added to the same change tracker as the
-/// action being audited, so a failed save leaves no orphan audit row. Login and export
-/// calls save immediately because they have nothing else to commit with.
+/// Single writer for the audit trail. Services log once their own change has been committed,
+/// so the row is saved here: nothing after this call would otherwise persist it.
 /// </summary>
 public sealed class AuditService(AppDbContext db, ICurrentUser currentUser, IDateTimeProvider clock) : IAuditService
 {
@@ -37,10 +36,7 @@ public sealed class AuditService(AppDbContext db, ICurrentUser currentUser, IDat
             CorrelationId = currentUser.CorrelationId
         });
 
-        if (action is AuditAction.Login or AuditAction.LoginFailed or AuditAction.Export)
-        {
-            await db.SaveChangesAsync(ct).ConfigureAwait(false);
-        }
+        await db.SaveChangesAsync(ct).ConfigureAwait(false);
     }
 
     private static string? Trim(string? value)

@@ -64,6 +64,7 @@ public sealed class ShopService(
 
     public async Task<ShopDto> CreateAsync(SaveShopRequest request, CancellationToken ct = default)
     {
+        Validate(request);
         await EnsureCodeFreeAsync(request.Code, null, ct).ConfigureAwait(false);
 
         var shop = new Shop
@@ -92,6 +93,8 @@ public sealed class ShopService(
 
     public async Task<ShopDto> UpdateAsync(long id, SaveShopRequest request, CancellationToken ct = default)
     {
+        Validate(request);
+
         var shop = await db.Shops.FirstOrDefaultAsync(s => s.Id == id && !s.IsDeleted, ct).ConfigureAwait(false)
             ?? throw new NotFoundException(nameof(Shop), id);
 
@@ -122,6 +125,19 @@ public sealed class ShopService(
         return Map(shop);
     }
 
+    private static void Validate(SaveShopRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.Code))
+        {
+            throw ValidationFailedException.ForField(nameof(request.Code), "Shop code is required.");
+        }
+
+        if (string.IsNullOrWhiteSpace(request.Name))
+        {
+            throw ValidationFailedException.ForField(nameof(request.Name), "Shop name is required.");
+        }
+    }
+
     private async Task EnsureCodeFreeAsync(string code, long? excludeId, CancellationToken ct)
     {
         var normalised = code.Trim().ToUpperInvariant();
@@ -146,14 +162,14 @@ public sealed class ShopService(
         }
 
         return query.Select(s => new ShopDto
-    {
-        Id = s.Id,
-        Code = s.Code,
-        Name = s.Name,
-        Address = s.Address,
-        Phone = s.Phone,
-        IsActive = s.IsActive
-    });
+        {
+            Id = s.Id,
+            Code = s.Code,
+            Name = s.Name,
+            Address = s.Address,
+            Phone = s.Phone,
+            IsActive = s.IsActive
+        });
     }
 
     private static ShopDto Map(Shop s) => new()

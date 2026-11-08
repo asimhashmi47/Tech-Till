@@ -200,14 +200,14 @@ public sealed class SalesService(
             invoice.CreatedBy,
             invoice.Items
                 .Select(x => new InvoiceItemDto
-    {
-        ProductId = x.ProductId,
-        Sku = x.Product.Sku,
-        ProductName = x.Product.Name,
-        Qty = x.Qty,
-        UnitPrice = x.UnitPrice,
-        LineTotal = x.Qty * x.UnitPrice
-    })
+                {
+                    ProductId = x.ProductId,
+                    Sku = x.Product.Sku,
+                    ProductName = x.Product.Name,
+                    Qty = x.Qty,
+                    UnitPrice = x.UnitPrice,
+                    LineTotal = x.Qty * x.UnitPrice
+                })
                 .ToList());
     }
 
@@ -235,7 +235,16 @@ public sealed class SalesService(
             .ConfigureAwait(false)
             ?? throw ValidationFailedException.ForField(nameof(request.CustomerId), "Pick a valid customer.");
 
-        var subTotal = request.Items.Sum(i => i.Qty * i.UnitPrice);
+        decimal subTotal;
+
+        try
+        {
+            subTotal = request.Items.Sum(i => i.Qty * i.UnitPrice);
+        }
+        catch (OverflowException)
+        {
+            throw ValidationFailedException.ForField(nameof(request.Items), "That amount is too large.");
+        }
 
         if (request.Discount < 0)
         {
@@ -524,6 +533,20 @@ public sealed class SalesService(
                 throw new ConflictException("A void invoice cannot take a payment.");
             }
 
+            if (invoice.CustomerId != request.CustomerId || invoice.ShopId != request.ShopId)
+            {
+                throw ValidationFailedException.ForField(
+                    nameof(request.SalesInvoiceId),
+                    "That invoice belongs to another customer or shop.");
+            }
+
+            if (request.Amount > invoice.Total - invoice.PaidAmount)
+            {
+                throw ValidationFailedException.ForField(
+                    nameof(request.Amount),
+                    $"That invoice has {invoice.Total - invoice.PaidAmount:0.00} outstanding, so the receipt is too large.");
+            }
+
             invoice.PaidAmount += request.Amount;
             invoice.Status = StatusFor(invoice.Total, invoice.PaidAmount);
         }
@@ -605,24 +628,24 @@ public sealed class SalesService(
             .AsNoTracking()
             .Where(i => !i.IsDeleted && shopIds.Contains(i.ShopId))
             .Select(i => new InvoiceListDto
-    {
-        Id = i.Id,
-        InvoiceNo = i.InvoiceNo,
-        InvoiceDate = i.InvoiceDate,
-        ShopId = i.ShopId,
-        ShopName = i.Shop.Name,
-        CustomerId = i.CustomerId,
-        CustomerName = i.Customer.Name,
-        SubTotal = i.SubTotal,
-        Discount = i.Discount,
-        Total = i.Total,
-        PaidAmount = i.PaidAmount,
-        Outstanding = i.Status == InvoiceStatus.Void ? 0m : i.Total - i.PaidAmount,
-        PaymentMethod = i.PaymentMethod,
-        Status = i.Status,
-        ItemCount = i.Items.Count,
-        CreatedBy = i.CreatedBy
-    });
+            {
+                Id = i.Id,
+                InvoiceNo = i.InvoiceNo,
+                InvoiceDate = i.InvoiceDate,
+                ShopId = i.ShopId,
+                ShopName = i.Shop.Name,
+                CustomerId = i.CustomerId,
+                CustomerName = i.Customer.Name,
+                SubTotal = i.SubTotal,
+                Discount = i.Discount,
+                Total = i.Total,
+                PaidAmount = i.PaidAmount,
+                Outstanding = i.Status == InvoiceStatus.Void ? 0m : i.Total - i.PaidAmount,
+                PaymentMethod = i.PaymentMethod,
+                Status = i.Status,
+                ItemCount = i.Items.Count,
+                CreatedBy = i.CreatedBy
+            });
     }
 
     private async Task<IQueryable<CustomerPaymentDto>> PaymentsAsync(long? shopId, CancellationToken ct)
@@ -633,18 +656,18 @@ public sealed class SalesService(
             .AsNoTracking()
             .Where(p => !p.IsDeleted && shopIds.Contains(p.ShopId))
             .Select(p => new CustomerPaymentDto
-    {
-        Id = p.Id,
-        ReceivedAt = p.ReceivedAt,
-        ShopId = p.ShopId,
-        ShopName = p.Shop.Name,
-        CustomerId = p.CustomerId,
-        CustomerName = p.Customer.Name,
-        InvoiceNo = p.SalesInvoice != null ? p.SalesInvoice.InvoiceNo : null,
-        Amount = p.Amount,
-        Method = p.Method,
-        Note = p.Note,
-        CreatedBy = p.CreatedBy
-    });
+            {
+                Id = p.Id,
+                ReceivedAt = p.ReceivedAt,
+                ShopId = p.ShopId,
+                ShopName = p.Shop.Name,
+                CustomerId = p.CustomerId,
+                CustomerName = p.Customer.Name,
+                InvoiceNo = p.SalesInvoice != null ? p.SalesInvoice.InvoiceNo : null,
+                Amount = p.Amount,
+                Method = p.Method,
+                Note = p.Note,
+                CreatedBy = p.CreatedBy
+            });
     }
 }

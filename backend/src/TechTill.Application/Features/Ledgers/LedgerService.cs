@@ -201,18 +201,19 @@ public sealed class LedgerService(
     {
         var shopIds = await shopScope.ResolveAsync(request.ShopId, ct).ConfigureAwait(false);
         var asAt = (request.ToDate ?? clock.UtcNow).Date;
+        var endOfDay = asAt.AddDays(1);
 
         var open = receivable
             ? await db.SalesInvoices
                 .AsNoTracking()
                 .Where(i => !i.IsDeleted && i.Status != InvoiceStatus.Void
-                    && shopIds.Contains(i.ShopId) && i.Total - i.PaidAmount > 0m)
+                    && shopIds.Contains(i.ShopId) && i.Total - i.PaidAmount > 0m && i.InvoiceDate < endOfDay)
                 .Select(i => new OpenDoc(i.CustomerId, i.Customer.Name, i.InvoiceNo, i.InvoiceDate, i.Total - i.PaidAmount))
                 .ToListAsync(ct)
                 .ConfigureAwait(false)
             : await db.PurchaseBills
                 .AsNoTracking()
-                .Where(b => !b.IsDeleted && shopIds.Contains(b.ShopId) && b.Total - b.PaidAmount > 0m)
+                .Where(b => !b.IsDeleted && shopIds.Contains(b.ShopId) && b.Total - b.PaidAmount > 0m && b.BillDate < endOfDay)
                 .Select(b => new OpenDoc(b.SupplierId, b.Supplier.Name, b.BillNo, b.BillDate, b.Total - b.PaidAmount))
                 .ToListAsync(ct)
                 .ConfigureAwait(false);

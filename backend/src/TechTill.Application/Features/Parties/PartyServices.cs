@@ -68,14 +68,14 @@ public sealed class SupplierService(
             .Where(s => s.IsActive && !s.IsDeleted)
             .OrderBy(s => s.Name)
             .Select(s => new SupplierDto
-    {
-        Id = s.Id,
-        Name = s.Name,
-        Phone = s.Phone,
-        Address = s.Address,
-        IsActive = s.IsActive,
-        Payable = 0m
-    })
+            {
+                Id = s.Id,
+                Name = s.Name,
+                Phone = s.Phone,
+                Address = s.Address,
+                IsActive = s.IsActive,
+                Payable = 0m
+            })
             .ToListAsync(ct);
 
     public async Task<SupplierDto> GetAsync(long id, CancellationToken ct = default)
@@ -112,6 +112,11 @@ public sealed class SupplierService(
 
     public async Task<SupplierDto> UpdateAsync(long id, SaveSupplierRequest request, CancellationToken ct = default)
     {
+        if (string.IsNullOrWhiteSpace(request.Name))
+        {
+            throw ValidationFailedException.ForField(nameof(request.Name), "Supplier name is required.");
+        }
+
         var entity = await db.Suppliers.FirstOrDefaultAsync(s => s.Id == id && !s.IsDeleted, ct).ConfigureAwait(false)
             ?? throw new NotFoundException(nameof(Supplier), id);
 
@@ -161,19 +166,19 @@ public sealed class SupplierService(
             .AsNoTracking()
             .Where(s => !s.IsDeleted)
             .Select(s => new SupplierDto
-    {
-        Id = s.Id,
-        Name = s.Name,
-        Phone = s.Phone,
-        Address = s.Address,
-        IsActive = s.IsActive,
-        Payable = db.PurchaseBills
+            {
+                Id = s.Id,
+                Name = s.Name,
+                Phone = s.Phone,
+                Address = s.Address,
+                IsActive = s.IsActive,
+                Payable = db.PurchaseBills
                     .Where(b => b.SupplierId == s.Id && !b.IsDeleted && shopIds.Contains(b.ShopId))
                     .Sum(b => b.Total)
                 - db.SupplierPayments
                     .Where(p => p.SupplierId == s.Id && !p.IsDeleted && shopIds.Contains(p.ShopId))
                     .Sum(p => p.Amount)
-    });
+            });
     }
 }
 
@@ -215,15 +220,15 @@ public sealed class CustomerService(
             .OrderByDescending(c => c.IsWalkIn)
             .ThenBy(c => c.Name)
             .Select(c => new CustomerDto
-    {
-        Id = c.Id,
-        Name = c.Name,
-        Phone = c.Phone,
-        Address = c.Address,
-        IsWalkIn = c.IsWalkIn,
-        IsActive = c.IsActive,
-        Receivable = 0m
-    })
+            {
+                Id = c.Id,
+                Name = c.Name,
+                Phone = c.Phone,
+                Address = c.Address,
+                IsWalkIn = c.IsWalkIn,
+                IsActive = c.IsActive,
+                Receivable = 0m
+            })
             .ToListAsync(ct);
 
     public async Task<CustomerDto> GetAsync(long id, CancellationToken ct = default)
@@ -260,6 +265,11 @@ public sealed class CustomerService(
 
     public async Task<CustomerDto> UpdateAsync(long id, SaveCustomerRequest request, CancellationToken ct = default)
     {
+        if (string.IsNullOrWhiteSpace(request.Name))
+        {
+            throw ValidationFailedException.ForField(nameof(request.Name), "Customer name is required.");
+        }
+
         var entity = await db.Customers.FirstOrDefaultAsync(c => c.Id == id && !c.IsDeleted, ct).ConfigureAwait(false)
             ?? throw new NotFoundException(nameof(Customer), id);
 
@@ -314,20 +324,20 @@ public sealed class CustomerService(
             .AsNoTracking()
             .Where(c => !c.IsDeleted)
             .Select(c => new CustomerDto
-    {
-        Id = c.Id,
-        Name = c.Name,
-        Phone = c.Phone,
-        Address = c.Address,
-        IsWalkIn = c.IsWalkIn,
-        IsActive = c.IsActive,
-        Receivable = db.SalesInvoices
+            {
+                Id = c.Id,
+                Name = c.Name,
+                Phone = c.Phone,
+                Address = c.Address,
+                IsWalkIn = c.IsWalkIn,
+                IsActive = c.IsActive,
+                Receivable = db.SalesInvoices
                     .Where(i => i.CustomerId == c.Id && !i.IsDeleted
                         && i.Status != InvoiceStatus.Void && shopIds.Contains(i.ShopId))
                     .Sum(i => i.Total)
                 - db.CustomerPayments
                     .Where(p => p.CustomerId == c.Id && !p.IsDeleted && shopIds.Contains(p.ShopId))
                     .Sum(p => p.Amount)
-    });
+            });
     }
 }

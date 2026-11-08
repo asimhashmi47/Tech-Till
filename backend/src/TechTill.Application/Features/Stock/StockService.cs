@@ -279,7 +279,14 @@ public sealed class StockService(
             db.StockLevels.Add(level);
         }
 
-        level.Qty += signedQty;
+        var next = (long)level.Qty + signedQty;
+
+        if (next is > int.MaxValue or < int.MinValue)
+        {
+            throw ValidationFailedException.ForField("Qty", "That quantity is too large.");
+        }
+
+        level.Qty = (int)next;
 
         db.StockMovements.Add(new StockMovement
         {
@@ -314,19 +321,19 @@ public sealed class StockService(
             .AsNoTracking()
             .Where(s => shopIds.Contains(s.ShopId) && !s.Product.IsDeleted)
             .Select(s => new StockLevelDto
-    {
-        ProductId = s.ProductId,
-        Sku = s.Product.Sku,
-        ProductName = s.Product.Name,
-        CategoryName = s.Product.Category.Name,
-        ShopId = s.ShopId,
-        ShopName = s.Shop.Name,
-        Qty = s.Qty,
-        ReorderLevel = s.Product.ReorderLevel,
-        CostPrice = s.Product.CostPrice,
-        StockValue = s.Qty * s.Product.CostPrice,
-        IsLow = s.Qty <= s.Product.ReorderLevel
-    });
+            {
+                ProductId = s.ProductId,
+                Sku = s.Product.Sku,
+                ProductName = s.Product.Name,
+                CategoryName = s.Product.Category.Name,
+                ShopId = s.ShopId,
+                ShopName = s.Shop.Name,
+                Qty = s.Qty,
+                ReorderLevel = s.Product.ReorderLevel,
+                CostPrice = s.Product.CostPrice,
+                StockValue = s.Qty * s.Product.CostPrice,
+                IsLow = s.Qty <= s.Product.ReorderLevel
+            });
     }
 
     private async Task<IQueryable<StockMovementDto>> MovementsAsync(long? shopId, CancellationToken ct)
@@ -337,19 +344,19 @@ public sealed class StockService(
             .AsNoTracking()
             .Where(m => shopIds.Contains(m.ShopId))
             .Select(m => new StockMovementDto
-    {
-        Id = m.Id,
-        MovedAt = m.MovedAt,
-        ShopId = m.ShopId,
-        ShopName = m.Shop.Name,
-        Sku = m.Product.Sku,
-        ProductName = m.Product.Name,
-        Type = m.Type,
-        Qty = m.Qty,
-        UnitCost = m.UnitCost,
-        Reference = m.Reference,
-        Reason = m.Reason,
-        CreatedBy = m.CreatedBy
-    });
+            {
+                Id = m.Id,
+                MovedAt = m.MovedAt,
+                ShopId = m.ShopId,
+                ShopName = m.Shop.Name,
+                Sku = m.Product.Sku,
+                ProductName = m.Product.Name,
+                Type = m.Type,
+                Qty = m.Qty,
+                UnitCost = m.UnitCost,
+                Reference = m.Reference,
+                Reason = m.Reason,
+                CreatedBy = m.CreatedBy
+            });
     }
 }

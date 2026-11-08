@@ -1,0 +1,402 @@
+{
+  "label": "before",
+  "profile": "spike",
+  "users": 1000,
+  "seededInvoices": 150218,
+  "at": "2026-11-08T19:34:41.897Z",
+  "base": "http://localhost:5082",
+  "host": {
+    "logicalCpus": 8,
+    "sameMachineAsGenerator": true,
+    "busyPctMean": 99,
+    "busyPctPeak": 100
+  },
+  "generatorEventLoopP99Ms": 40,
+  "thresholds": {
+    "p95": 500,
+    "p99": 1500,
+    "errorPct": 1
+  },
+  "overall": {
+    "count": 8837,
+    "rps": 73.5,
+    "p50": 7.2,
+    "p95": 30022.1,
+    "p99": 30041.4,
+    "max": 30138.5,
+    "errorPct": 100,
+    "statuses": {
+      "0": 8837
+    }
+  },
+  "pass": false,
+  "broke": null,
+  "socketErrors": {
+    "ECONNREFUSED": 7530,
+    "timeout": 4218
+  },
+  "login": {
+    "count": 1000,
+    "rps": 5.5,
+    "p50": 30004.6,
+    "p95": 30024.7,
+    "p99": 30045.8,
+    "max": 30096.5,
+    "errorPct": 99,
+    "statuses": {
+      "0": 728,
+      "200": 10,
+      "429": 262
+    }
+  },
+  "perEndpoint": {
+    "login": {
+      "count": 537,
+      "rps": 4.5,
+      "p50": 30013,
+      "p95": 30028.9,
+      "p99": 30076.1,
+      "max": 30096.5,
+      "errorPct": 100,
+      "statuses": {
+        "0": 537
+      }
+    },
+    "pos-search": {
+      "count": 2239,
+      "rps": 18.6,
+      "p50": 7.1,
+      "p95": 30021.5,
+      "p99": 30037,
+      "max": 30095.7,
+      "errorPct": 100,
+      "statuses": {
+        "0": 2239
+      }
+    },
+    "products-query": {
+      "count": 1304,
+      "rps": 10.8,
+      "p50": 7.3,
+      "p95": 30021.9,
+      "p99": 30044.7,
+      "max": 30107.7,
+      "errorPct": 100,
+      "statuses": {
+        "0": 1304
+      }
+    },
+    "stock-query": {
+      "count": 908,
+      "rps": 7.6,
+      "p50": 6.8,
+      "p95": 30022.4,
+      "p99": 30036.8,
+      "max": 30138.5,
+      "errorPct": 100,
+      "statuses": {
+        "0": 908
+      }
+    },
+    "pos-sale": {
+      "count": 1115,
+      "rps": 9.3,
+      "p50": 7.5,
+      "p95": 30024.6,
+      "p99": 30045.5,
+      "max": 30101.5,
+      "errorPct": 100,
+      "statuses": {
+        "0": 1115
+      }
+    },
+    "customers-query": {
+      "count": 325,
+      "rps": 2.7,
+      "p50": 7.3,
+      "p95": 30021.9,
+      "p99": 30031.2,
+      "max": 30033.5,
+      "errorPct": 100,
+      "statuses": {
+        "0": 325
+      }
+    },
+    "customer-create": {
+      "count": 150,
+      "rps": 1.2,
+      "p50": 7.7,
+      "p95": 30021.8,
+      "p99": 30043.7,
+      "max": 30058.1,
+      "errorPct": 100,
+      "statuses": {
+        "0": 150
+      }
+    },
+    "invoices-query": {
+      "count": 913,
+      "rps": 7.6,
+      "p50": 6.8,
+      "p95": 30021.2,
+      "p99": 30035.1,
+      "max": 30107.8,
+      "errorPct": 100,
+      "statuses": {
+        "0": 913
+      }
+    },
+    "me": {
+      "count": 84,
+      "rps": 0.7,
+      "p50": 7.3,
+      "p95": 30023.2,
+      "p99": 30058.9,
+      "max": 30058.9,
+      "errorPct": 100,
+      "statuses": {
+        "0": 84
+      }
+    },
+    "dashboard": {
+      "count": 474,
+      "rps": 3.9,
+      "p50": 6.9,
+      "p95": 30022.6,
+      "p99": 30043.2,
+      "max": 30068.8,
+      "errorPct": 100,
+      "statuses": {
+        "0": 474
+      }
+    },
+    "dashboard-poll": {
+      "count": 1322,
+      "rps": 11,
+      "p50": 7.8,
+      "p95": 30021.5,
+      "p99": 30034,
+      "max": 30067.4,
+      "errorPct": 100,
+      "statuses": {
+        "0": 1322
+      }
+    },
+    "customer-update": {
+      "count": 1,
+      "rps": 0,
+      "p50": 30005.1,
+      "p95": 30005.1,
+      "p99": 30005.1,
+      "max": 30005.1,
+      "errorPct": 100,
+      "statuses": {
+        "0": 1
+      }
+    },
+    "invoice-get": {
+      "count": 2,
+      "rps": 0,
+      "p50": 30015.2,
+      "p95": 30015.2,
+      "p99": 30015.2,
+      "max": 30015.2,
+      "errorPct": 100,
+      "statuses": {
+        "0": 2
+      }
+    }
+  },
+  "stepResults": [],
+  "runtime": {
+    "cpuPctMean": 76,
+    "cpuPctPeak": 87.4,
+    "workingSetMbPeak": 870,
+    "gcHeapMbPeak": 535,
+    "gcPauseMsTotal": 3605,
+    "gen2": 16,
+    "threadPoolThreadsPeak": 42,
+    "threadPoolQueuePeak": 6259,
+    "openConnectionsPeak": 44,
+    "lockWaitMsTotal": 43569,
+    "lockWaitMaxMs": 4645
+  },
+  "slowestQueries": [
+    {
+      "sql": "SELECT \"s1\".\"Id\", \"s1\".\"InvoiceNo\", \"s1\".\"InvoiceDate\", \"s1\".\"ShopId\", \"s0\".\"Name\" AS \"ShopName\", \"s1\".\"CustomerId\", \"c\".\"Name\" AS \"CustomerName\", \"s1\".\"SubTotal\", \"s1\".\"Discount\", \"s1\".\"Total\", \"s1\".\"PaidAmount\", CASE  ",
+      "count": 95,
+      "totalMs": 429528,
+      "maxMs": 9937,
+      "slowCount": 95
+    },
+    {
+      "sql": "SELECT \"p\".\"Name\", COALESCE(ef_sum(ef_multiply(CAST(\"s\".\"Qty\" AS REAL), \"s\".\"UnitPrice\")), '0.0') AS \"Value\"  FROM \"SalesItems\" AS \"s\"  INNER JOIN \"SalesInvoices\" AS \"s0\" ON \"s\".\"SalesInvoiceId\" = \"s0\".\"Id\"  INNER JOIN \"",
+      "count": 104,
+      "totalMs": 394812,
+      "maxMs": 7732,
+      "slowCount": 104
+    },
+    {
+      "sql": "SELECT \"c\".\"Name\", COALESCE(ef_sum(ef_multiply(CAST(\"s\".\"Qty\" AS REAL), \"s\".\"UnitPrice\")), '0.0') AS \"Value\"  FROM \"SalesItems\" AS \"s\"  INNER JOIN \"SalesInvoices\" AS \"s0\" ON \"s\".\"SalesInvoiceId\" = \"s0\".\"Id\"  INNER JOIN \"",
+      "count": 104,
+      "totalMs": 387223,
+      "maxMs": 6843,
+      "slowCount": 104
+    },
+    {
+      "sql": "SELECT COUNT(*)  FROM \"SalesInvoices\" AS \"s\"  WHERE NOT (\"s\".\"IsDeleted\") AND \"s\".\"ShopId\" = @shopIds1 AND \"s\".\"InvoiceDate\" >= '2026-10-10 00:00:00' AND \"s\".\"InvoiceDate\" <= '2026-11-08 23:59:59.9999999'",
+      "count": 82,
+      "totalMs": 348374,
+      "maxMs": 9642,
+      "slowCount": 82
+    },
+    {
+      "sql": "SELECT \"s\".\"CustomerId\", \"c\".\"Name\", \"s\".\"InvoiceNo\", \"s\".\"InvoiceDate\", ef_add(\"s\".\"Total\", ef_negate(\"s\".\"PaidAmount\"))  FROM \"SalesInvoices\" AS \"s\"  INNER JOIN \"Customers\" AS \"c\" ON \"s\".\"CustomerId\" = \"c\".\"Id\"  WHERE ",
+      "count": 104,
+      "totalMs": 269560,
+      "maxMs": 6344,
+      "slowCount": 104
+    },
+    {
+      "sql": "SELECT \"s2\".\"Id\", \"s2\".\"CreatedAt\", \"s2\".\"CreatedBy\", \"s2\".\"CustomerId\", \"s2\".\"Discount\", \"s2\".\"InvoiceDate\", \"s2\".\"InvoiceNo\", \"s2\".\"IsDeleted\", \"s2\".\"Note\", \"s2\".\"PaidAmount\", \"s2\".\"PaymentMethod\", \"s2\".\"ShopId\", \"s2\".",
+      "count": 35,
+      "totalMs": 78944,
+      "maxMs": 3075,
+      "slowCount": 35
+    },
+    {
+      "sql": "SELECT COUNT(*)  FROM \"SalesInvoices\" AS \"s\"  WHERE NOT (\"s\".\"IsDeleted\") AND \"s\".\"ShopId\" = @shopIds1",
+      "count": 14,
+      "totalMs": 67343,
+      "maxMs": 7162,
+      "slowCount": 14
+    },
+    {
+      "sql": "SELECT COALESCE(ef_sum(CASE      WHEN \"p\".\"Direction\" = 1 THEN \"p\".\"Amount\"      ELSE ef_negate(\"p\".\"Amount\")  END), '0.0')  FROM \"PettyCashEntries\" AS \"p\"  WHERE NOT (\"p\".\"IsDeleted\") AND \"p\".\"ShopId\" = @shopIds1 AND \"p",
+      "count": 104,
+      "totalMs": 24235,
+      "maxMs": 847,
+      "slowCount": 48
+    },
+    {
+      "sql": "SELECT \"s\".\"InvoiceNo\"  FROM \"SalesInvoices\" AS \"s\"  WHERE \"s\".\"ShopId\" = @shopId AND \"s\".\"InvoiceNo\" LIKE @prefix_startswith ESCAPE '\\'",
+      "count": 33,
+      "totalMs": 5113,
+      "maxMs": 360,
+      "slowCount": 20
+    },
+    {
+      "sql": "SELECT \"p0\".\"Id\", \"p0\".\"Sku\", \"p0\".\"Name\", \"c\".\"Name\" AS \"CategoryName\", \"p0\".\"SalePrice\", (      SELECT COALESCE(SUM(\"s\".\"Qty\"), 0)      FROM \"StockLevels\" AS \"s\"      WHERE \"s\".\"ProductId\" = \"p0\".\"Id\" AND \"s\".\"ShopId\" ",
+      "count": 192,
+      "totalMs": 3449,
+      "maxMs": 142,
+      "slowCount": 5
+    },
+    {
+      "sql": "SELECT \"s0\".\"ProductId\", \"s0\".\"Sku\", \"s0\".\"Name\" AS \"ProductName\", \"c\".\"Name\" AS \"CategoryName\", \"s0\".\"ShopId\", \"s1\".\"Name\" AS \"ShopName\", \"s0\".\"Qty\", \"s0\".\"ReorderLevel\", \"s0\".\"CostPrice\", ef_multiply(CAST(\"s0\".\"Qty\" AS",
+      "count": 134,
+      "totalMs": 2095,
+      "maxMs": 89,
+      "slowCount": 0
+    },
+    {
+      "sql": "INSERT INTO \"AuditLogs\" (\"Action\", \"At\", \"CorrelationId\", \"Entity\", \"EntityId\", \"Ip\", \"Module\", \"ShopId\", \"Summary\", \"UserId\", \"Username\")  VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8, @p9, @p10)  RETURNING \"Id\";",
+      "count": 48,
+      "totalMs": 1466,
+      "maxMs": 970,
+      "slowCount": 3
+    }
+  ],
+  "timeline": [
+    {
+      "t": 0,
+      "count": 341,
+      "rps": 11.4,
+      "p50": 4.7,
+      "p95": 17469.1,
+      "p99": 17532.7,
+      "max": 23331.3,
+      "errorPct": 72.4,
+      "statuses": {
+        "0": 247,
+        "200": 94
+      }
+    },
+    {
+      "t": 30,
+      "count": 885,
+      "rps": 29.5,
+      "p50": 11.4,
+      "p95": 30023.5,
+      "p99": 30033.4,
+      "max": 30092.2,
+      "errorPct": 100,
+      "statuses": {
+        "0": 885
+      }
+    },
+    {
+      "t": 60,
+      "count": 3243,
+      "rps": 108.1,
+      "p50": 5.6,
+      "p95": 30016.3,
+      "p99": 30025,
+      "max": 30064.8,
+      "errorPct": 100,
+      "statuses": {
+        "0": 3243
+      }
+    },
+    {
+      "t": 90,
+      "count": 3120,
+      "rps": 104,
+      "p50": 6.8,
+      "p95": 30020.4,
+      "p99": 30049.5,
+      "max": 30138.5,
+      "errorPct": 100,
+      "statuses": {
+        "0": 3120
+      }
+    },
+    {
+      "t": 120,
+      "count": 1434,
+      "rps": 47.8,
+      "p50": 30009,
+      "p95": 30031.5,
+      "p99": 30052.3,
+      "max": 30090.4,
+      "errorPct": 100,
+      "statuses": {
+        "0": 1434
+      }
+    },
+    {
+      "t": 150,
+      "count": 1130,
+      "rps": 37.7,
+      "p50": 6.7,
+      "p95": 30009,
+      "p99": 30021.3,
+      "max": 30044.7,
+      "errorPct": 100,
+      "statuses": {
+        "0": 1130
+      }
+    },
+    {
+      "t": 180,
+      "count": 0,
+      "rps": 0,
+      "p50": 0,
+      "p95": 0,
+      "p99": 0,
+      "max": 0,
+      "errorPct": 0,
+      "statuses": {}
+    }
+  ]
+}

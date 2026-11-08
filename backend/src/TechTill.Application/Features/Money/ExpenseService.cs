@@ -117,6 +117,7 @@ public sealed class ExpenseService(
     {
         await shopScope.EnsureWritableAsync(request.ShopId, ct).ConfigureAwait(false);
         Validate(request);
+        await EnsureCategoryExistsAsync(request.ExpenseCategoryId, ct).ConfigureAwait(false);
 
         await using var tx = await db.BeginTransactionAsync(ct).ConfigureAwait(false);
 
@@ -178,6 +179,7 @@ public sealed class ExpenseService(
 
         await shopScope.EnsureWritableAsync(entity.ShopId, ct).ConfigureAwait(false);
         await shopScope.EnsureWritableAsync(request.ShopId, ct).ConfigureAwait(false);
+        await EnsureCategoryExistsAsync(request.ExpenseCategoryId, ct).ConfigureAwait(false);
 
         var before = $"{entity.Amount:0.00}/{entity.Method}";
 
@@ -268,6 +270,14 @@ public sealed class ExpenseService(
             .ConfigureAwait(false);
     }
 
+    private async Task EnsureCategoryExistsAsync(long categoryId, CancellationToken ct)
+    {
+        if (!await db.ExpenseCategories.AnyAsync(c => c.Id == categoryId && !c.IsDeleted, ct).ConfigureAwait(false))
+        {
+            throw ValidationFailedException.ForField(nameof(SaveExpenseRequest.ExpenseCategoryId), "Pick a valid category.");
+        }
+    }
+
     private static void Validate(SaveExpenseRequest request)
     {
         if (request.Amount <= 0)
@@ -284,17 +294,17 @@ public sealed class ExpenseService(
             .AsNoTracking()
             .Where(e => !e.IsDeleted && shopIds.Contains(e.ShopId))
             .Select(e => new ExpenseDto
-    {
-        Id = e.Id,
-        ExpenseDate = e.ExpenseDate,
-        ShopId = e.ShopId,
-        ShopName = e.Shop.Name,
-        ExpenseCategoryId = e.ExpenseCategoryId,
-        CategoryName = e.ExpenseCategory.Name,
-        Amount = e.Amount,
-        Method = e.Method,
-        Note = e.Note,
-        CreatedBy = e.CreatedBy
-    });
+            {
+                Id = e.Id,
+                ExpenseDate = e.ExpenseDate,
+                ShopId = e.ShopId,
+                ShopName = e.Shop.Name,
+                ExpenseCategoryId = e.ExpenseCategoryId,
+                CategoryName = e.ExpenseCategory.Name,
+                Amount = e.Amount,
+                Method = e.Method,
+                Note = e.Note,
+                CreatedBy = e.CreatedBy
+            });
     }
 }

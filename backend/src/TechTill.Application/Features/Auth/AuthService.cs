@@ -60,7 +60,7 @@ public sealed class AuthService(
             .FirstOrDefaultAsync(t => t.Token == request.RefreshToken, ct)
             .ConfigureAwait(false);
 
-        if (stored is null || !stored.IsActive || !stored.User.IsActive)
+        if (stored is null || stored.RevokedAt is not null || stored.ExpiresAt <= clock.UtcNow || !stored.User.IsActive)
         {
             throw new ForbiddenException("The refresh token is no longer valid.");
         }

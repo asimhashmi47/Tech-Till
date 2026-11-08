@@ -52,17 +52,17 @@ public sealed class AuditLogService(IAppDbContext db, IExcelExportService excel,
            join shop in db.Shops.AsNoTracking() on log.ShopId equals shop.Id into shops
            from shop in shops.DefaultIfEmpty()
            select new AuditLogDto
-    {
-        Id = log.Id,
-        At = log.At,
-        Username = log.Username,
-        ShopName = shop != null ? shop.Name : null,
-        Module = log.Module,
-        Action = log.Action,
-        Entity = log.Entity,
-        EntityId = log.EntityId,
-        Summary = log.Summary,
-        Ip = log.Ip,
-        CorrelationId = log.CorrelationId
-    };
+           {
+               Id = log.Id,
+               At = log.At,
+               Username = log.Username,
+               ShopName = shop != null ? shop.Name : null,
+               Module = log.Module,
+               Action = log.Action,
+               Entity = log.Entity,
+               EntityId = log.EntityId,
+               Summary = log.Summary,
+               Ip = log.Ip,
+               CorrelationId = log.CorrelationId
+           };
 }

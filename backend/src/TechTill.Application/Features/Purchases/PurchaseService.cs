@@ -179,14 +179,14 @@ public sealed class PurchaseService(
             bill.Note,
             bill.Items
                 .Select(i => new PurchaseItemDto
-    {
-        ProductId = i.ProductId,
-        Sku = i.Product.Sku,
-        ProductName = i.Product.Name,
-        Qty = i.Qty,
-        UnitCost = i.UnitCost,
-        LineTotal = i.Qty * i.UnitCost
-    })
+                {
+                    ProductId = i.ProductId,
+                    Sku = i.Product.Sku,
+                    ProductName = i.Product.Name,
+                    Qty = i.Qty,
+                    UnitCost = i.UnitCost,
+                    LineTotal = i.Qty * i.UnitCost
+                })
                 .ToList());
     }
 
@@ -214,7 +214,24 @@ public sealed class PurchaseService(
             throw ValidationFailedException.ForField(nameof(request.SupplierId), "Pick a valid supplier.");
         }
 
-        var total = request.Items.Sum(i => i.Qty * i.UnitCost);
+        var productIds = request.Items.Select(i => i.ProductId).Distinct().ToList();
+        var known = await db.Products.CountAsync(p => productIds.Contains(p.Id) && !p.IsDeleted, ct).ConfigureAwait(false);
+
+        if (known != productIds.Count)
+        {
+            throw ValidationFailedException.ForField(nameof(request.Items), "Every line needs a valid product.");
+        }
+
+        decimal total;
+
+        try
+        {
+            total = request.Items.Sum(i => i.Qty * i.UnitCost);
+        }
+        catch (OverflowException)
+        {
+            throw ValidationFailedException.ForField(nameof(request.Items), "That amount is too large.");
+        }
 
         if (request.PaidNow < 0 || request.PaidNow > total)
         {
@@ -359,6 +376,21 @@ public sealed class PurchaseService(
         {
             var bill = await db.PurchaseBills.FirstOrDefaultAsync(b => b.Id == billId && !b.IsDeleted, ct)
                 .ConfigureAwait(false) ?? throw new NotFoundException(nameof(PurchaseBill), billId);
+
+            if (bill.SupplierId != request.SupplierId || bill.ShopId != request.ShopId)
+            {
+                throw ValidationFailedException.ForField(
+                    nameof(request.PurchaseBillId),
+                    "That bill belongs to another supplier or shop.");
+            }
+
+            if (request.Amount > bill.Total - bill.PaidAmount)
+            {
+                throw ValidationFailedException.ForField(
+                    nameof(request.Amount),
+                    $"That bill has {bill.Total - bill.PaidAmount:0.00} outstanding, so the payment is too large.");
+            }
+
             bill.PaidAmount += request.Amount;
         }
         else
@@ -436,20 +468,20 @@ public sealed class PurchaseService(
             .AsNoTracking()
             .Where(b => !b.IsDeleted && shopIds.Contains(b.ShopId))
             .Select(b => new PurchaseBillListDto
-    {
-        Id = b.Id,
-        BillNo = b.BillNo,
-        BillDate = b.BillDate,
-        ShopId = b.ShopId,
-        ShopName = b.Shop.Name,
-        SupplierId = b.SupplierId,
-        SupplierName = b.Supplier.Name,
-        Total = b.Total,
-        PaidAmount = b.PaidAmount,
-        Outstanding = b.Total - b.PaidAmount,
-        ItemCount = b.Items.Count,
-        CreatedBy = b.CreatedBy
-    });
+            {
+                Id = b.Id,
+                BillNo = b.BillNo,
+                BillDate = b.BillDate,
+                ShopId = b.ShopId,
+                ShopName = b.Shop.Name,
+                SupplierId = b.SupplierId,
+                SupplierName = b.Supplier.Name,
+                Total = b.Total,
+                PaidAmount = b.PaidAmount,
+                Outstanding = b.Total - b.PaidAmount,
+                ItemCount = b.Items.Count,
+                CreatedBy = b.CreatedBy
+            });
     }
 
     private async Task<IQueryable<SupplierPaymentDto>> PaymentsAsync(long? shopId, CancellationToken ct)
@@ -460,18 +492,18 @@ public sealed class PurchaseService(
             .AsNoTracking()
             .Where(p => !p.IsDeleted && shopIds.Contains(p.ShopId))
             .Select(p => new SupplierPaymentDto
-    {
-        Id = p.Id,
-        PaidAt = p.PaidAt,
-        ShopId = p.ShopId,
-        ShopName = p.Shop.Name,
-        SupplierId = p.SupplierId,
-        SupplierName = p.Supplier.Name,
-        BillNo = p.PurchaseBill != null ? p.PurchaseBill.BillNo : null,
-        Amount = p.Amount,
-        Method = p.Method,
-        Note = p.Note,
-        CreatedBy = p.CreatedBy
-    });
+            {
+                Id = p.Id,
+                PaidAt = p.PaidAt,
+                ShopId = p.ShopId,
+                ShopName = p.Shop.Name,
+                SupplierId = p.SupplierId,
+                SupplierName = p.Supplier.Name,
+                BillNo = p.PurchaseBill != null ? p.PurchaseBill.BillNo : null,
+                Amount = p.Amount,
+                Method = p.Method,
+                Note = p.Note,
+                CreatedBy = p.CreatedBy
+            });
     }
 }

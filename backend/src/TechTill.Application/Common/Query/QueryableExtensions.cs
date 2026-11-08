@@ -232,16 +232,20 @@ public static class QueryableExtensions
             list.Add(value);
         }
 
-        var target = Nullable.GetUnderlyingType(declared) is null
-            ? member
-            : Expression.Property(member, "Value");
+        var isNullable = Nullable.GetUnderlyingType(declared) is not null;
+        var target = isNullable ? Expression.Property(member, "Value") : member;
 
-        return Expression.Call(
+        var contains = Expression.Call(
             typeof(Enumerable),
             nameof(Enumerable.Contains),
             [underlying],
             Expression.Constant(list, listType),
             target);
+
+        // Reading .Value of a null row throws once a list is filtered in memory.
+        return isNullable
+            ? Expression.AndAlso(Expression.Property(member, "HasValue"), contains)
+            : contains;
     }
 
     private static string[] Split(string? csv)

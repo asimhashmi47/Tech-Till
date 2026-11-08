@@ -110,14 +110,14 @@ public sealed class ProductService(
             .OrderBy(p => p.Name)
             .Take(take is < 1 or > 100 ? 30 : take)
             .Select(p => new PosProductDto
-    {
-        Id = p.Id,
-        Sku = p.Sku,
-        Name = p.Name,
-        CategoryName = p.Category.Name,
-        SalePrice = p.SalePrice,
-        Qty = db.StockLevels.Where(s => s.ProductId == p.Id && s.ShopId == shopId).Sum(s => s.Qty)
-    })
+            {
+                Id = p.Id,
+                Sku = p.Sku,
+                Name = p.Name,
+                CategoryName = p.Category.Name,
+                SalePrice = p.SalePrice,
+                Qty = db.StockLevels.Where(s => s.ProductId == p.Id && s.ShopId == shopId).Sum(s => s.Qty)
+            })
             .ToListAsync(ct)
             .ConfigureAwait(false);
     }
@@ -171,6 +171,11 @@ public sealed class ProductService(
         if (await db.Products.AnyAsync(p => p.Sku == sku && p.Id != id && !p.IsDeleted, ct).ConfigureAwait(false))
         {
             throw ValidationFailedException.ForField(nameof(request.Sku), "That SKU is already in use.");
+        }
+
+        if (!await db.Categories.AnyAsync(c => c.Id == request.CategoryId && !c.IsDeleted, ct).ConfigureAwait(false))
+        {
+            throw ValidationFailedException.ForField(nameof(request.CategoryId), "Pick a valid category.");
         }
 
         var before = $"{entity.Sku}/{entity.Name}/cost={entity.CostPrice}/price={entity.SalePrice}";
@@ -279,18 +284,18 @@ public sealed class ProductService(
             .AsNoTracking()
             .Where(p => !p.IsDeleted)
             .Select(p => new ProductDto
-    {
-        Id = p.Id,
-        Sku = p.Sku,
-        Name = p.Name,
-        CategoryId = p.CategoryId,
-        CategoryName = p.Category.Name,
-        Brand = p.Brand,
-        CostPrice = p.CostPrice,
-        SalePrice = p.SalePrice,
-        ReorderLevel = p.ReorderLevel,
-        IsActive = p.IsActive,
-        TotalStock = db.StockLevels.Where(s => s.ProductId == p.Id && shopIds.Contains(s.ShopId)).Sum(s => s.Qty)
-    });
+            {
+                Id = p.Id,
+                Sku = p.Sku,
+                Name = p.Name,
+                CategoryId = p.CategoryId,
+                CategoryName = p.Category.Name,
+                Brand = p.Brand,
+                CostPrice = p.CostPrice,
+                SalePrice = p.SalePrice,
+                ReorderLevel = p.ReorderLevel,
+                IsActive = p.IsActive,
+                TotalStock = db.StockLevels.Where(s => s.ProductId == p.Id && shopIds.Contains(s.ShopId)).Sum(s => s.Qty)
+            });
     }
 }
