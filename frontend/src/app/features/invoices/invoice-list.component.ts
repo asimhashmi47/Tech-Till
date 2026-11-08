@@ -7,45 +7,29 @@ import { ApiService } from '../../core/services/api.service';
 import { AuthService } from '../../core/services/auth.service';
 import { DataGridComponent, GridDataSource } from '../../shared/grid/data-grid.component';
 import { GridAction, GridColumn } from '../../shared/grid/grid.models';
+import { LucideAngularModule } from 'lucide-angular';
+import { PageHeader } from '../../shared/ui/ui';
 
 type Row = InvoiceListDto & Record<string, unknown>;
 
 @Component({
   selector: 'tt-invoice-list',
   standalone: true,
-  imports: [CommonModule, DataGridComponent],
+  imports: [LucideAngularModule, PageHeader, CommonModule, DataGridComponent],
   template: `
-    <div class="tt-page">
-      <header class="tt-page-head">
-        <div class="tt-page-head__text">
-          <h1 class="tt-page-head__title">Invoices</h1>
-          <p class="tt-page-head__sub">
-            Every completed sale. A void invoice keeps its number and its history, so the
-            trail stays readable.
-          </p>
-        </div>
-
+    <div class="page-stack">
+      <app-page-header title="Invoices" icon="file-text" subtitle="Every completed sale. A void invoice keeps its number and its history, so the trail stays readable.">
         @if (canSell) {
-          <div class="tt-page-head__actions">
-            <a class="tt-btn tt-btn--primary" href="/pos" (click)="goToPos($event)">
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                aria-hidden="true"
-              >
-                <path d="M12 5v14M5 12h14" />
-              </svg>
+          <div class="contents">
+            <a class="btn btn-primary" href="/pos" (click)="goToPos($event)">
+              <lucide-icon name="plus" [size]="15" />
               New sale
             </a>
           </div>
         }
-      </header>
+      </app-page-header>
 
-      <div class="tt-panel">
-        <tt-data-grid
+      <tt-data-grid
           gridKey="invoices"
           [columns]="columns"
           [dataSource]="dataSource"
@@ -56,7 +40,6 @@ type Row = InvoiceListDto & Record<string, unknown>;
           emptyText="Sales completed at the till land here."
           (rowClicked)="open($event)"
         />
-      </div>
     </div>
   `,
 })
@@ -91,7 +74,7 @@ export class InvoiceListComponent {
       width: 110,
       options: ['Unpaid', 'Partial', 'Paid', 'Void'],
       html: true,
-      render: (row) => `<span class="tt-chip tt-chip--${row.status.toLowerCase()}">${row.status}</span>`,
+      render: (row) => `<span class="badge badge-dot tone-${row.status.toLowerCase()}">${row.status}</span>`,
     },
     { field: 'createdBy', header: 'Sold by', kind: 'text', width: 120, hidden: true },
   ];
@@ -99,7 +82,7 @@ export class InvoiceListComponent {
   readonly actions: GridAction<Row>[] = [
     {
       label: 'Open invoice',
-      icon: 'M7 17 17 7M9 7h8v8',
+      icon: 'arrow-up-right',
       run: (row) => this.open(row),
     },
   ];

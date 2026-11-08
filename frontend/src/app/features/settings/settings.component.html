@@ -1,27 +1,20 @@
-<div class="tt-page">
-  <header class="tt-page-head">
-    <div class="tt-page-head__text">
-      <h1 class="tt-page-head__title">Settings</h1>
-      <p class="tt-page-head__sub">
-        Options that apply to the whole business. Only the owner account can change them.
-      </p>
-    </div>
-  </header>
+<div class="page-stack">
+  <app-page-header title="Settings" icon="settings" subtitle="Options that apply to the whole business. Only the owner account can change them." />
 
-  <div class="tt-panel settings-panel">
-    <div class="tt-panel__head">
-      <h2 class="tt-panel__title">Currency</h2>
-      <span class="tt-panel__meta">Currently {{ current().name }}</span>
+  <div class="card overflow-hidden settings-panel">
+    <div class="flex flex-wrap items-center justify-between gap-3 px-4 py-3 border-b border-line">
+      <h2 class="text-sm font-bold text-ink">Currency</h2>
+      <span class="text-2xs text-muted">Currently {{ current().name }}</span>
     </div>
 
     @if (loading()) {
-      <div class="tt-panel__body tt-stack">
+      <div class="p-4 flex flex-col gap-4">
         @for (n of [1, 2, 3]; track n) {
-          <div class="tt-skeleton tt-skeleton-text"></div>
+          <div class="skeleton h-3"></div>
         }
       </div>
     } @else {
-      <div class="tt-panel__body tt-stack">
+      <div class="p-4 flex flex-col gap-4">
         <p class="settings-note">
           Every amount in the app is shown in this currency: the dashboard, the till,
           invoices, ledgers, reports and the Excel exports. Figures already recorded are
@@ -29,9 +22,9 @@
         </p>
 
         <div class="currency-row">
-          <div class="tt-field">
-            <label class="tt-field__label" for="currency">Currency</label>
-            <select id="currency" class="tt-select" name="currency"
+          <div class="block min-w-0">
+            <label class="label" for="currency">Currency</label>
+            <select id="currency" class="select" name="currency"
                     [ngModel]="selected()" (ngModelChange)="selected.set($event)">
               @for (option of options(); track option.code) {
                 <option [value]="option.code">
@@ -58,11 +51,11 @@
           </p>
         }
 
-        <div class="tt-form-actions">
+        <div class="flex items-center justify-end gap-2 pt-2">
           @if (isDirty()) {
-            <button type="button" class="tt-btn tt-btn--ghost" (click)="revert()">Revert</button>
+            <button type="button" class="btn btn-neutral" (click)="revert()">Revert</button>
           }
-          <button type="button" class="tt-btn tt-btn--primary" (click)="save()"
+          <button type="button" class="btn btn-primary" (click)="save()"
                   [disabled]="saving() || !isDirty()">
             {{ saving() ? 'Saving' : 'Save currency' }}
           </button>

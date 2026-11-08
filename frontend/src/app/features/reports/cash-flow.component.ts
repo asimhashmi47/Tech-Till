@@ -6,11 +6,13 @@ import { CashFlowDto } from '../../core/models/api.models';
 import { ApiService } from '../../core/services/api.service';
 import { AuthService } from '../../core/services/auth.service';
 import { RANGE_PRESETS, longDate, money, startOfMonth, today } from './report-range';
+import { LucideAngularModule } from 'lucide-angular';
+import { PageHeader } from '../../shared/ui/ui';
 
 @Component({
   selector: 'tt-cash-flow',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [LucideAngularModule, PageHeader, CommonModule, FormsModule],
   templateUrl: './cash-flow.component.html',
   styleUrl: './reports.scss',
 })

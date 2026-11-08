@@ -187,6 +187,10 @@
   letter-spacing: 0.04em;
 }
 
+.doc__table th.doc__col-num {
+  text-align: right;
+}
+
 .doc__table td {
   padding: 2.5mm 1mm;
   border-bottom: 1px solid #e3e3e3;

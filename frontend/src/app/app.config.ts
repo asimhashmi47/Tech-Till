@@ -1,8 +1,9 @@
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
 import { provideRouter, withComponentInputBinding, withInMemoryScrolling } from '@angular/router';
-import { provideCharts, withDefaultRegisterables } from 'ng2-charts';
+import { LUCIDE_ICONS, LucideIconProvider } from 'lucide-angular';
 
+import { APP_ICONS } from './core/icons';
 import {
   authInterceptor,
   errorInterceptor,
@@ -27,8 +28,6 @@ export const appConfig: ApplicationConfig = {
       withInterceptors([progressInterceptor, authInterceptor, errorInterceptor]),
     ),
 
-    // Chart.js registers nothing by default, so every scale and chart type the dashboard
-    // uses has to be pulled in here.
-    provideCharts(withDefaultRegisterables()),
+    { provide: LUCIDE_ICONS, multi: true, useValue: new LucideIconProvider(APP_ICONS) },
   ],
 };

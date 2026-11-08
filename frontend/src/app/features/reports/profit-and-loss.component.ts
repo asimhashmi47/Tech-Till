@@ -6,11 +6,12 @@ import { ProfitAndLossDto } from '../../core/models/api.models';
 import { ApiService } from '../../core/services/api.service';
 import { AuthService } from '../../core/services/auth.service';
 import { RANGE_PRESETS, longDate, money, startOfMonth, today } from './report-range';
+import { PageHeader } from '../../shared/ui/ui';
 
 @Component({
   selector: 'tt-profit-and-loss',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [PageHeader, CommonModule, FormsModule],
   templateUrl: './profit-and-loss.component.html',
   styleUrl: './reports.scss',
 })

@@ -15,6 +15,8 @@ import { DataGridComponent, GridDataSource } from '../../shared/grid/data-grid.c
 import { GridAction, GridColumn } from '../../shared/grid/grid.models';
 import { DrawerComponent } from '../../shared/ui/drawer.component';
 import { formatMoney } from '../../core/services/currency';
+import { LucideAngularModule } from 'lucide-angular';
+import { PageHeader } from '../../shared/ui/ui';
 
 type Row = PettyCashEntryDto & Record<string, unknown>;
 
@@ -25,7 +27,7 @@ function today(): string {
 @Component({
   selector: 'tt-petty-cash',
   standalone: true,
-  imports: [CommonModule, FormsModule, DataGridComponent, DrawerComponent],
+  imports: [LucideAngularModule, PageHeader, CommonModule, FormsModule, DataGridComponent, DrawerComponent],
   templateUrl: './petty-cash.component.html',
 })
 export class PettyCashComponent {
@@ -66,8 +68,8 @@ export class PettyCashComponent {
       width: 120,
       html: true,
       render: (row) =>
-        row.cashIn > 0 ? `<span class="tt-pos tt-num">${money(row.cashIn)}</span>` : '',
-      cellClass: 'tt-cell-number',
+        row.cashIn > 0 ? `<span class="text-ok-ink text-right tabular">${money(row.cashIn)}</span>` : '',
+      cellClass: 'text-right tabular',
     },
     {
       field: 'cashOut',
@@ -76,8 +78,8 @@ export class PettyCashComponent {
       width: 120,
       html: true,
       render: (row) =>
-        row.cashOut > 0 ? `<span class="tt-neg tt-num">${money(row.cashOut)}</span>` : '',
-      cellClass: 'tt-cell-number',
+        row.cashOut > 0 ? `<span class="text-bad-ink text-right tabular">${money(row.cashOut)}</span>` : '',
+      cellClass: 'text-right tabular',
     },
     { field: 'note', header: 'Note', kind: 'text', flex: 2, minWidth: 200 },
     {
@@ -88,8 +90,8 @@ export class PettyCashComponent {
       html: true,
       render: (row) =>
         row.fromExpense
-          ? '<span class="tt-chip tt-chip--neutral">Expense</span>'
-          : '<span class="tt-chip tt-chip--info">Drawer</span>',
+          ? '<span class="badge badge-dot tone-neutral">Expense</span>'
+          : '<span class="badge badge-dot tone-info">Drawer</span>',
     },
     { field: 'createdBy', header: 'By', kind: 'text', width: 120, hidden: true },
   ];
@@ -98,7 +100,7 @@ export class PettyCashComponent {
     ? [
         {
           label: 'Remove entry',
-          icon: 'M4 7h16M9 7V5h6v2m-8 0 1 13h8l1-13',
+          icon: 'trash-2',
           kind: 'danger',
           run: (row) => void this.remove(row),
 

@@ -18,8 +18,8 @@ export const DEFAULT_CURRENCY: CurrencyOption = {
 
 /**
  * The currency the whole app formats money with. It is one module level signal rather
- * than an injected value because plain functions need it too: AG Grid value formatters
- * and Chart.js tick callbacks are not Angular components and cannot inject anything.
+ * than an injected value because plain functions need it too: chart axis and tooltip
+ * formatters are not Angular components and cannot inject anything.
  */
 const active = signal<CurrencyOption>(DEFAULT_CURRENCY);
 

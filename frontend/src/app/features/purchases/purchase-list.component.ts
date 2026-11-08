@@ -18,6 +18,8 @@ import { DataGridComponent, GridDataSource } from '../../shared/grid/data-grid.c
 import { GridAction, GridColumn } from '../../shared/grid/grid.models';
 import { DrawerComponent } from '../../shared/ui/drawer.component';
 import { formatMoney } from '../../core/services/currency';
+import { LucideAngularModule } from 'lucide-angular';
+import { PageHeader } from '../../shared/ui/ui';
 
 type Row = PurchaseBillListDto & Record<string, unknown>;
 type PaymentRow = SupplierPaymentDto & Record<string, unknown>;
@@ -25,7 +27,7 @@ type PaymentRow = SupplierPaymentDto & Record<string, unknown>;
 @Component({
   selector: 'tt-purchase-list',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, DataGridComponent, DrawerComponent],
+  imports: [LucideAngularModule, PageHeader, CommonModule, FormsModule, RouterLink, DataGridComponent, DrawerComponent],
   templateUrl: './purchase-list.component.html',
 })
 export class PurchaseListComponent {
@@ -96,7 +98,7 @@ export class PurchaseListComponent {
   readonly billActions: GridAction<Row>[] = [
     {
       label: 'Open bill',
-      icon: 'M7 17 17 7M9 7h8v8',
+      icon: 'arrow-up-right',
       run: (row) => this.openDetail(row.id),
     },
   ];

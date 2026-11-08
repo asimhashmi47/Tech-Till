@@ -9,6 +9,8 @@ import { AuthService } from '../../core/services/auth.service';
 import { DataGridComponent, GridDataSource } from '../../shared/grid/data-grid.component';
 import { GridAction, GridColumn } from '../../shared/grid/grid.models';
 import { DrawerComponent } from '../../shared/ui/drawer.component';
+import { LucideAngularModule } from 'lucide-angular';
+import { PageHeader } from '../../shared/ui/ui';
 
 type Row = ShopDto & Record<string, unknown>;
 
@@ -17,32 +19,21 @@ const BLANK: SaveShopRequest = { code: '', name: '', address: '', phone: '', isA
 @Component({
   selector: 'tt-shop-list',
   standalone: true,
-  imports: [CommonModule, FormsModule, DataGridComponent, DrawerComponent],
+  imports: [LucideAngularModule, PageHeader, CommonModule, FormsModule, DataGridComponent, DrawerComponent],
   template: `
-    <div class="tt-page">
-      <header class="tt-page-head">
-        <div class="tt-page-head__text">
-          <h1 class="tt-page-head__title">Shops</h1>
-          <p class="tt-page-head__sub">
-            The shop code prefixes every invoice and bill number, so it is fixed once trading starts.
-          </p>
-        </div>
-
+    <div class="page-stack">
+      <app-page-header title="Shops" icon="store" subtitle="The shop code prefixes every invoice and bill number, so it is fixed once trading starts.">
         @if (canWrite) {
-          <div class="tt-page-head__actions">
-            <button type="button" class="tt-btn tt-btn--primary" (click)="create()">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                   stroke-linecap="round" aria-hidden="true">
-                <path d="M12 5v14M5 12h14" />
-              </svg>
+          <div class="contents">
+            <button type="button" class="btn btn-primary" (click)="create()">
+              <lucide-icon name="plus" [size]="15" />
               Add shop
             </button>
           </div>
         }
-      </header>
+      </app-page-header>
 
-      <div class="tt-panel">
-        <tt-data-grid
+      <tt-data-grid
           #grid
           gridKey="shops"
           [columns]="columns"
@@ -54,7 +45,6 @@ const BLANK: SaveShopRequest = { code: '', name: '', address: '', phone: '', isA
           emptyText="Add a shop before recording any stock or sales."
           [useShopScope]="false"
         />
-      </div>
     </div>
 
     <tt-drawer
@@ -62,53 +52,53 @@ const BLANK: SaveShopRequest = { code: '', name: '', address: '', phone: '', isA
       [heading]="editingId() ? 'Edit shop' : 'Add shop'"
       (closed)="close()"
     >
-      <form class="tt-form" (ngSubmit)="save()" id="shop-form">
-        <div class="tt-field">
-          <label class="tt-field__label" for="code">Shop code</label>
-          <input id="code" class="tt-input" name="code" required maxlength="16"
-                 [class.tt-input--invalid]="errors()['code']"
+      <form class="grid gap-3.5" (ngSubmit)="save()" id="shop-form">
+        <div class="block min-w-0">
+          <label class="label" for="code">Shop code</label>
+          <input id="code" class="input" name="code" required maxlength="16"
+                 [class.invalid]="errors()['code']"
                  [ngModel]="form().code" (ngModelChange)="patch('code', $event)" />
-          <p class="tt-field__hint">
+          <p class="hint">
             Short and uppercase, for example MAIN. Used as MAIN-202610-0001 on invoices.
           </p>
           @if (errors()['code']) {
-            <p class="tt-field__error">{{ errors()['code'] }}</p>
+            <p class="error-text">{{ errors()['code'] }}</p>
           }
         </div>
 
-        <div class="tt-field">
-          <label class="tt-field__label" for="name">Shop name</label>
-          <input id="name" class="tt-input" name="name" required
-                 [class.tt-input--invalid]="errors()['name']"
+        <div class="block min-w-0">
+          <label class="label" for="name">Shop name</label>
+          <input id="name" class="input" name="name" required
+                 [class.invalid]="errors()['name']"
                  [ngModel]="form().name" (ngModelChange)="patch('name', $event)" />
           @if (errors()['name']) {
-            <p class="tt-field__error">{{ errors()['name'] }}</p>
+            <p class="error-text">{{ errors()['name'] }}</p>
           }
         </div>
 
-        <div class="tt-field">
-          <label class="tt-field__label" for="phone">Phone</label>
-          <input id="phone" class="tt-input" name="phone" inputmode="tel"
+        <div class="block min-w-0">
+          <label class="label" for="phone">Phone</label>
+          <input id="phone" class="input" name="phone" inputmode="tel"
                  [ngModel]="form().phone" (ngModelChange)="patch('phone', $event)" />
         </div>
 
-        <div class="tt-field">
-          <label class="tt-field__label" for="address">Address</label>
-          <textarea id="address" class="tt-textarea" name="address"
+        <div class="block min-w-0">
+          <label class="label" for="address">Address</label>
+          <textarea id="address" class="textarea" name="address"
                     [ngModel]="form().address" (ngModelChange)="patch('address', $event)"></textarea>
-          <p class="tt-field__hint">Printed on the invoice header.</p>
+          <p class="hint">Printed on the invoice header.</p>
         </div>
 
-        <label class="tt-checkbox">
+        <label class="inline-flex items-center gap-2 text-[13px] text-ink-2">
           <input type="checkbox" name="isActive" [ngModel]="form().isActive"
                  (ngModelChange)="patch('isActive', $event)" />
           Trading
         </label>
       </form>
 
-      <div drawerFooter>
-        <button type="button" class="tt-btn tt-btn--ghost" (click)="close()">Cancel</button>
-        <button type="submit" form="shop-form" class="tt-btn tt-btn--primary" [disabled]="saving()">
+      <div drawerFooter class="contents">
+        <button type="button" class="btn btn-neutral" (click)="close()">Cancel</button>
+        <button type="submit" form="shop-form" class="btn btn-primary" [disabled]="saving()">
           {{ saving() ? 'Saving' : editingId() ? 'Save changes' : 'Add shop' }}
         </button>
       </div>
@@ -142,13 +132,13 @@ export class ShopListComponent {
       html: true,
       render: (row) =>
         row.isActive
-          ? '<span class="tt-chip tt-chip--success">Trading</span>'
-          : '<span class="tt-chip tt-chip--neutral">Closed</span>',
+          ? '<span class="badge badge-dot tone-success">Trading</span>'
+          : '<span class="badge badge-dot tone-neutral">Closed</span>',
     },
   ];
 
   readonly actions: GridAction<Row>[] = this.canWrite
-    ? [{ label: 'Edit shop', icon: 'M4 20h4l10-10-4-4L4 16v4Z', run: (row) => this.edit(row) }]
+    ? [{ label: 'Edit shop', icon: 'pencil', run: (row) => this.edit(row) }]
     : [];
 
   readonly dataSource: GridDataSource<Row> = {

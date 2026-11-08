@@ -1,38 +1,28 @@
-<div class="tt-page">
-  <header class="tt-page-head">
-    <div class="tt-page-head__text">
-      <h1 class="tt-page-head__title">Purchases</h1>
-      <p class="tt-page-head__sub">
-        Receiving a bill puts stock on the shelf and anything unpaid onto the supplier account.
-      </p>
-    </div>
-
+<div class="page-stack">
+  <app-page-header title="Purchases" icon="clipboard-list" subtitle="Receiving a bill puts stock on the shelf and anything unpaid onto the supplier account.">
     @if (canWrite) {
-      <div class="tt-page-head__actions">
-        <button type="button" class="tt-btn tt-btn--accent tt-btn--amber" (click)="openPayment()">
+      <div class="contents">
+        <button type="button" class="btn btn-neutral" (click)="openPayment()">
           Record payment
         </button>
-        <a class="tt-btn tt-btn--primary" routerLink="/purchases/new">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-               stroke-linecap="round" aria-hidden="true">
-            <path d="M12 5v14M5 12h14" />
-          </svg>
+        <a class="btn btn-primary" routerLink="/purchases/new">
+          <lucide-icon name="plus" [size]="15" />
           New purchase bill
         </a>
       </div>
     }
-  </header>
+  </app-page-header>
 
-  <div class="tt-toolbar">
-    <div class="tt-segment" role="group" aria-label="Choose a view">
-      <button type="button" class="tt-segment__opt" [class.tt-segment__opt--on]="tab() === 'bills'"
+  <div class="flex flex-wrap items-center gap-2">
+    <div class="tabs" role="group" aria-label="Choose a view">
+      <button type="button" class="tab" [class.active]="tab() === 'bills'"
               (click)="setTab('bills')">Bills</button>
-      <button type="button" class="tt-segment__opt" [class.tt-segment__opt--on]="tab() === 'payments'"
+      <button type="button" class="tab" [class.active]="tab() === 'payments'"
               (click)="setTab('payments')">Payments</button>
     </div>
   </div>
 
-  <div class="tt-panel">
+  <div class="card overflow-hidden">
     @if (tab() === 'bills') {
       <tt-data-grid
         #billGrid
@@ -70,9 +60,9 @@
   (closed)="closeDetail()"
 >
   @if (detailLoading()) {
-    <div class="tt-stack">
+    <div class="flex flex-col gap-4">
       @for (n of [1,2,3,4]; track n) {
-        <div class="tt-skeleton tt-skeleton-text"></div>
+        <div class="skeleton h-3"></div>
       }
     </div>
   } @else if (detail(); as bill) {
@@ -80,49 +70,49 @@
       <thead>
         <tr>
           <th scope="col">Product</th>
-          <th scope="col" class="tt-num">Qty</th>
-          <th scope="col" class="tt-num">Unit cost</th>
-          <th scope="col" class="tt-num">Line total</th>
+          <th scope="col" class="text-right tabular">Qty</th>
+          <th scope="col" class="text-right tabular">Unit cost</th>
+          <th scope="col" class="text-right tabular">Line total</th>
         </tr>
       </thead>
       <tbody>
         @for (item of bill.items; track item.productId) {
           <tr>
             <td>
-              <span class="tt-strong">{{ item.productName }}</span>
-              <span class="tt-muted" style="display: block; font-size: var(--tt-text-xs)">
+              <span class="font-semibold text-ink">{{ item.productName }}</span>
+              <span class="text-muted" style="display: block; font-size: var(--tt-text-xs)">
                 {{ item.sku }}
               </span>
             </td>
-            <td class="tt-num">{{ item.qty }}</td>
-            <td class="tt-num">{{ money(item.unitCost) }}</td>
-            <td class="tt-num tt-strong">{{ money(item.lineTotal) }}</td>
+            <td class="text-right tabular">{{ item.qty }}</td>
+            <td class="text-right tabular">{{ money(item.unitCost) }}</td>
+            <td class="text-right tabular font-semibold text-ink">{{ money(item.lineTotal) }}</td>
           </tr>
         }
         <tr class="tt-statement__total">
           <td colspan="3">Bill total</td>
-          <td class="tt-num">{{ money(bill.total) }}</td>
+          <td class="text-right tabular">{{ money(bill.total) }}</td>
         </tr>
         <tr class="tt-statement__sub">
           <td colspan="3">Paid</td>
-          <td class="tt-num">{{ money(bill.paidAmount) }}</td>
+          <td class="text-right tabular">{{ money(bill.paidAmount) }}</td>
         </tr>
         <tr class="tt-statement__sub">
           <td colspan="3">Outstanding</td>
-          <td class="tt-num" [class.tt-neg]="bill.outstanding > 0">{{ money(bill.outstanding) }}</td>
+          <td class="text-right tabular" [class.text-bad-ink]="bill.outstanding > 0">{{ money(bill.outstanding) }}</td>
         </tr>
       </tbody>
     </table>
 
     @if (bill.note) {
-      <p class="tt-muted" style="margin-top: var(--tt-space-4)">{{ bill.note }}</p>
+      <p class="text-muted" style="margin-top: var(--tt-space-4)">{{ bill.note }}</p>
     }
   }
 
-  <div drawerFooter>
-    <button type="button" class="tt-btn tt-btn--ghost" (click)="closeDetail()">Close</button>
+  <div drawerFooter class="contents">
+    <button type="button" class="btn btn-neutral" (click)="closeDetail()">Close</button>
     @if (canWrite && (detail()?.outstanding ?? 0) > 0) {
-      <button type="button" class="tt-btn tt-btn--primary" (click)="payThisBill()">
+      <button type="button" class="btn btn-primary" (click)="payThisBill()">
         Pay this bill
       </button>
     }
@@ -131,7 +121,7 @@
 
 <!-- Supplier payment -->
 <tt-drawer [open]="payOpen()" heading="Record a supplier payment" (closed)="closePayment()">
-  <form class="tt-form" (ngSubmit)="savePayment()" id="supplier-payment-form">
+  <form class="grid gap-3.5" (ngSubmit)="savePayment()" id="supplier-payment-form">
     @if (payBillId()) {
       <div class="owed">
         <span>Paying bill</span>
@@ -139,9 +129,9 @@
       </div>
     }
 
-    <div class="tt-field">
-      <label class="tt-field__label" for="pay-shop">Shop paying</label>
-      <select id="pay-shop" class="tt-select" name="payShop" [disabled]="!!payBillId()"
+    <div class="block min-w-0">
+      <label class="label" for="pay-shop">Shop paying</label>
+      <select id="pay-shop" class="select" name="payShop" [disabled]="!!payBillId()"
               [ngModel]="payShopId()" (ngModelChange)="payShopId.set(+$event)">
         @for (shop of shops(); track shop.id) {
           <option [value]="shop.id">{{ shop.name }}</option>
@@ -149,9 +139,9 @@
       </select>
     </div>
 
-    <div class="tt-field">
-      <label class="tt-field__label" for="pay-supplier">Supplier</label>
-      <select id="pay-supplier" class="tt-select" name="paySupplier" [disabled]="!!payBillId()"
+    <div class="block min-w-0">
+      <label class="label" for="pay-supplier">Supplier</label>
+      <select id="pay-supplier" class="select" name="paySupplier" [disabled]="!!payBillId()"
               [ngModel]="paySupplierId()" (ngModelChange)="paySupplierId.set(+$event)">
         <option [value]="0" disabled>Choose a supplier</option>
         @for (supplier of suppliers(); track supplier.id) {
@@ -159,41 +149,41 @@
         }
       </select>
       @if (!payBillId()) {
-        <p class="tt-field__hint">Without a bill, the payment clears the oldest bills first.</p>
+        <p class="hint">Without a bill, the payment clears the oldest bills first.</p>
       }
     </div>
 
-    <div class="tt-field">
-      <label class="tt-field__label" for="pay-amount">Amount</label>
-      <input id="pay-amount" class="tt-input tt-input--number" type="number" step="0.01" min="0"
-             name="payAmount" [class.tt-input--invalid]="payError()"
+    <div class="block min-w-0">
+      <label class="label" for="pay-amount">Amount</label>
+      <input id="pay-amount" class="input text-right tabular" type="number" step="0.01" min="0"
+             name="payAmount" [class.invalid]="payError()"
              [ngModel]="payAmount()" (ngModelChange)="payAmount.set(+$event)" />
       @if (payError()) {
-        <p class="tt-field__error">{{ payError() }}</p>
+        <p class="error-text">{{ payError() }}</p>
       }
     </div>
 
-    <div class="tt-field">
-      <label class="tt-field__label" for="pay-method">Method</label>
-      <select id="pay-method" class="tt-select" name="payMethod"
+    <div class="block min-w-0">
+      <label class="label" for="pay-method">Method</label>
+      <select id="pay-method" class="select" name="payMethod"
               [ngModel]="payMethod()" (ngModelChange)="payMethod.set($event)">
         <option value="Cash">Cash</option>
         <option value="Card">Card</option>
         <option value="Bank">Bank</option>
       </select>
-      <p class="tt-field__hint">Cash also leaves the shop's drawer.</p>
+      <p class="hint">Cash also leaves the shop's drawer.</p>
     </div>
 
-    <div class="tt-field">
-      <label class="tt-field__label" for="pay-note">Note</label>
-      <input id="pay-note" class="tt-input" name="payNote"
+    <div class="block min-w-0">
+      <label class="label" for="pay-note">Note</label>
+      <input id="pay-note" class="input" name="payNote"
              [ngModel]="payNote()" (ngModelChange)="payNote.set($event)" />
     </div>
   </form>
 
-  <div drawerFooter>
-    <button type="button" class="tt-btn tt-btn--ghost" (click)="closePayment()">Cancel</button>
-    <button type="submit" form="supplier-payment-form" class="tt-btn tt-btn--primary"
+  <div drawerFooter class="contents">
+    <button type="button" class="btn btn-neutral" (click)="closePayment()">Cancel</button>
+    <button type="submit" form="supplier-payment-form" class="btn btn-primary"
             [disabled]="paySaving()">
       {{ paySaving() ? 'Recording' : 'Record payment' }}
     </button>

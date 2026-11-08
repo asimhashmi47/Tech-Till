@@ -6,11 +6,13 @@ import { BalanceSheetDto } from '../../core/models/api.models';
 import { ApiService } from '../../core/services/api.service';
 import { AuthService } from '../../core/services/auth.service';
 import { longDate, money, today } from './report-range';
+import { PageHeader } from '../../shared/ui/ui';
+import { LucideAngularModule } from 'lucide-angular';
 
 @Component({
   selector: 'tt-balance-sheet',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [LucideAngularModule, PageHeader, CommonModule, FormsModule],
   templateUrl: './balance-sheet.component.html',
   styleUrl: './reports.scss',
 })

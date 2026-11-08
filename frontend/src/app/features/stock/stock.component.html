@@ -1,36 +1,25 @@
-<div class="tt-page">
-  <header class="tt-page-head">
-    <div class="tt-page-head__text">
-      <h1 class="tt-page-head__title">Stock</h1>
-      <p class="tt-page-head__sub">
-        Quantity on hand per shop. Every change writes a movement, so the total always matches
-        the sum of its history.
-      </p>
-    </div>
-
+<div class="page-stack">
+  <app-page-header title="Stock" icon="warehouse" subtitle="Quantity on hand per shop. Every change writes a movement, so the total always matches the sum of its history.">
     @if (canWrite) {
-      <div class="tt-page-head__actions">
-        <button type="button" class="tt-btn tt-btn--accent tt-btn--violet" (click)="openTransfer()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
-               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M4 8h12l-3-3m3 11H4l3 3" />
-          </svg>
+      <div class="contents">
+        <button type="button" class="btn btn-neutral" (click)="openTransfer()">
+          <lucide-icon name="arrow-left-right" [size]="15" />
           Transfer between shops
         </button>
       </div>
     }
-  </header>
+  </app-page-header>
 
-  <div class="tt-toolbar">
-    <div class="tt-segment" role="group" aria-label="Choose a view">
-      <button type="button" class="tt-segment__opt" [class.tt-segment__opt--on]="tab() === 'levels'"
+  <div class="flex flex-wrap items-center gap-2">
+    <div class="tabs" role="group" aria-label="Choose a view">
+      <button type="button" class="tab" [class.active]="tab() === 'levels'"
               (click)="setTab('levels')">On hand</button>
-      <button type="button" class="tt-segment__opt" [class.tt-segment__opt--on]="tab() === 'movements'"
+      <button type="button" class="tab" [class.active]="tab() === 'movements'"
               (click)="setTab('movements')">Movements</button>
     </div>
   </div>
 
-  <div class="tt-panel">
+  <div class="card overflow-hidden">
     @if (tab() === 'levels') {
       <tt-data-grid
         #levelGrid
@@ -66,53 +55,53 @@
   (closed)="closeAdjust()"
 >
   @if (adjustRow(); as row) {
-    <form class="tt-form" (ngSubmit)="saveAdjust()" id="adjust-form">
+    <form class="grid gap-3.5" (ngSubmit)="saveAdjust()" id="adjust-form">
       <div class="owed">
         <span>On hand now</span>
-        <strong class="tt-num">{{ row.qty }}</strong>
+        <strong class="text-right tabular">{{ row.qty }}</strong>
       </div>
 
-      <div class="tt-field">
-        <span class="tt-field__label">Direction</span>
-        <div class="tt-segment" role="group" aria-label="Adjustment direction">
-          <button type="button" class="tt-segment__opt"
-                  [class.tt-segment__opt--on]="adjustDirection() === 'in'"
+      <div class="block min-w-0">
+        <span class="label">Direction</span>
+        <div class="tabs" role="group" aria-label="Adjustment direction">
+          <button type="button" class="tab"
+                  [class.active]="adjustDirection() === 'in'"
                   (click)="adjustDirection.set('in')">Add stock</button>
-          <button type="button" class="tt-segment__opt"
-                  [class.tt-segment__opt--on]="adjustDirection() === 'out'"
+          <button type="button" class="tab"
+                  [class.active]="adjustDirection() === 'out'"
                   (click)="adjustDirection.set('out')">Remove stock</button>
         </div>
       </div>
 
-      <div class="tt-field">
-        <label class="tt-field__label" for="adjust-qty">Quantity</label>
-        <input id="adjust-qty" class="tt-input tt-input--number" type="number" min="1" step="1"
+      <div class="block min-w-0">
+        <label class="label" for="adjust-qty">Quantity</label>
+        <input id="adjust-qty" class="input text-right tabular" type="number" min="1" step="1"
                name="adjustQty" [ngModel]="adjustQty()" (ngModelChange)="adjustQty.set(+$event)" />
       </div>
 
       @if (adjustPreview(); as preview) {
-        <p class="tt-field__hint">
-          {{ preview.from }} becomes <strong class="tt-strong">{{ preview.to }}</strong>
+        <p class="hint">
+          {{ preview.from }} becomes <strong class="font-semibold text-ink">{{ preview.to }}</strong>
         </p>
       }
 
-      <div class="tt-field">
-        <label class="tt-field__label" for="adjust-reason">Reason</label>
-        <textarea id="adjust-reason" class="tt-textarea" name="adjustReason" required
+      <div class="block min-w-0">
+        <label class="label" for="adjust-reason">Reason</label>
+        <textarea id="adjust-reason" class="textarea" name="adjustReason" required
                   placeholder="For example: damaged in transit, or stock count correction"
                   [ngModel]="adjustReason()" (ngModelChange)="adjustReason.set($event)"></textarea>
-        <p class="tt-field__hint">Kept with the movement and shown in the audit log.</p>
+        <p class="hint">Kept with the movement and shown in the audit log.</p>
       </div>
 
       @if (adjustError()) {
-        <p class="tt-field__error">{{ adjustError() }}</p>
+        <p class="error-text">{{ adjustError() }}</p>
       }
     </form>
   }
 
-  <div drawerFooter>
-    <button type="button" class="tt-btn tt-btn--ghost" (click)="closeAdjust()">Cancel</button>
-    <button type="submit" form="adjust-form" class="tt-btn tt-btn--primary" [disabled]="adjustSaving()">
+  <div drawerFooter class="contents">
+    <button type="button" class="btn btn-neutral" (click)="closeAdjust()">Cancel</button>
+    <button type="submit" form="adjust-form" class="btn btn-primary" [disabled]="adjustSaving()">
       {{ adjustSaving() ? 'Saving' : 'Apply adjustment' }}
     </button>
   </div>
@@ -120,10 +109,10 @@
 
 <!-- Transfer -->
 <tt-drawer [open]="transferOpen()" heading="Transfer stock" (closed)="closeTransfer()">
-  <form class="tt-form" (ngSubmit)="saveTransfer()" id="transfer-form">
-    <div class="tt-field">
-      <label class="tt-field__label" for="from-shop">From shop</label>
-      <select id="from-shop" class="tt-select" name="transferFrom"
+  <form class="grid gap-3.5" (ngSubmit)="saveTransfer()" id="transfer-form">
+    <div class="block min-w-0">
+      <label class="label" for="from-shop">From shop</label>
+      <select id="from-shop" class="select" name="transferFrom"
               [ngModel]="transferFrom()" (ngModelChange)="transferFrom.set(+$event)">
         @for (shop of shops(); track shop.id) {
           <option [value]="shop.id">{{ shop.name }}</option>
@@ -131,9 +120,9 @@
       </select>
     </div>
 
-    <div class="tt-field">
-      <label class="tt-field__label" for="transfer-product">Product</label>
-      <input id="transfer-product" class="tt-input" name="transferSearch" autocomplete="off"
+    <div class="block min-w-0">
+      <label class="label" for="transfer-product">Product</label>
+      <input id="transfer-product" class="input" name="transferSearch" autocomplete="off"
              placeholder="Search by SKU or name"
              [ngModel]="transferSearch()" (ngModelChange)="searchTransferProduct($event)" />
 
@@ -143,22 +132,22 @@
             <li>
               <button type="button" class="pick-list__item" (click)="pickTransferProduct(product)">
                 <span>
-                  <span class="tt-strong">{{ product.name }}</span>
-                  <span class="tt-muted"> {{ product.sku }}</span>
+                  <span class="font-semibold text-ink">{{ product.name }}</span>
+                  <span class="text-muted"> {{ product.sku }}</span>
                 </span>
-                <span class="tt-num">{{ product.qty }}</span>
+                <span class="text-right tabular">{{ product.qty }}</span>
               </button>
             </li>
           }
         </ul>
       }
 
-      <p class="tt-field__hint">Only products with stock at the source shop can move.</p>
+      <p class="hint">Only products with stock at the source shop can move.</p>
     </div>
 
-    <div class="tt-field">
-      <label class="tt-field__label" for="to-shop">To shop</label>
-      <select id="to-shop" class="tt-select" name="transferTo"
+    <div class="block min-w-0">
+      <label class="label" for="to-shop">To shop</label>
+      <select id="to-shop" class="select" name="transferTo"
               [ngModel]="transferTo()" (ngModelChange)="transferTo.set(+$event)">
         <option [ngValue]="null" disabled>Choose the destination</option>
         @for (shop of transferTargets(); track shop.id) {
@@ -167,26 +156,26 @@
       </select>
     </div>
 
-    <div class="tt-field">
-      <label class="tt-field__label" for="transfer-qty">Quantity</label>
-      <input id="transfer-qty" class="tt-input tt-input--number" type="number" min="1" step="1"
+    <div class="block min-w-0">
+      <label class="label" for="transfer-qty">Quantity</label>
+      <input id="transfer-qty" class="input text-right tabular" type="number" min="1" step="1"
              name="transferQty" [ngModel]="transferQty()" (ngModelChange)="transferQty.set(+$event)" />
     </div>
 
-    <div class="tt-field">
-      <label class="tt-field__label" for="transfer-note">Note</label>
-      <input id="transfer-note" class="tt-input" name="transferNote"
+    <div class="block min-w-0">
+      <label class="label" for="transfer-note">Note</label>
+      <input id="transfer-note" class="input" name="transferNote"
              [ngModel]="transferNote()" (ngModelChange)="transferNote.set($event)" />
     </div>
 
     @if (transferError()) {
-      <p class="tt-field__error">{{ transferError() }}</p>
+      <p class="error-text">{{ transferError() }}</p>
     }
   </form>
 
-  <div drawerFooter>
-    <button type="button" class="tt-btn tt-btn--ghost" (click)="closeTransfer()">Cancel</button>
-    <button type="submit" form="transfer-form" class="tt-btn tt-btn--primary"
+  <div drawerFooter class="contents">
+    <button type="button" class="btn btn-neutral" (click)="closeTransfer()">Cancel</button>
+    <button type="submit" form="transfer-form" class="btn btn-primary"
             [disabled]="transferSaving()">
       {{ transferSaving() ? 'Moving' : 'Transfer stock' }}
     </button>

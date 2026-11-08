@@ -1,27 +1,16 @@
-<div class="tt-page">
-  <header class="tt-page-head">
-    <div class="tt-page-head__text">
-      <h1 class="tt-page-head__title">Expenses</h1>
-      <p class="tt-page-head__sub">
-        Expenses reduce profit on their own date. Anything paid in cash also leaves the drawer.
-      </p>
-    </div>
-
+<div class="page-stack">
+  <app-page-header title="Expenses" icon="wallet" subtitle="Expenses reduce profit on their own date. Anything paid in cash also leaves the drawer.">
     @if (canWrite) {
-      <div class="tt-page-head__actions">
-        <button type="button" class="tt-btn tt-btn--primary" (click)="create()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-               stroke-linecap="round" aria-hidden="true">
-            <path d="M12 5v14M5 12h14" />
-          </svg>
+      <div class="contents">
+        <button type="button" class="btn btn-primary" (click)="create()">
+          <lucide-icon name="plus" [size]="15" />
           Record expense
         </button>
       </div>
     }
-  </header>
+  </app-page-header>
 
-  <div class="tt-panel">
-    <tt-data-grid
+  <tt-data-grid
       #grid
       gridKey="expenses"
       [columns]="columns"
@@ -32,7 +21,6 @@
       emptyTitle="No expenses yet"
       emptyText="Rent, salaries, utilities and anything else the shop pays out."
     />
-  </div>
 </div>
 
 <tt-drawer
@@ -40,25 +28,25 @@
   [heading]="editingId() ? 'Edit expense' : 'Record expense'"
   (closed)="close()"
 >
-  <form class="tt-form" (ngSubmit)="save()" id="expense-form">
-    <div class="tt-field">
-      <label class="tt-field__label" for="shop">Shop</label>
-      <select id="shop" class="tt-select" name="shopId"
-              [class.tt-select--invalid]="errors()['shopId']"
+  <form class="grid gap-3.5" (ngSubmit)="save()" id="expense-form">
+    <div class="block min-w-0">
+      <label class="label" for="shop">Shop</label>
+      <select id="shop" class="select" name="shopId"
+              [class.invalid]="errors()['shopId']"
               [ngModel]="shopId()" (ngModelChange)="shopId.set(+$event)">
         @for (shop of shops(); track shop.id) {
           <option [value]="shop.id">{{ shop.name }}</option>
         }
       </select>
       @if (errors()['shopId']) {
-        <p class="tt-field__error">{{ errors()['shopId'] }}</p>
+        <p class="error-text">{{ errors()['shopId'] }}</p>
       }
     </div>
 
-    <div class="tt-field">
-      <label class="tt-field__label" for="category">Category</label>
-      <select id="category" class="tt-select" name="categoryId"
-              [class.tt-select--invalid]="errors()['categoryId']"
+    <div class="block min-w-0">
+      <label class="label" for="category">Category</label>
+      <select id="category" class="select" name="categoryId"
+              [class.invalid]="errors()['categoryId']"
               [ngModel]="categoryId()" (ngModelChange)="categoryId.set(+$event)">
         <option [value]="0" disabled>Choose a category</option>
         @for (category of categories(); track category.id) {
@@ -66,18 +54,18 @@
         }
       </select>
       @if (errors()['categoryId']) {
-        <p class="tt-field__error">{{ errors()['categoryId'] }}</p>
+        <p class="error-text">{{ errors()['categoryId'] }}</p>
       }
     </div>
 
     @if (canWrite) {
-      <div class="tt-field">
-        <label class="tt-field__label" for="new-category">Add a category</label>
+      <div class="block min-w-0">
+        <label class="label" for="new-category">Add a category</label>
         <div class="inline-add">
-          <input id="new-category" class="tt-input" name="newCategory"
+          <input id="new-category" class="input" name="newCategory"
                  placeholder="For example: Internet"
                  [ngModel]="newCategory()" (ngModelChange)="newCategory.set($event)" />
-          <button type="button" class="tt-btn tt-btn--ghost" (click)="addCategory()"
+          <button type="button" class="btn btn-neutral" (click)="addCategory()"
                   [disabled]="addingCategory() || !newCategory().trim()">
             Add
           </button>
@@ -85,27 +73,27 @@
       </div>
     }
 
-    <div class="tt-form tt-form--2col">
-      <div class="tt-field">
-        <label class="tt-field__label" for="date">Date</label>
-        <input id="date" class="tt-input" type="date" name="date"
+    <div class="grid gap-3.5 sm:grid-cols-2 gap-x-3">
+      <div class="block min-w-0">
+        <label class="label" for="date">Date</label>
+        <input id="date" class="input" type="date" name="date"
                [ngModel]="date()" (ngModelChange)="date.set($event)" />
       </div>
 
-      <div class="tt-field">
-        <label class="tt-field__label" for="amount">Amount</label>
-        <input id="amount" class="tt-input tt-input--number" type="number" step="0.01" min="0"
-               name="amount" [class.tt-input--invalid]="errors()['amount']"
+      <div class="block min-w-0">
+        <label class="label" for="amount">Amount</label>
+        <input id="amount" class="input text-right tabular" type="number" step="0.01" min="0"
+               name="amount" [class.invalid]="errors()['amount']"
                [ngModel]="amount()" (ngModelChange)="amount.set(+$event)" />
         @if (errors()['amount']) {
-          <p class="tt-field__error">{{ errors()['amount'] }}</p>
+          <p class="error-text">{{ errors()['amount'] }}</p>
         }
       </div>
     </div>
 
-    <div class="tt-field">
-      <label class="tt-field__label" for="method">Paid by</label>
-      <select id="method" class="tt-select" name="method"
+    <div class="block min-w-0">
+      <label class="label" for="method">Paid by</label>
+      <select id="method" class="select" name="method"
               [ngModel]="method()" (ngModelChange)="method.set($event)">
         <option value="Cash">Cash, from the drawer</option>
         <option value="Bank">Bank</option>
@@ -113,16 +101,16 @@
       </select>
     </div>
 
-    <div class="tt-field">
-      <label class="tt-field__label" for="note">Note</label>
-      <input id="note" class="tt-input" name="note"
+    <div class="block min-w-0">
+      <label class="label" for="note">Note</label>
+      <input id="note" class="input" name="note"
              [ngModel]="note()" (ngModelChange)="note.set($event)" />
     </div>
   </form>
 
-  <div drawerFooter>
-    <button type="button" class="tt-btn tt-btn--ghost" (click)="close()">Cancel</button>
-    <button type="submit" form="expense-form" class="tt-btn tt-btn--primary" [disabled]="saving()">
+  <div drawerFooter class="contents">
+    <button type="button" class="btn btn-neutral" (click)="close()">Cancel</button>
+    <button type="submit" form="expense-form" class="btn btn-primary" [disabled]="saving()">
       {{ saving() ? 'Saving' : editingId() ? 'Save changes' : 'Record expense' }}
     </button>
   </div>

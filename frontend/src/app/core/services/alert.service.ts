@@ -1,58 +1,37 @@
 import { Injectable } from '@angular/core';
 import Swal, { SweetAlertIcon } from 'sweetalert2';
 
+import { ToastTone, toastOptions } from './toast';
+
 /**
- * Every toast and confirm dialog in the app comes from here, so feedback is consistent
- * and the SweetAlert2 configuration is set once. Toasts sit top-end per the spec.
+ * Every toast and confirm dialog in the app comes from here: top right toasts with a
+ * 10 second progress bar that pause on hover, tinted by type, always plain text.
  */
 @Injectable({ providedIn: 'root' })
 export class AlertService {
-  private readonly toast = Swal.mixin({
-    toast: true,
-    position: 'top-end',
-    showConfirmButton: false,
-    timer: 3200,
-    timerProgressBar: true,
-    customClass: { popup: 'tt-toast' },
-    showClass: { popup: 'tt-toast-in' },
-    hideClass: { popup: 'tt-toast-out' },
-  });
-
   success(title: string, detail?: string): void {
-    void this.toast.fire({
-      title,
-      text: detail,
-      icon: 'success',
-      customClass: { popup: 'tt-toast tt-toast-success' },
-    });
+    this.show('success', title, detail);
   }
 
   error(title: string, detail?: string): void {
-    void this.toast.fire({
-      title,
-      text: detail,
-      icon: 'error',
-      timer: 5200,
-      customClass: { popup: 'tt-toast tt-toast-error' },
-    });
+    this.show('error', title, detail);
   }
 
   warning(title: string, detail?: string): void {
-    void this.toast.fire({
-      title,
-      text: detail,
-      icon: 'warning',
-      timer: 4200,
-      customClass: { popup: 'tt-toast tt-toast-warning' },
-    });
+    this.show('warning', title, detail);
   }
 
   info(title: string, detail?: string): void {
-    void this.toast.fire({
-      title,
-      text: detail,
-      icon: 'info',
-      customClass: { popup: 'tt-toast tt-toast-info' },
+    this.show('info', title, detail);
+  }
+
+  private show(tone: ToastTone, title: string, detail?: string): void {
+    void Swal.fire({
+      ...(detail ? toastOptions(tone, detail, title) : toastOptions(tone, title)),
+      didOpen: (el) => {
+        el.addEventListener('mouseenter', Swal.stopTimer);
+        el.addEventListener('mouseleave', Swal.resumeTimer);
+      },
     });
   }
 
@@ -61,19 +40,18 @@ export class AlertService {
    * action, so the button says what will happen rather than just "Yes".
    */
   async confirm(options: ConfirmOptions): Promise<boolean> {
+    const danger = options.danger !== false;
     const result = await Swal.fire({
-      title: options.title,
+      titleText: options.title,
       text: options.message,
       icon: options.icon ?? 'warning',
+      iconColor: danger ? 'oklch(0.5 0.17 12)' : 'oklch(0.52 0.2 302)',
       showCancelButton: true,
       confirmButtonText: options.confirmLabel,
       cancelButtonText: options.cancelLabel ?? 'Keep it',
       reverseButtons: true,
-      focusCancel: options.danger !== false,
-      customClass: {
-        popup: 'tt-swal',
-        confirmButton: options.danger === false ? '' : 'tt-swal-danger',
-      },
+      focusCancel: danger,
+      customClass: danger ? { confirmButton: 'danger' } : {},
     });
 
     return result.isConfirmed;
@@ -82,9 +60,10 @@ export class AlertService {
   /** Confirm dialog that also collects a short reason, such as a void reason. */
   async confirmWithReason(options: ReasonOptions): Promise<string | null> {
     const result = await Swal.fire({
-      title: options.title,
+      titleText: options.title,
       text: options.message,
       icon: 'warning',
+      iconColor: 'oklch(0.5 0.17 12)',
       input: 'text',
       inputLabel: options.inputLabel,
       inputPlaceholder: options.placeholder ?? '',
@@ -94,7 +73,7 @@ export class AlertService {
       cancelButtonText: 'Cancel',
       reverseButtons: true,
       focusCancel: true,
-      customClass: { popup: 'tt-swal', confirmButton: 'tt-swal-danger' },
+      customClass: { confirmButton: 'danger' },
       inputValidator: (value) => (value.trim().length < 3 ? 'Enter at least a few words.' : null),
     });
 

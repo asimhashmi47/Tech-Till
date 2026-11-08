@@ -13,6 +13,8 @@ import { AlertService } from '../../core/services/alert.service';
 import { ApiService } from '../../core/services/api.service';
 import { AuthService } from '../../core/services/auth.service';
 import { formatMoney } from '../../core/services/currency';
+import { LucideAngularModule } from 'lucide-angular';
+import { PageHeader } from '../../shared/ui/ui';
 
 interface BillLine {
   productId: number;
@@ -29,7 +31,7 @@ interface BillLine {
 @Component({
   selector: 'tt-purchase-form',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [LucideAngularModule, PageHeader, CommonModule, FormsModule, RouterLink],
   templateUrl: './purchase-form.component.html',
   styleUrl: './purchase-form.component.scss',
 })

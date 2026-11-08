@@ -1,210 +1,626 @@
-<div class="grid-wrap">
+<div class="card">
   <!-- Toolbar -->
-  <div class="grid-toolbar">
-    <div class="grid-search">
-      <svg class="grid-search__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-           stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
-        <circle cx="11" cy="11" r="7" />
-        <path d="m20 20-3.5-3.5" />
-      </svg>
-      <input
-        class="grid-search__input"
-        type="search"
-        [attr.placeholder]="searchPlaceholder"
-        [attr.aria-label]="searchPlaceholder"
-        [ngModel]="quickSearch()"
-        (ngModelChange)="onQuickSearch($event)"
-        name="quickSearch"
-      />
-      @if (quickSearch()) {
-        <button type="button" class="grid-search__clear" (click)="clearQuickSearch()"
-                aria-label="Clear search">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-               stroke-linecap="round" aria-hidden="true">
-            <path d="M6 6l12 12M18 6 6 18" />
-          </svg>
-        </button>
-      }
-    </div>
-
-    <div class="grid-toolbar__spacer"></div>
-
-    @if (totalCount() !== null) {
-      <span class="grid-count">{{ totalCount() }} {{ totalCount() === 1 ? 'row' : 'rows' }}</span>
+  <div class="flex flex-wrap items-center gap-2 px-3 py-2.5 border-b border-line">
+    @if (title()) {
+      <div class="flex items-center gap-2 mr-1">
+        <h2 class="text-sm font-bold text-ink">{{ title() }}</h2>
+        <span class="badge tone-gray tabular" aria-live="polite">{{
+          total().toLocaleString()
+        }}</span>
+      </div>
     }
+    <label class="relative flex-1 min-w-48 max-w-80">
+      <span class="sr-only">Search</span>
+      <lucide-icon
+        name="search"
+        [size]="15"
+        class="absolute left-2.5 top-1/2 -translate-y-1/2 text-faint pointer-events-none"
+      />
+      <input
+        data-search
+        class="input input-sm pl-9"
+        type="search"
+        [value]="initialSearch"
+        [placeholder]="searchPlaceholder()"
+        (input)="onSearch($any($event.target).value)"
+      />
+    </label>
 
-    <!-- Advanced filter builder -->
-    <div class="grid-pop" data-menu>
-      <button type="button" class="tt-btn tt-btn--ghost" (click)="toggleBuilder()"
-              [attr.aria-expanded]="builderOpen()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
-             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M3 5h18l-7 8v6l-4-2v-4L3 5Z" />
-        </svg>
-        Filters
-        @if (activeFilterCount() > 0) {
-          <span class="grid-badge">{{ activeFilterCount() }}</span>
+    <div class="relative" data-menu>
+      <button
+        type="button"
+        class="btn btn-neutral btn-sm"
+        [class.!border-brand]="rules().length"
+        (click)="openFilters(); $event.stopPropagation()"
+        [attr.aria-expanded]="menu() === 'filters'"
+      >
+        <lucide-icon name="list-filter" [size]="14" /> Advanced filter
+        @if (rules().length) {
+          <span class="badge tone-brand !h-4 !px-1.5">{{ rules().length }}</span>
         }
       </button>
-
-      @if (builderOpen()) {
-        <div class="grid-panel grid-panel--wide" role="dialog" aria-label="Advanced filter">
-          <div class="grid-panel__head">
-            <h3 class="grid-panel__title">Advanced filter</h3>
-            <label class="grid-join">
-              Match
-              <select class="tt-select tt-select--sm" [ngModel]="builderJoin()"
-                      (ngModelChange)="builderJoin.set($event)" name="join"
-                      aria-label="Join rules with and or or">
-                <option [value]="1">all rules</option>
-                <option [value]="2">any rule</option>
-              </select>
-            </label>
-          </div>
-
-          <div class="grid-panel__body">
-            @for (rule of builderRules(); track $index) {
-              <div class="builder-row">
-                <select class="tt-select tt-select--sm" [(ngModel)]="rule.field"
-                        [name]="'field' + $index" aria-label="Field">
-                  @for (column of columns; track column.field) {
-                    <option [value]="column.field">{{ column.header }}</option>
-                  }
-                </select>
-
-                <select class="tt-select tt-select--sm" [(ngModel)]="rule.operator"
-                        [name]="'op' + $index" aria-label="Condition">
-                  @for (option of operatorsFor(rule.field); track option.value) {
-                    <option [value]="option.value">{{ option.label }}</option>
-                  }
-                </select>
-
-                @if (!needsNoValue(rule.operator)) {
-                  @if (enumOptionsFor(rule.field).length > 0) {
-                    <select class="tt-select tt-select--sm" [(ngModel)]="rule.value"
-                            [name]="'val' + $index" aria-label="Value">
-                      <option value="">Choose</option>
-                      @for (option of enumOptionsFor(rule.field); track option) {
-                        <option [value]="option">{{ option }}</option>
-                      }
-                    </select>
-                  } @else {
-                    <input class="tt-input tt-input--sm" [type]="builderInputType(rule.field)"
-                           [(ngModel)]="rule.value" [name]="'val' + $index"
-                           placeholder="Value" aria-label="Value" />
-                  }
-
-                  @if (needsSecondValue(rule.operator)) {
-                    <input class="tt-input tt-input--sm" [type]="builderInputType(rule.field)"
-                           [(ngModel)]="rule.value2" [name]="'val2' + $index"
-                           placeholder="and" aria-label="Second value" />
-                  }
-                }
-
-                <button type="button" class="tt-btn tt-btn--quiet builder-row__remove"
-                        (click)="removeBuilderRule($index)" aria-label="Remove rule">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                       stroke-linecap="round" aria-hidden="true">
-                    <path d="M6 6l12 12M18 6 6 18" />
-                  </svg>
-                </button>
-              </div>
-            }
-
-            <button type="button" class="tt-btn tt-btn--quiet" (click)="addBuilderRule()">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                   stroke-linecap="round" aria-hidden="true">
-                <path d="M12 5v14M5 12h14" />
-              </svg>
-              Add rule
-            </button>
-          </div>
-
-          <div class="grid-panel__foot">
-            <button type="button" class="tt-btn tt-btn--ghost" (click)="clearBuilder()">Clear all</button>
-            <button type="button" class="tt-btn tt-btn--primary" (click)="applyBuilder()">Apply filter</button>
-          </div>
-        </div>
-      }
     </div>
 
-    <!-- Column chooser -->
-    <div class="grid-pop" data-menu>
-      <button type="button" class="tt-btn tt-btn--ghost" (click)="toggleChooser()"
-              [attr.aria-expanded]="chooserOpen()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
-             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M4 5h16M4 12h16M4 19h16" />
-        </svg>
-        Columns
+    <button
+      type="button"
+      class="btn btn-ghost btn-sm"
+      (click)="showFilterRow.set(!showFilterRow())"
+      [attr.aria-pressed]="showFilterRow()"
+      title="Show or hide the column search row"
+    >
+      <lucide-icon name="text-search" [size]="14" /> Column search
+    </button>
+
+    <div class="ml-auto flex items-center gap-1.5">
+      <button
+        type="button"
+        class="btn btn-ghost btn-sm btn-icon"
+        (click)="reload()"
+        title="Refresh"
+        aria-label="Refresh"
+      >
+        <lucide-icon
+          name="refresh-cw"
+          [size]="14"
+          [class.animate-spin]="loading() && !firstLoad()"
+        />
       </button>
 
-      @if (chooserOpen()) {
-        <div class="grid-panel" role="dialog" aria-label="Choose columns">
-          <div class="grid-panel__head">
-            <h3 class="grid-panel__title">Columns</h3>
-            <button type="button" class="tt-btn tt-btn--quiet" (click)="showAllColumns()">Show all</button>
-          </div>
-          <div class="grid-panel__body grid-panel__body--list">
-            @for (column of columns; track column.field) {
-              <label class="tt-checkbox">
-                <input type="checkbox" [checked]="isColumnVisible(column.field)"
-                       (change)="toggleColumn(column.field, $any($event.target).checked)" />
-                {{ column.header }}
+      <div class="relative" data-menu>
+        <button
+          type="button"
+          class="btn btn-neutral btn-sm"
+          (click)="toggleMenu('columns', $event)"
+          [attr.aria-expanded]="menu() === 'columns'"
+        >
+          <lucide-icon name="columns-3" [size]="14" /> Columns
+        </button>
+        @if (menu() === 'columns') {
+          <div
+            class="menu-pop absolute right-0 mt-1 w-56 max-h-80 overflow-auto enter-fade"
+            role="menu"
+          >
+            <p class="px-2.5 py-1.5 text-2xs font-semibold text-muted">Visible columns</p>
+            @for (c of columns(); track c.field) {
+              <label class="menu-item">
+                <input
+                  type="checkbox"
+                  class="accent-brand size-3.5"
+                  [checked]="!hiddenCols().has(c.field)"
+                  (change)="toggleColumn(c.field)"
+                />
+                {{ headerOf(c) }}
               </label>
             }
           </div>
+        }
+      </div>
+
+      @if (exportable()) {
+        <div class="relative" data-menu>
+          <button
+            type="button"
+            class="btn btn-success btn-sm"
+            (click)="toggleMenu('export', $event)"
+            [disabled]="!!exporting()"
+            [attr.aria-expanded]="menu() === 'export'"
+          >
+            @if (exporting()) {
+              <span class="spinner"></span>
+            } @else {
+              <lucide-icon name="file-spreadsheet" [size]="14" />
+            }
+            Download
+            <lucide-icon name="chevron-down" [size]="13" />
+          </button>
+          @if (menu() === 'export') {
+            <div class="menu-pop absolute right-0 mt-1 w-52 enter-fade" role="menu">
+              <button type="button" class="menu-item" role="menuitem" (click)="export('xlsx')">
+                <lucide-icon name="file-spreadsheet" [size]="15" class="text-ok" /> Excel (.xlsx)
+              </button>
+              <button type="button" class="menu-item" role="menuitem" (click)="export('csv')">
+                <lucide-icon name="file-text" [size]="15" class="text-info" /> CSV
+              </button>
+              <p class="px-2.5 pt-1.5 pb-1 text-2xs text-muted border-t border-line mt-1">
+                Exports all {{ total().toLocaleString() }} filtered rows with the visible columns.
+              </p>
+            </div>
+          }
         </div>
       }
     </div>
-
-    @if (dataSource.export) {
-      <button type="button" class="tt-btn tt-btn--accent tt-btn--emerald" (click)="exportToExcel()"
-              [disabled]="exporting()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
-             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M12 3v12m0 0 4-4m-4 4-4-4M4 19h16" />
-        </svg>
-        {{ exporting() ? 'Preparing' : 'Excel' }}
-      </button>
-    }
   </div>
 
-  <!-- Error state replaces the grid, because a failed query has nothing to show -->
-  @if (loadFailed()) {
-    <div class="tt-error-state">
-      <div class="tt-empty__icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
-             stroke-linecap="round" aria-hidden="true">
-          <path d="M12 8v5m0 3.5v.5M10.3 3.9 2.5 18a1.6 1.6 0 0 0 1.4 2.4h16.2a1.6 1.6 0 0 0 1.4-2.4L13.7 3.9a1.6 1.6 0 0 0-2.8 0Z" />
-        </svg>
+  <!-- Advanced filter builder (inline, not modal) -->
+  @if (menu() === 'filters') {
+    <div class="px-3 py-3 border-b border-line bg-subtle/60 enter-fade" data-menu>
+      <div class="flex items-center gap-2 mb-2.5">
+        <p class="text-xs font-semibold text-ink-2">Show rows that match</p>
+        <div class="tabs">
+          <button
+            type="button"
+            class="tab"
+            [class.active]="draftLogic === 'and'"
+            (click)="draftLogic = 'and'"
+          >
+            all rules
+          </button>
+          <button
+            type="button"
+            class="tab"
+            [class.active]="draftLogic === 'or'"
+            (click)="draftLogic = 'or'"
+          >
+            any rule
+          </button>
+        </div>
       </div>
-      <p class="tt-empty__title">That list could not load</p>
-      <p class="tt-empty__text">The server did not answer. Check the connection and try again.</p>
-      <button type="button" class="tt-btn tt-btn--primary" (click)="refresh()">Try again</button>
+      <div class="space-y-2">
+        @for (r of draftRules; track $index; let i = $index) {
+          <div class="flex flex-wrap items-center gap-2">
+            <select
+              class="select input-sm !w-44"
+              [(ngModel)]="r.field"
+              (ngModelChange)="onRuleField(r)"
+              [attr.aria-label]="'Rule ' + (i + 1) + ' field'"
+            >
+              @for (c of filterableColumns(); track c.field) {
+                <option [value]="c.field">{{ headerOf(c) }}</option>
+              }
+            </select>
+            <select class="select input-sm !w-40" [(ngModel)]="r.operator" aria-label="Operator">
+              @for (o of opsFor(r.field); track o.value) {
+                <option [ngValue]="o.value">{{ o.label }}</option>
+              }
+            </select>
+            @if (needsValue(r) >= 1) {
+              @if (optionsFor(r.field).length) {
+                <select class="select input-sm !w-44" [(ngModel)]="r.value" aria-label="Value">
+                  <option value="">Choose…</option>
+                  @for (o of optionsFor(r.field); track o) {
+                    <option [value]="o">{{ humanize(o) }}</option>
+                  }
+                </select>
+              } @else {
+                <input
+                  class="input input-sm !w-44"
+                  [type]="inputTypeFor(r.field)"
+                  [(ngModel)]="r.value"
+                  placeholder="Value"
+                  aria-label="Value"
+                  (keydown.enter)="applyRules()"
+                />
+              }
+            }
+            @if (needsValue(r) === 2) {
+              <span class="text-xs text-muted">and</span>
+              <input
+                class="input input-sm !w-44"
+                [type]="inputTypeFor(r.field)"
+                [(ngModel)]="r.value2"
+                placeholder="Value"
+                aria-label="Second value"
+                (keydown.enter)="applyRules()"
+              />
+            }
+            <button
+              type="button"
+              class="btn btn-ghost btn-sm btn-icon"
+              (click)="removeRule(i)"
+              aria-label="Remove rule"
+            >
+              <lucide-icon name="x" [size]="14" />
+            </button>
+          </div>
+        }
+      </div>
+      <div class="flex items-center gap-2 mt-3">
+        <button type="button" class="btn btn-ghost btn-sm" (click)="addRule()">
+          <lucide-icon name="plus" [size]="14" /> Add rule
+        </button>
+        <div class="ml-auto flex gap-2">
+          <button type="button" class="btn btn-neutral btn-sm" (click)="clearRules()">
+            Clear rules
+          </button>
+          <button type="button" class="btn btn-primary btn-sm" (click)="applyRules()">
+            <lucide-icon name="check" [size]="14" /> Apply filter
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Active filter chips -->
+  @if (activeFilterCount() || search()) {
+    <div class="flex flex-wrap items-center gap-1.5 px-3 py-2 border-b border-line">
+      @if (search()) {
+        <span class="badge tone-gray !h-6">Search: “{{ search() }}”</span>
+      }
+      @for (e of colFilterEntries(); track e[0]) {
+        <span class="badge tone-brand !h-6 !pr-1"
+          >{{ describeColFilter(e[0], e[1]) }}
+          <button
+            type="button"
+            class="rounded-full hover:bg-white/70 p-0.5"
+            (click)="clearColFilter(e[0])"
+            [attr.aria-label]="'Remove filter on ' + e[0]"
+          >
+            <lucide-icon name="x" [size]="11" />
+          </button>
+        </span>
+      }
+      @for (r of rules(); track $index; let i = $index) {
+        <span class="badge tone-plum !h-6 !pr-1"
+          >{{ i > 0 ? (logic() === 'and' ? 'and ' : 'or ') : '' }}{{ describeRule(r) }}
+          <button
+            type="button"
+            class="rounded-full hover:bg-white/70 p-0.5"
+            (click)="removeAppliedRule(i)"
+            aria-label="Remove rule"
+          >
+            <lucide-icon name="x" [size]="11" />
+          </button>
+        </span>
+      }
+      <button
+        type="button"
+        class="text-2xs font-semibold text-brand-ink hover:underline ml-1"
+        (click)="clearAll()"
+      >
+        Clear all
+      </button>
+    </div>
+  }
+
+  <!-- A failed query has nothing to show, so the error replaces the table -->
+  @if (loadFailed()) {
+    <div class="grid place-items-center gap-2 py-14 px-5 text-center">
+      <span class="grid place-items-center size-11 rounded-xl bg-bad-soft text-bad-ink"
+        ><lucide-icon name="triangle-alert" [size]="20"
+      /></span>
+      <p class="text-sm font-semibold text-ink">That list could not load</p>
+      <p class="text-xs text-muted">The server did not answer. Check the connection and try again.</p>
+      <button type="button" class="btn btn-primary btn-sm mt-1" (click)="reload()">Try again</button>
     </div>
   } @else {
-    <div class="ag-theme-techtill grid-host" [style.height]="height">
-      <ag-grid-angular
-        class="grid-host__grid"
-        [gridOptions]="gridOptions"
-        [columnDefs]="columnDefs"
-        (gridReady)="onGridReady($event)"
-        (rowClicked)="rowClicked.emit($any($event).data)"
-      />
-    </div>
+  <!-- Table -->
+  <div class="overflow-x-auto relative">
+    <table class="w-full text-[13px] border-collapse">
+      <thead class="bg-subtle/70">
+        <tr>
+          @for (c of visibleColumns(); track c.field) {
+            <th
+              scope="col"
+              class="h-9 px-3 text-left font-semibold text-2xs text-muted whitespace-nowrap border-b border-line"
+              [style.width]="widthOf(c)"
+              [class.text-right]="isNumeric(c)"
+              [attr.aria-sort]="
+                sortBy() === c.field ? (sortDesc() ? 'descending' : 'ascending') : 'none'
+              "
+            >
+              @if (c.sortable !== false) {
+                <button
+                  type="button"
+                  class="inline-flex items-center gap-1 hover:text-ink cursor-pointer"
+                  [class.flex-row-reverse]="isNumeric(c)"
+                  [class.text-ink]="sortBy() === c.field"
+                  (click)="sort(c)"
+                >
+                  {{ headerOf(c) }}
+                  @if (sortBy() === c.field) {
+                    <lucide-icon
+                      [name]="sortDesc() ? 'arrow-down' : 'arrow-up'"
+                      [size]="12"
+                      class="text-brand"
+                    />
+                  } @else {
+                    <lucide-icon name="chevrons-up-down" [size]="12" class="opacity-40" />
+                  }
+                </button>
+              } @else {
+                {{ headerOf(c) }}
+              }
+            </th>
+          }
+          @if (actions().length) {
+            <th class="h-9 px-3 border-b border-line w-px sticky right-0 bg-subtle sticky-edge">
+              <span class="sr-only">Actions</span>
+            </th>
+          }
+        </tr>
+        @if (showFilterRow()) {
+          <tr class="bg-surface">
+            @for (c of visibleColumns(); track c.field) {
+              <th class="px-1.5 py-1.5 border-b border-line font-normal">
+                @if (c.filterable !== false) {
+                  @switch (kindOf(c)) {
+                    @case ('enum') {
+                      <select
+                        class="select input-sm !h-7 !text-xs"
+                        [attr.data-colfilter]="c.field"
+                        [value]="colFilters()[c.field] ?? ''"
+                        (change)="setColFilter(c.field, $any($event.target).value, false)"
+                        [attr.aria-label]="'Filter ' + c.header"
+                      >
+                        <option value="">All</option>
+                        @for (o of c.options ?? []; track o) {
+                          <option [value]="o" [selected]="colFilters()[c.field] === o">
+                            {{ humanize(o) }}
+                          </option>
+                        }
+                      </select>
+                    }
+                    @case ('bool') {
+                      <select
+                        class="select input-sm !h-7 !text-xs"
+                        [attr.data-colfilter]="c.field"
+                        [value]="colFilters()[c.field] ?? ''"
+                        (change)="setColFilter(c.field, $any($event.target).value, false)"
+                        [attr.aria-label]="'Filter ' + c.header"
+                      >
+                        <option value="">All</option>
+                        <option value="true" [selected]="colFilters()[c.field] === 'true'">
+                          Yes
+                        </option>
+                        <option value="false" [selected]="colFilters()[c.field] === 'false'">
+                          No
+                        </option>
+                      </select>
+                    }
+                    @case ('date') {
+                      <div class="flex items-center gap-1 min-w-56">
+                        <input
+                          type="date"
+                          class="input input-sm !h-7 !text-xs !px-1.5"
+                          [value]="dateRangePart(c.field, 0)"
+                          (change)="setDateRange(c.field, 0, $any($event.target).value)"
+                          [attr.aria-label]="c.header + ' from'"
+                        />
+                        <input
+                          type="date"
+                          class="input input-sm !h-7 !text-xs !px-1.5"
+                          [value]="dateRangePart(c.field, 1)"
+                          (change)="setDateRange(c.field, 1, $any($event.target).value)"
+                          [attr.aria-label]="c.header + ' to'"
+                        />
+                      </div>
+                    }
+                    @case ('number') {
+                      <input
+                        class="input input-sm !h-7 !text-xs text-right min-w-20"
+                        [attr.data-colfilter]="c.field"
+                        [value]="colFilters()[c.field] ?? ''"
+                        placeholder="e.g. >500, 10..20"
+                        (input)="setColFilter(c.field, $any($event.target).value)"
+                        [attr.aria-label]="'Filter ' + c.header"
+                      />
+                    }
+                    @default {
+                      <input
+                        class="input input-sm !h-7 !text-xs min-w-24"
+                        [attr.data-colfilter]="c.field"
+                        [value]="colFilters()[c.field] ?? ''"
+                        placeholder="Search…"
+                        (input)="setColFilter(c.field, $any($event.target).value)"
+                        [attr.aria-label]="'Filter ' + c.header"
+                      />
+                    }
+                  }
+                }
+              </th>
+            }
+            @if (actions().length) {
+              <th class="border-b border-line sticky right-0 bg-surface sticky-edge"></th>
+            }
+          </tr>
+        }
+      </thead>
 
-    @if (totalCount() === 0) {
-      <div class="tt-empty grid-empty">
-        <div class="tt-empty__icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
-               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M4 7h16M4 12h10M4 17h7" />
-          </svg>
-        </div>
-        <p class="tt-empty__title">{{ emptyTitle }}</p>
-        <p class="tt-empty__text">{{ emptyText }}</p>
-      </div>
-    }
+      <tbody [class.opacity-60]="loading() && !firstLoad()" class="transition-opacity">
+        @if (firstLoad()) {
+          @for (i of skeletonRows; track i) {
+            <tr class="border-b border-line/70">
+              @for (c of visibleColumns(); track c.field) {
+                <td class="h-10 px-3">
+                  <div
+                    class="skeleton h-3"
+                    [style.width.%]="45 + ((i * 7 + $index * 13) % 45)"
+                  ></div>
+                </td>
+              }
+              @if (actions().length) {
+                <td class="px-3 sticky right-0 bg-surface">
+                  <div class="skeleton h-3 w-12"></div>
+                </td>
+              }
+            </tr>
+          }
+        } @else {
+          @for (row of rows(); track $index) {
+            <tr
+              class="group border-b border-line/70 hover:bg-lilac-50/70 transition-colors"
+              [class.cursor-pointer]="clickableRows()"
+              (click)="clickableRows() && rowClicked.emit(row)"
+            >
+              @for (c of visibleColumns(); track c.field) {
+                <td
+                  class="h-10 px-3 whitespace-nowrap {{ c.cellClass ?? '' }}"
+                  [class.text-right]="isNumeric(c)"
+                  [class.tabular]="isNumeric(c)"
+                >
+                  @if (c.html && c.render) {
+                    <span [innerHTML]="c.render(row)"></span>
+                  } @else {
+                    <span [class.text-faint]="isBlank(row, c)">{{ cellText(row, c) }}</span>
+                  }
+                </td>
+              }
+              @if (actions().length) {
+                <td
+                  class="px-2 whitespace-nowrap text-right sticky right-0 bg-surface group-hover:bg-lilac-50 transition-colors sticky-edge"
+                  (click)="$event.stopPropagation()"
+                >
+                  @for (a of visibleActions(row); track a.label) {
+                    <button
+                      type="button"
+                      class="btn btn-ghost btn-sm btn-icon"
+                      [class.hover:!text-bad-ink]="a.kind === 'danger'"
+                      (click)="a.run(row)"
+                      [attr.title]="a.label"
+                      [attr.aria-label]="a.label"
+                    >
+                      @if (a.icon) {
+                        <lucide-icon [name]="a.icon" [size]="15" />
+                      } @else {
+                        {{ a.label }}
+                      }
+                    </button>
+                  }
+                </td>
+              }
+            </tr>
+          } @empty {
+            <tr>
+              <td [attr.colspan]="visibleColumns().length + (actions().length ? 1 : 0)">
+                <div class="flex flex-col items-center justify-center py-14 text-center">
+                  <svg
+                    width="88"
+                    height="72"
+                    viewBox="0 0 88 72"
+                    fill="none"
+                    aria-hidden="true"
+                    class="mb-3"
+                  >
+                    <rect
+                      x="10"
+                      y="14"
+                      width="68"
+                      height="48"
+                      rx="10"
+                      fill="var(--color-brand-soft)"
+                    />
+                    <rect
+                      x="20"
+                      y="26"
+                      width="34"
+                      height="5"
+                      rx="2.5"
+                      fill="var(--color-line-strong)"
+                    />
+                    <rect x="20" y="36" width="48" height="5" rx="2.5" fill="var(--color-line)" />
+                    <rect x="20" y="46" width="26" height="5" rx="2.5" fill="var(--color-line)" />
+                    <circle
+                      cx="66"
+                      cy="22"
+                      r="11"
+                      fill="white"
+                      stroke="var(--color-brand)"
+                      stroke-width="3"
+                    />
+                    <path
+                      d="m74 30 7 7"
+                      stroke="var(--color-brand)"
+                      stroke-width="3"
+                      stroke-linecap="round"
+                    />
+                  </svg>
+                  @if (activeFilterCount() || search()) {
+                    <p class="text-sm font-semibold text-ink">No rows match these filters</p>
+                    <p class="text-xs text-muted mt-1">
+                      Loosen a filter or clear them to see everything.
+                    </p>
+                    <button type="button" class="btn btn-neutral btn-sm mt-3" (click)="clearAll()">
+                      Clear filters
+                    </button>
+                  } @else {
+                    <p class="text-sm font-semibold text-ink">{{ emptyTitle() }}</p>
+                    <p class="text-xs text-muted mt-1">{{ emptyText() }}</p>
+                  }
+                </div>
+              </td>
+            </tr>
+          }
+        }
+      </tbody>
+    </table>
+  </div>
+
   }
+
+  <!-- Footer: count + pagination -->
+  <div
+    class="flex flex-wrap items-center gap-3 px-3 py-2.5 border-t border-line text-xs text-muted"
+  >
+    <span class="tabular" aria-live="polite">
+      Showing
+      <b class="text-ink">{{ rangeFrom().toLocaleString() }}–{{ rangeTo().toLocaleString() }}</b> of
+      <b class="text-ink">{{ total().toLocaleString() }}</b> rows
+    </span>
+    <label class="flex items-center gap-1.5">
+      Rows per page
+      <select
+        class="select input-sm !h-7 !w-18 !text-xs"
+        [value]="pageSize()"
+        (change)="setPageSize($any($event.target).value)"
+      >
+        @for (s of pageSizes; track s) {
+          <option [value]="s" [selected]="s === pageSize()">{{ s }}</option>
+        }
+      </select>
+    </label>
+    <nav class="ml-auto flex items-center gap-1" aria-label="Pagination">
+      <button
+        type="button"
+        class="btn btn-ghost btn-sm btn-icon"
+        [disabled]="page() === 1"
+        (click)="goTo(1)"
+        aria-label="First page"
+      >
+        <lucide-icon name="chevrons-left" [size]="14" />
+      </button>
+      <button
+        type="button"
+        class="btn btn-ghost btn-sm btn-icon"
+        [disabled]="page() === 1"
+        (click)="goTo(page() - 1)"
+        aria-label="Previous page"
+      >
+        <lucide-icon name="chevron-left" [size]="14" />
+      </button>
+      @for (p of pages(); track $index) {
+        @if (p === '…') {
+          <span class="px-1">…</span>
+        } @else {
+          <button
+            type="button"
+            class="btn btn-sm min-w-8 !px-2 tabular"
+            [class.btn-primary]="p === page()"
+            [class.btn-ghost]="p !== page()"
+            (click)="goTo(+p)"
+            [attr.aria-current]="p === page() ? 'page' : null"
+          >
+            {{ p }}
+          </button>
+        }
+      }
+      <button
+        type="button"
+        class="btn btn-ghost btn-sm btn-icon"
+        [disabled]="page() >= pageCount()"
+        (click)="goTo(page() + 1)"
+        aria-label="Next page"
+      >
+        <lucide-icon name="chevron-right" [size]="14" />
+      </button>
+      <button
+        type="button"
+        class="btn btn-ghost btn-sm btn-icon"
+        [disabled]="page() >= pageCount()"
+        (click)="goTo(pageCount())"
+        aria-label="Last page"
+      >
+        <lucide-icon name="chevrons-right" [size]="14" />
+      </button>
+    </nav>
+  </div>
 </div>

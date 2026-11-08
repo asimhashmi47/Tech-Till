@@ -1,4 +1,5 @@
 import {
+  HttpContextToken,
   HttpErrorResponse,
   HttpEvent,
   HttpHandlerFn,
@@ -15,6 +16,9 @@ import { AlertService } from '../services/alert.service';
 import { AuthService } from '../services/auth.service';
 import { ProgressService } from '../services/progress.service';
 
+/** Background polls set this: they skip the progress bar and never toast or redirect. */
+export const SILENT = new HttpContextToken<boolean>(() => false);
+
 /** Attaches the access token to API calls. Login and refresh go out unauthenticated. */
 export const authInterceptor: HttpInterceptorFn = (request, next) => {
   const auth = inject(AuthService);
@@ -29,6 +33,10 @@ export const authInterceptor: HttpInterceptorFn = (request, next) => {
 
 /** Drives the slim progress bar at the top of the shell. */
 export const progressInterceptor: HttpInterceptorFn = (request, next) => {
+  if (request.context.get(SILENT)) {
+    return next(request);
+  }
+
   const progress = inject(ProgressService);
   progress.start();
 
@@ -46,6 +54,10 @@ export const errorInterceptor: HttpInterceptorFn = (request, next) => {
 
   return next(request).pipe(
     catchError((error: HttpErrorResponse) => {
+      if (request.context.get(SILENT) && error.status !== 401) {
+        return throwError(() => error);
+      }
+
       // 0 means the request never reached the server.
       if (error.status === 0) {
         void router.navigate(['/error/offline']);

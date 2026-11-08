@@ -7,11 +7,13 @@ import { AlertService } from '../../core/services/alert.service';
 import { ApiService } from '../../core/services/api.service';
 import { AuthService } from '../../core/services/auth.service';
 import { formatMoney } from '../../core/services/currency';
+import { LucideAngularModule } from 'lucide-angular';
+import { PageHeader } from '../../shared/ui/ui';
 
 @Component({
   selector: 'tt-invoice-detail',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [PageHeader, LucideAngularModule, CommonModule, RouterLink],
   templateUrl: './invoice-detail.component.html',
   styleUrl: './invoice-detail.component.scss',
 })

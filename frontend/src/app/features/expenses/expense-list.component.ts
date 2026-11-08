@@ -16,6 +16,8 @@ import { DataGridComponent, GridDataSource } from '../../shared/grid/data-grid.c
 import { GridAction, GridColumn } from '../../shared/grid/grid.models';
 import { DrawerComponent } from '../../shared/ui/drawer.component';
 import { formatMoney } from '../../core/services/currency';
+import { LucideAngularModule } from 'lucide-angular';
+import { PageHeader } from '../../shared/ui/ui';
 
 type Row = ExpenseDto & Record<string, unknown>;
 
@@ -26,7 +28,7 @@ function today(): string {
 @Component({
   selector: 'tt-expense-list',
   standalone: true,
-  imports: [CommonModule, FormsModule, DataGridComponent, DrawerComponent],
+  imports: [LucideAngularModule, PageHeader, CommonModule, FormsModule, DataGridComponent, DrawerComponent],
   templateUrl: './expense-list.component.html',
 })
 export class ExpenseListComponent {
@@ -75,10 +77,10 @@ export class ExpenseListComponent {
 
   readonly actions: GridAction<Row>[] = this.canWrite
     ? [
-        { label: 'Edit expense', icon: 'M4 20h4l10-10-4-4L4 16v4Z', run: (row) => this.edit(row) },
+        { label: 'Edit expense', icon: 'pencil', run: (row) => this.edit(row) },
         {
           label: 'Remove expense',
-          icon: 'M4 7h16M9 7V5h6v2m-8 0 1 13h8l1-13',
+          icon: 'trash-2',
           kind: 'danger',
           run: (row) => void this.remove(row),
         },

@@ -1,32 +1,23 @@
-import { CommonModule } from '@angular/common';
 import {
   Component,
+  DestroyRef,
+  ElementRef,
   EventEmitter,
-  Input,
   Output,
-  SimpleChanges,
   computed,
   effect,
   inject,
+  input,
   signal,
+  untracked,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
-import { AgGridAngular } from 'ag-grid-angular';
-import {
-  AllCommunityModule,
-  ColDef,
-  GridApi,
-  GridOptions,
-  GridReadyEvent,
-  IDatasource,
-  IGetRowsParams,
-  ModuleRegistry,
-  SortModelItem,
-} from 'ag-grid-community';
-import { Observable } from 'rxjs';
+import { ActivatedRoute } from '@angular/router';
+import { LucideAngularModule } from 'lucide-angular';
+import { Observable, Subscription, firstValueFrom } from 'rxjs';
 
 import {
-  FilterGroup,
   FilterJoin,
   FilterOperator,
   FilterRule,
@@ -35,12 +26,11 @@ import {
   SortRule,
 } from '../../core/models/api.models';
 import { AlertService } from '../../core/services/alert.service';
-import { activeCurrency, currencyCode, formatAmount } from '../../core/services/currency';
 import { HttpDownload, saveBlob } from '../../core/services/api.service';
 import { AuthService } from '../../core/services/auth.service';
-import { GridAction, GridColumn, OPERATORS_BY_KIND, PAGE_SIZES } from './grid.models';
-
-ModuleRegistry.registerModules([AllCommunityModule]);
+import { currencyCode, formatAmount } from '../../core/services/currency';
+import { humanize } from '../../core/services/format';
+import { ColumnKind, GridAction, GridColumn, OPERATORS_BY_KIND } from './grid.models';
 
 /** What a feature page hands the grid so it can talk to its own endpoints. */
 export interface GridDataSource<T> {
@@ -50,439 +40,6 @@ export interface GridDataSource<T> {
 
 type Row = Record<string, unknown>;
 
-/**
- * The one list component in the app. Every column, filter and sort name is a field the
- * server has whitelisted, and paging happens on the server through AG Grid's infinite
- * row model, so a 10,000 row table only ever ships one page.
- */
-@Component({
-  selector: 'tt-data-grid',
-  standalone: true,
-  imports: [CommonModule, FormsModule, AgGridAngular],
-  templateUrl: './data-grid.component.html',
-  styleUrl: './data-grid.component.scss',
-})
-export class DataGridComponent<T extends Row = Row> {
-  private readonly alerts = inject(AlertService);
-  private readonly auth = inject(AuthService);
-
-  /** Used as the localStorage key for the column chooser, so it must be stable. */
-  @Input({ required: true }) gridKey!: string;
-  @Input({ required: true }) columns: GridColumn<T>[] = [];
-  @Input({ required: true }) dataSource!: GridDataSource<T>;
-
-  @Input() actions: GridAction<T>[] = [];
-  @Input() searchPlaceholder = 'Search';
-  @Input() exportName = 'export';
-  @Input() emptyTitle = 'Nothing here yet';
-  @Input() emptyText = 'Records appear here once they exist.';
-
-  /** Scopes the query to the shop switcher. Turn off for lists that are not shop based. */
-  @Input() useShopScope = true;
-
-  @Input() defaultSort: SortRule[] = [];
-  @Input() height = '560px';
-
-  @Output() readonly rowClicked = new EventEmitter<T>();
-
-  readonly quickSearch = signal('');
-  readonly totalCount = signal<number | null>(null);
-  readonly loadFailed = signal(false);
-  readonly chooserOpen = signal(false);
-  readonly builderOpen = signal(false);
-  readonly exporting = signal(false);
-
-  /** The advanced filter builder's working copy. Applied only when the user says so. */
-  readonly builderRules = signal<BuilderRule[]>([]);
-  readonly builderJoin = signal<FilterJoin>(FilterJoin.And);
-  readonly appliedGroup = signal<FilterGroup | null>(null);
-
-  readonly hiddenFields = signal<Set<string>>(new Set());
-
-  readonly visibleColumns = computed(() =>
-    this.columns.filter((column) => !this.hiddenFields().has(column.field)),
-  );
-
-  readonly activeFilterCount = computed(() => {
-    const group = this.appliedGroup();
-    return group ? group.rules.length : 0;
-  });
-
-  readonly pageSizes = PAGE_SIZES;
-
-  private api?: GridApi<T>;
-  private lastSort: SortRule[] = [];
-  private lastColumnFilters: FilterRule[] = [];
-
-  readonly gridOptions: GridOptions<T> = {
-    // The stylesheet uses the classic quartz CSS, so the legacy theming path stays on.
-    theme: 'legacy',
-    rowModelType: 'infinite',
-    pagination: true,
-    paginationPageSize: 25,
-    paginationPageSizeSelector: [...PAGE_SIZES],
-    cacheBlockSize: 25,
-    maxBlocksInCache: 2,
-    animateRows: false,
-    suppressCellFocus: true,
-    rowHeight: 42,
-    headerHeight: 40,
-    floatingFiltersHeight: 38,
-
-    // Shift-click adds a column to the sort rather than replacing it.
-    multiSortKey: 'ctrl',
-    alwaysMultiSort: false,
-    defaultColDef: {
-      sortable: true,
-      resizable: true,
-      suppressHeaderMenuButton: true,
-      filterParams: { buttons: ['reset'], debounceMs: 400, maxNumConditions: 1 },
-    },
-    overlayNoRowsTemplate: '<span class="tt-grid-overlay">No rows match the current filters.</span>',
-    overlayLoadingTemplate: '<span class="tt-grid-overlay">Loading</span>',
-  };
-
-  columnDefs: ColDef<T>[] = [];
-
-  constructor() {
-    // A currency change alters the money headers and the number of decimals, so the
-    // grid rebuilds its columns and reloads the page that is on screen.
-    effect(() => {
-      activeCurrency();
-
-      if (this.api) {
-        this.rebuildColumnDefs();
-        this.api.setGridOption('columnDefs', this.columnDefs);
-        this.refresh();
-      }
-    });
-  }
-
-  ngOnInit(): void {
-    this.hiddenFields.set(this.readHidden());
-    this.rebuildColumnDefs();
-    this.builderRules.set([this.newBuilderRule()]);
-  }
-
-  /**
-   * A page can swap the whole column set, for example the ageing screen switching between
-   * its party view and its document view. Rebuild rather than ignore the new inputs.
-   */
-  ngOnChanges(changes: SimpleChanges): void {
-    if (!this.api) {
-      // First run: ngOnInit does the initial build.
-      return;
-    }
-
-    if (changes['columns'] || changes['gridKey'] || changes['dataSource']) {
-      this.hiddenFields.set(this.readHidden());
-      this.rebuildColumnDefs();
-      this.api.setGridOption('columnDefs', this.columnDefs);
-      this.refresh();
-    }
-  }
-
-  onGridReady(event: GridReadyEvent<T>): void {
-    this.api = event.api;
-
-    if (this.defaultSort.length > 0) {
-      // Pushing the default into the grid means the first datasource call carries it.
-      this.api.applyColumnState({
-        state: this.defaultSort.map((rule, index) => ({
-          colId: rule.field,
-          sort: rule.desc ? 'desc' : 'asc',
-          sortIndex: index,
-        })),
-      });
-    }
-
-    this.api.setGridOption('datasource', this.buildDatasource());
-  }
-
-  /** Re-runs the current query, for example after a save or a shop change. */
-  refresh(): void {
-    this.loadFailed.set(false);
-    this.api?.setGridOption('datasource', this.buildDatasource());
-  }
-
-  onQuickSearch(value: string): void {
-    this.quickSearch.set(value);
-    this.refresh();
-  }
-
-  clearQuickSearch(): void {
-    this.quickSearch.set('');
-    this.refresh();
-  }
-
-  // ---------- Column chooser ----------
-
-  toggleChooser(): void {
-    this.chooserOpen.update((v) => !v);
-    this.builderOpen.set(false);
-  }
-
-  isColumnVisible(field: string): boolean {
-    return !this.hiddenFields().has(field);
-  }
-
-  toggleColumn(field: string, visible: boolean): void {
-    const next = new Set(this.hiddenFields());
-    if (visible) {
-      next.delete(field);
-    } else {
-      next.add(field);
-    }
-
-    this.hiddenFields.set(next);
-    this.writeHidden(next);
-    this.api?.setGridOption('columnDefs', this.buildColumnDefs());
-  }
-
-  showAllColumns(): void {
-    this.hiddenFields.set(new Set());
-    this.writeHidden(new Set());
-    this.api?.setGridOption('columnDefs', this.buildColumnDefs());
-  }
-
-  // ---------- Advanced filter builder ----------
-
-  toggleBuilder(): void {
-    this.builderOpen.update((v) => !v);
-    this.chooserOpen.set(false);
-  }
-
-  addBuilderRule(): void {
-    this.builderRules.update((rules) => [...rules, this.newBuilderRule()]);
-  }
-
-  removeBuilderRule(index: number): void {
-    this.builderRules.update((rules) => rules.filter((_, i) => i !== index));
-  }
-
-  operatorsFor(field: string): { value: FilterOperator; label: string }[] {
-    const column = this.columns.find((c) => c.field === field);
-    return column ? [...OPERATORS_BY_KIND[column.kind]] : [...OPERATORS_BY_KIND.text];
-  }
-
-  builderInputType(field: string): string {
-    const kind = this.columns.find((c) => c.field === field)?.kind;
-    if (kind === 'date') {
-      return 'date';
-    }
-
-    return kind === 'number' || kind === 'money' ? 'number' : 'text';
-  }
-
-  needsSecondValue(operator: FilterOperator): boolean {
-    return Number(operator) === FilterOperator.Between;
-  }
-
-  needsNoValue(operator: FilterOperator): boolean {
-    const op = Number(operator);
-    return op === FilterOperator.IsEmpty || op === FilterOperator.IsNotEmpty;
-  }
-
-  enumOptionsFor(field: string): readonly string[] {
-    return this.columns.find((c) => c.field === field)?.options ?? [];
-  }
-
-  applyBuilder(): void {
-    const rules = this.builderRules()
-      .filter((rule) => rule.field && (this.needsNoValue(rule.operator) || rule.value !== ''))
-      .map<FilterRule>((rule) => ({
-        field: rule.field,
-        operator: Number(rule.operator),
-        value: rule.value === '' ? null : rule.value,
-        value2: rule.value2 === '' ? null : rule.value2,
-      }));
-
-    this.appliedGroup.set(
-      rules.length === 0 ? null : { join: Number(this.builderJoin()), rules, groups: [] },
-    );
-
-    this.builderOpen.set(false);
-    this.refresh();
-  }
-
-  clearBuilder(): void {
-    this.builderRules.set([this.newBuilderRule()]);
-    this.builderJoin.set(FilterJoin.And);
-    this.appliedGroup.set(null);
-    this.builderOpen.set(false);
-    this.refresh();
-  }
-
-  // ---------- Export ----------
-
-  exportToExcel(): void {
-    const source = this.dataSource.export;
-    if (!source) {
-      return;
-    }
-
-    this.exporting.set(true);
-
-    // The export mirrors what is on screen: same filters, same sort, same visible columns.
-    source(this.buildRequest(1, Math.max(this.totalCount() ?? 1000, 1))).subscribe({
-      next: (download) => {
-        saveBlob(download);
-        this.exporting.set(false);
-        this.alerts.success('Export ready', download.filename);
-      },
-      error: () => this.exporting.set(false),
-    });
-  }
-
-  // ---------- Internals ----------
-
-  private buildDatasource(): IDatasource {
-    return {
-      getRows: (params: IGetRowsParams) => {
-        const pageSize = this.api?.paginationGetPageSize() ?? 25;
-        const page = Math.floor(params.startRow / pageSize) + 1;
-
-        this.lastSort = mapSort(params.sortModel);
-        this.lastColumnFilters = mapFilterModel(params.filterModel as Record<string, AgFilterModel>);
-
-        this.dataSource.query(this.buildRequest(page, pageSize)).subscribe({
-          next: (result) => {
-            this.totalCount.set(result.totalCount);
-            this.loadFailed.set(false);
-            params.successCallback(result.items as Row[] as T[], result.totalCount);
-
-            if (result.totalCount === 0) {
-              this.api?.showNoRowsOverlay();
-            }
-          },
-          error: () => {
-            this.loadFailed.set(true);
-            params.failCallback();
-          },
-        });
-      },
-    };
-  }
-
-  private buildRequest(page: number, pageSize: number): QueryRequest {
-    const search = this.quickSearch().trim();
-
-    return {
-      page,
-      pageSize,
-      sort: this.lastSort.length > 0 ? this.lastSort : this.defaultSort,
-      filters: this.lastColumnFilters,
-      filterGroup: this.appliedGroup(),
-      search: search === '' ? null : search,
-      columns: this.visibleColumns().map((column) => column.field),
-      shopId: this.useShopScope ? this.auth.activeShopId() : null,
-    };
-  }
-
-  private rebuildColumnDefs(): void {
-    this.columnDefs = this.buildColumnDefs();
-  }
-
-  private buildColumnDefs(): ColDef<T>[] {
-    const defs: ColDef<T>[] = this.columns.map((column) => {
-      const def: ColDef<T> = {
-        colId: column.field,
-        field: column.field as ColDef<T>['field'],
-
-        // The currency is named once in the header rather than repeated in every cell.
-        headerName: column.kind === 'money' ? `${column.header} (${currencyCode()})` : column.header,
-        hide: this.hiddenFields().has(column.field),
-        sortable: column.sortable !== false,
-        width: column.width,
-        minWidth: column.minWidth ?? 110,
-        flex: column.width ? undefined : column.flex ?? 1,
-        cellClass: column.cellClass ?? defaultCellClass(column.kind),
-      };
-
-      if (column.filterable !== false) {
-        def.filter = agFilterFor(column.kind);
-        def.floatingFilter = true;
-      }
-
-      if (column.render) {
-        if (column.html) {
-          def.cellRenderer = (params: { data?: T }) =>
-            params.data ? column.render!(params.data) : '';
-        } else {
-          def.valueFormatter = (params: { data?: T }) =>
-            params.data ? column.render!(params.data) : '';
-        }
-      } else if (column.kind === 'money') {
-        def.valueFormatter = (params: { value: unknown }) => formatAmount(params.value);
-      } else if (column.kind === 'date') {
-        def.valueFormatter = (params: { value: unknown }) => formatDate(params.value);
-      } else if (column.kind === 'bool') {
-        def.valueFormatter = (params: { value: unknown }) => (params.value ? 'Yes' : 'No');
-      }
-
-      return def;
-    });
-
-    if (this.actions.length > 0) {
-      defs.push({
-        colId: '__actions',
-        headerName: '',
-        pinned: 'right',
-        width: 52 + this.actions.length * 4,
-        minWidth: 56,
-        maxWidth: 140,
-        sortable: false,
-        filter: false,
-        resizable: false,
-        cellClass: 'tt-cell-actions',
-        cellRenderer: ActionsCellRenderer,
-        cellRendererParams: { actions: this.actions },
-      });
-    }
-
-    return defs;
-  }
-
-  private newBuilderRule(): BuilderRule {
-    const field = this.columns[0]?.field ?? '';
-    const operators = this.operatorsFor(field);
-
-    return {
-      field,
-      operator: operators[0]?.value ?? FilterOperator.Contains,
-      value: '',
-      value2: '',
-    };
-  }
-
-  private storageKey(): string {
-    return `techtill.grid.${this.gridKey}.hidden`;
-  }
-
-  private readHidden(): Set<string> {
-    const fromColumns = this.columns.filter((c) => c.hidden).map((c) => c.field);
-
-    try {
-      const raw = localStorage.getItem(this.storageKey());
-      if (!raw) {
-        return new Set(fromColumns);
-      }
-
-      return new Set(JSON.parse(raw) as string[]);
-    } catch {
-      return new Set(fromColumns);
-    }
-  }
-
-  private writeHidden(fields: Set<string>): void {
-    try {
-      localStorage.setItem(this.storageKey(), JSON.stringify([...fields]));
-    } catch {
-      // The grid still works, the choice just will not be remembered.
-    }
-  }
-}
-
 interface BuilderRule {
   field: string;
   operator: FilterOperator;
@@ -490,152 +47,620 @@ interface BuilderRule {
   value2: string;
 }
 
-interface AgFilterModel {
-  filterType: string;
-  type?: string;
-  filter?: unknown;
-  filterTo?: unknown;
-  dateFrom?: string;
-  dateTo?: string;
-}
+type FilterKind = 'text' | 'number' | 'date' | 'enum' | 'bool';
 
-/** Row action buttons. A plain renderer keeps the grid free of extra dependencies. */
-class ActionsCellRenderer {
-  private element!: HTMLElement;
+const kind = (k: ColumnKind | undefined): FilterKind =>
+  k === 'number' || k === 'money'
+    ? 'number'
+    : k === 'date'
+      ? 'date'
+      : k === 'enum'
+        ? 'enum'
+        : k === 'bool'
+          ? 'bool'
+          : 'text';
 
-  init(params: { data?: Row; actions: GridAction<Row>[] }): void {
-    this.element = document.createElement('div');
-    this.element.className = 'tt-grid-actions';
-
-    for (const action of params.actions) {
-      if (!params.data || (action.visible && !action.visible(params.data))) {
-        continue;
-      }
-
-      const button = document.createElement('button');
-      button.type = 'button';
-      button.className = 'tt-grid-action' + (action.kind === 'danger' ? ' tt-grid-action--danger' : '');
-      button.title = action.label;
-      button.setAttribute('aria-label', action.label);
-      button.innerHTML = action.icon
-        ? `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
-             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${action.icon}"/></svg>`
-        : action.label;
-      button.addEventListener('click', (event) => {
-        event.stopPropagation();
-        action.run(params.data as Row);
-      });
-
-      this.element.appendChild(button);
-    }
-  }
-
-  getGui(): HTMLElement {
-    return this.element;
-  }
-
-  refresh(): boolean {
-    return false;
-  }
-}
-
-function agFilterFor(kind: GridColumn['kind']): string {
-  switch (kind) {
-    case 'number':
-    case 'money':
-      return 'agNumberColumnFilter';
-    case 'date':
-      return 'agDateColumnFilter';
-    default:
-      return 'agTextColumnFilter';
-  }
-}
-
-function defaultCellClass(kind: GridColumn['kind']): string | undefined {
-  return kind === 'money' || kind === 'number' ? 'tt-cell-number' : undefined;
-}
-
-function mapSort(sortModel: SortModelItem[]): SortRule[] {
-  return sortModel.map((item) => ({ field: item.colId, desc: item.sort === 'desc' }));
-}
+const CSV_PAGE_SIZE = 500;
 
 /**
- * Translates AG Grid's filter model into the API's FilterRule list. Only the operators
- * the backend whitelists are produced; anything else is dropped rather than guessed at.
+ * The one list component in the app: global search, a search row per column, the AND / OR
+ * rule builder, column chooser, sort, paging and download. Every column, filter and sort
+ * name is a field the server has whitelisted, and paging happens on the server.
  */
-function mapFilterModel(model: Record<string, AgFilterModel>): FilterRule[] {
-  const rules: FilterRule[] = [];
+@Component({
+  selector: 'tt-data-grid',
+  standalone: true,
+  imports: [FormsModule, LucideAngularModule],
+  templateUrl: './data-grid.component.html',
+  host: {
+    class: 'block',
+    '(document:click)': 'onDocClick($event)',
+    '(document:keydown.escape)': 'closeMenus()',
+  },
+})
+export class DataGridComponent<T extends Row = Row> {
+  private readonly alerts = inject(AlertService);
+  private readonly auth = inject(AuthService);
+  private readonly route = inject(ActivatedRoute);
+  private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
+  private readonly destroyRef = inject(DestroyRef);
 
-  for (const [field, entry] of Object.entries(model ?? {})) {
-    const operator = mapOperator(entry.type);
-    if (operator === null) {
-      continue;
-    }
+  /** Used as the localStorage key for the column chooser, so it must be stable. */
+  readonly gridKey = input.required<string>();
+  readonly columns = input.required<GridColumn<T>[]>();
+  readonly dataSource = input.required<GridDataSource<T>>();
 
-    if (entry.filterType === 'date') {
-      const from = (entry.dateFrom ?? '').slice(0, 10);
-      const to = (entry.dateTo ?? '').slice(0, 10);
-      if (!from) {
-        continue;
+  readonly title = input<string>('');
+  readonly actions = input<GridAction<T>[]>([]);
+  readonly searchPlaceholder = input('Search all text columns');
+  readonly exportName = input('');
+  readonly emptyTitle = input('Nothing here yet');
+  readonly emptyText = input('Records appear here once they exist.');
+
+  /** Scopes the query to the shop switcher. Turn off for lists that are not shop based. */
+  readonly useShopScope = input(true);
+  readonly defaultSort = input<SortRule[]>([]);
+
+  @Output() readonly rowClicked = new EventEmitter<T>();
+
+  readonly initialSearch = this.route.snapshot.queryParamMap.get('search') ?? '';
+
+  // State
+  readonly rows = signal<T[]>([]);
+  readonly total = signal(0);
+  readonly loading = signal(true);
+  readonly firstLoad = signal(true);
+  readonly loadFailed = signal(false);
+  readonly page = signal(1);
+  readonly pageSize = signal(25);
+  readonly search = signal(this.initialSearch);
+  readonly sortBy = signal<string | null>(null);
+  readonly sortDesc = signal(true);
+  readonly colFilters = signal<Record<string, string | undefined>>({});
+  readonly rules = signal<BuilderRule[]>([]);
+  readonly logic = signal<'and' | 'or'>('and');
+  readonly hiddenCols = signal<Set<string>>(new Set());
+  readonly showFilterRow = signal(true);
+  readonly exporting = signal<string | null>(null);
+
+  // Menus
+  readonly menu = signal<'columns' | 'export' | 'filters' | null>(null);
+  draftRules: BuilderRule[] = [];
+  draftLogic: 'and' | 'or' = 'and';
+
+  readonly humanize = humanize;
+  readonly pageSizes = [10, 25, 50, 100, 200];
+  readonly exportable = computed(() => !!this.dataSource().export);
+  readonly visibleColumns = computed(() =>
+    this.columns().filter((c) => !this.hiddenCols().has(c.field)),
+  );
+  readonly filterableColumns = computed(() => this.columns().filter((c) => c.filterable !== false));
+  readonly pageCount = computed(() => Math.max(1, Math.ceil(this.total() / this.pageSize())));
+  readonly rangeFrom = computed(() =>
+    this.total() === 0 ? 0 : (this.page() - 1) * this.pageSize() + 1,
+  );
+  readonly rangeTo = computed(() => Math.min(this.total(), this.page() * this.pageSize()));
+  readonly activeFilterCount = computed(
+    () =>
+      Object.values(this.colFilters()).filter((v) => v !== '' && v != null).length +
+      this.rules().length,
+  );
+  readonly skeletonRows = Array.from({ length: 8 }, (_, i) => i);
+  readonly pages = computed(() => {
+    const count = this.pageCount(),
+      cur = this.page();
+    const set = new Set([1, count, cur - 1, cur, cur + 1].filter((p) => p >= 1 && p <= count));
+    const sorted = [...set].sort((a, b) => a - b);
+    const out: (number | '…')[] = [];
+    sorted.forEach((p, i) => {
+      if (i > 0 && p - sorted[i - 1] > 1) out.push('…');
+      out.push(p);
+    });
+    return out;
+  });
+
+  private sub?: Subscription;
+  private searchTimer?: ReturnType<typeof setTimeout>;
+  private filterTimer?: ReturnType<typeof setTimeout>;
+
+  constructor() {
+    // A new key means a new column set (the ageing screen swaps views this way).
+    effect(() => {
+      const id = this.gridKey();
+      untracked(() => this.resetFor(id));
+    });
+
+    // Reloads whenever anything that shapes the query changes.
+    effect(() => {
+      const request = this.buildRequest(this.page(), this.pageSize());
+      const source = this.dataSource();
+      untracked(() => this.fetch(source, request));
+    });
+
+    // The topbar search links here with ?search=, including while this page is already open.
+    this.route.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((params) => {
+      const term = params.get('search') ?? '';
+      if (term === untracked(this.search)) return;
+      this.search.set(term);
+      this.page.set(1);
+      const box = this.host.nativeElement.querySelector<HTMLInputElement>('input[data-search]');
+      if (box) box.value = term;
+    });
+
+    this.destroyRef.onDestroy(() => this.sub?.unsubscribe());
+  }
+
+  /** Re-runs the current query, for example after a save or a shop change. */
+  refresh(): void {
+    this.reload();
+  }
+
+  reload(): void {
+    this.fetch(this.dataSource(), this.buildRequest(this.page(), this.pageSize()));
+  }
+
+  private resetFor(id: string): void {
+    const saved = this.readPrefs(id);
+    this.pageSize.set(saved?.pageSize ?? 25);
+    this.hiddenCols.set(
+      new Set(saved?.hidden ?? this.columns().filter((c) => c.hidden).map((c) => c.field)),
+    );
+    const sort = this.defaultSort()[0];
+    this.sortBy.set(sort?.field ?? null);
+    this.sortDesc.set(sort?.desc ?? true);
+    this.colFilters.set({});
+    this.rules.set([]);
+    this.page.set(1);
+  }
+
+  private sortRules(): SortRule[] {
+    const field = this.sortBy();
+    if (!field) return this.defaultSort();
+    return [
+      { field, desc: this.sortDesc() },
+      ...this.defaultSort().filter((rule) => rule.field !== field),
+    ];
+  }
+
+  private buildRequest(page: number, pageSize: number): QueryRequest {
+    const rules = this.rules();
+    return {
+      page,
+      pageSize,
+      sort: this.sortRules(),
+      filters: this.columnRules(),
+      filterGroup: rules.length
+        ? {
+            join: this.logic() === 'and' ? FilterJoin.And : FilterJoin.Or,
+            rules: rules.map((r) => ({
+              field: r.field,
+              operator: Number(r.operator),
+              value: r.value === '' ? null : r.value,
+              value2: r.value2 === '' ? null : r.value2,
+            })),
+            groups: [],
+          }
+        : null,
+      search: this.search() || null,
+      columns: untracked(this.visibleColumns).map((c) => c.field),
+      shopId: this.useShopScope() ? this.auth.activeShopId() : null,
+    };
+  }
+
+  /** Turns the search row into the rules the API whitelists. */
+  private columnRules(): FilterRule[] {
+    const rules: FilterRule[] = [];
+    for (const [field, raw] of Object.entries(this.colFilters())) {
+      if (!raw) continue;
+      const k = kind(this.col(field)?.kind);
+      if (k === 'enum' || k === 'bool') {
+        rules.push({ field, operator: FilterOperator.Equals, value: raw, value2: null });
+      } else if (k === 'date') {
+        const rule = dateRule(field, raw);
+        if (rule) rules.push(rule);
+      } else if (k === 'number') {
+        const rule = numberRule(field, raw);
+        if (rule) rules.push(rule);
+      } else {
+        rules.push({ field, operator: FilterOperator.Contains, value: raw.trim(), value2: null });
       }
-
-      rules.push({ field, operator, value: from, value2: to || null });
-      continue;
     }
+    return rules;
+  }
 
-    const value = entry.filter;
-    if (value === null || value === undefined || value === '') {
-      if (operator !== FilterOperator.IsEmpty && operator !== FilterOperator.IsNotEmpty) {
-        continue;
-      }
-    }
-
-    rules.push({
-      field,
-      operator,
-      value: value === null || value === undefined ? null : String(value),
-      value2: entry.filterTo === null || entry.filterTo === undefined ? null : String(entry.filterTo),
+  private fetch(source: GridDataSource<T>, request: QueryRequest): void {
+    this.sub?.unsubscribe();
+    this.loading.set(true);
+    this.sub = source.query(request).subscribe({
+      next: (r) => {
+        this.rows.set(r.items);
+        this.total.set(r.totalCount);
+        this.loadFailed.set(false);
+        this.loading.set(false);
+        this.firstLoad.set(false);
+      },
+      error: () => {
+        this.loadFailed.set(true);
+        this.loading.set(false);
+        this.firstLoad.set(false);
+      },
     });
   }
 
-  return rules;
-}
+  // Toolbar
 
-function mapOperator(type: string | undefined): FilterOperator | null {
-  switch (type) {
-    case 'contains':
-      return FilterOperator.Contains;
-    case 'equals':
-      return FilterOperator.Equals;
-    case 'notEqual':
-      return FilterOperator.NotEquals;
-    case 'startsWith':
-      return FilterOperator.StartsWith;
-    case 'endsWith':
-      return FilterOperator.EndsWith;
-    case 'greaterThan':
-    case 'after':
-      return FilterOperator.GreaterThan;
-    case 'greaterThanOrEqual':
-      return FilterOperator.GreaterThanOrEqual;
-    case 'lessThan':
-    case 'before':
-      return FilterOperator.LessThan;
-    case 'lessThanOrEqual':
-      return FilterOperator.LessThanOrEqual;
-    case 'inRange':
-      return FilterOperator.Between;
-    case 'blank':
-      return FilterOperator.IsEmpty;
-    case 'notBlank':
-      return FilterOperator.IsNotEmpty;
-    default:
+  onSearch(value: string): void {
+    clearTimeout(this.searchTimer);
+    this.searchTimer = setTimeout(() => {
+      this.search.set(value.trim());
+      this.page.set(1);
+    }, 300);
+  }
+
+  setColFilter(key: string, value: string, debounce = true): void {
+    clearTimeout(this.filterTimer);
+    const apply = () => {
+      this.colFilters.update((f) => ({ ...f, [key]: value }));
+      this.page.set(1);
+    };
+    if (debounce) this.filterTimer = setTimeout(apply, 350);
+    else apply();
+  }
+
+  setDateRange(key: string, part: 0 | 1, value: string): void {
+    const [a, b] = (this.colFilters()[key] ?? '').split('..');
+    const next = part === 0 ? [value, b ?? ''] : [a ?? '', value];
+    this.setColFilter(key, next[0] || next[1] ? `${next[0]}..${next[1]}` : '', false);
+  }
+
+  dateRangePart(key: string, part: 0 | 1): string {
+    return (this.colFilters()[key] ?? '').split('..')[part] ?? '';
+  }
+
+  clearAll(): void {
+    this.colFilters.set({});
+    this.rules.set([]);
+    this.search.set('');
+    const box = this.host.nativeElement.querySelector<HTMLInputElement>('input[data-search]');
+    if (box) box.value = '';
+    this.host.nativeElement
+      .querySelectorAll<HTMLInputElement>('[data-colfilter]')
+      .forEach((i) => (i.value = ''));
+    this.page.set(1);
+  }
+
+  sort(col: GridColumn<T>): void {
+    if (col.sortable === false) return;
+    if (this.sortBy() === col.field) {
+      if (this.sortDesc()) this.sortDesc.set(false);
+      else {
+        const sort = this.defaultSort()[0];
+        this.sortBy.set(sort?.field ?? null);
+        this.sortDesc.set(sort?.desc ?? true);
+      }
+    } else {
+      this.sortBy.set(col.field);
+      this.sortDesc.set(true);
+    }
+    this.page.set(1);
+  }
+
+  goTo(p: number): void {
+    if (p >= 1 && p <= this.pageCount() && p !== this.page()) this.page.set(p);
+  }
+
+  setPageSize(size: number): void {
+    this.pageSize.set(+size);
+    this.page.set(1);
+    this.savePrefs();
+  }
+
+  toggleColumn(key: string): void {
+    this.hiddenCols.update((s) => {
+      const n = new Set(s);
+      if (n.has(key)) n.delete(key);
+      else if (this.visibleColumns().length > 1) n.add(key);
+      return n;
+    });
+    this.savePrefs();
+  }
+
+  // Advanced filter builder
+
+  openFilters(): void {
+    this.draftRules = this.rules().map((r) => ({ ...r }));
+    if (this.draftRules.length === 0) this.addRule();
+    this.draftLogic = this.logic();
+    this.menu.set(this.menu() === 'filters' ? null : 'filters');
+  }
+
+  addRule(): void {
+    const col = this.filterableColumns()[0];
+    if (!col) return;
+    this.draftRules = [
+      ...this.draftRules,
+      { field: col.field, operator: this.opsFor(col.field)[0].value, value: '', value2: '' },
+    ];
+  }
+
+  removeRule(i: number): void {
+    this.draftRules = this.draftRules.filter((_, idx) => idx !== i);
+  }
+
+  onRuleField(rule: BuilderRule): void {
+    rule.operator = this.opsFor(rule.field)[0].value;
+    rule.value = '';
+    rule.value2 = '';
+  }
+
+  applyRules(): void {
+    const valid = this.draftRules.filter(
+      (r) => this.needsValue(r) === 0 || (r.value ?? '') !== '',
+    );
+    this.rules.set(valid.map((r) => ({ ...r })));
+    this.logic.set(this.draftLogic);
+    this.page.set(1);
+    this.menu.set(null);
+  }
+
+  clearRules(): void {
+    this.draftRules = [];
+    this.rules.set([]);
+    this.page.set(1);
+    this.menu.set(null);
+  }
+
+  removeAppliedRule(i: number): void {
+    this.rules.update((r) => r.filter((_, idx) => idx !== i));
+    this.page.set(1);
+  }
+
+  opsFor(field: string): { value: FilterOperator; label: string }[] {
+    return OPERATORS_BY_KIND[this.col(field)?.kind ?? 'text'];
+  }
+
+  needsValue(rule: BuilderRule): number {
+    const op = Number(rule.operator);
+    if (op === FilterOperator.IsEmpty || op === FilterOperator.IsNotEmpty) return 0;
+    return op === FilterOperator.Between ? 2 : 1;
+  }
+
+  col(key: string): GridColumn<T> | undefined {
+    return this.columns().find((c) => c.field === key);
+  }
+
+  kindOf(c: GridColumn<T> | undefined): FilterKind {
+    return kind(c?.kind);
+  }
+
+  optionsFor(field: string): readonly string[] {
+    const c = this.col(field);
+    return c?.kind === 'bool' ? ['true', 'false'] : (c?.options ?? []);
+  }
+
+  inputTypeFor(field: string): string {
+    const k = kind(this.col(field)?.kind);
+    return k === 'number' ? 'number' : k === 'date' ? 'date' : 'text';
+  }
+
+  describeRule(r: BuilderRule): string {
+    const c = this.col(r.field);
+    const op = this.opsFor(r.field).find((o) => Number(o.value) === Number(r.operator));
+    const needs = this.needsValue(r);
+    const val = needs === 2 ? `${r.value} and ${r.value2}` : needs === 1 ? humanize(r.value) : '';
+    return `${c?.header ?? r.field} ${op?.label ?? ''} ${val}`.trim();
+  }
+
+  describeColFilter(key: string, value: string): string {
+    const c = this.col(key);
+    return `${c?.header ?? key}: ${humanize(value).replace('..', ' → ')}`;
+  }
+
+  colFilterEntries(): [string, string][] {
+    return Object.entries(this.colFilters()).filter(([, v]) => v !== '' && v != null) as [
+      string,
+      string,
+    ][];
+  }
+
+  clearColFilter(key: string): void {
+    this.colFilters.update((f) => {
+      const n = { ...f };
+      delete n[key];
+      return n;
+    });
+    const el = this.host.nativeElement.querySelector<HTMLInputElement>(
+      `[data-colfilter="${key}"]`,
+    );
+    if (el) el.value = '';
+    this.page.set(1);
+  }
+
+  // Export
+
+  async export(format: 'xlsx' | 'csv'): Promise<void> {
+    this.menu.set(null);
+    this.exporting.set(format);
+    try {
+      if (format === 'xlsx') {
+        const source = this.dataSource().export;
+        if (!source) return;
+        // The export mirrors what is on screen: same filters, same sort, same columns.
+        saveBlob(await firstValueFrom(source(this.buildRequest(1, Math.max(this.total(), 1)))));
+      } else {
+        await this.exportCsv();
+      }
+      this.alerts.success(
+        'Download ready',
+        `${this.total().toLocaleString()} rows exported to ${format === 'xlsx' ? 'Excel' : 'CSV'}.`,
+      );
+    } catch {
+      // The interceptor already explained why.
+    } finally {
+      this.exporting.set(null);
+    }
+  }
+
+  private async exportCsv(): Promise<void> {
+    const columns = this.visibleColumns();
+    const rows: T[] = [];
+    for (let page = 1; ; page++) {
+      const result = await firstValueFrom(
+        this.dataSource().query(this.buildRequest(page, CSV_PAGE_SIZE)),
+      );
+      rows.push(...result.items);
+      if (rows.length >= result.totalCount || result.items.length === 0) break;
+    }
+
+    const lines = [
+      columns.map((c) => csvCell(this.headerOf(c))),
+      ...rows.map((row) => columns.map((c) => csvCell(this.csvValue(row, c)))),
+    ];
+    saveBlob({
+      blob: new Blob(['﻿' + lines.map((l) => l.join(',')).join('\r\n')], {
+        type: 'text/csv;charset=utf-8',
+      }),
+      filename: `${this.exportName() || this.gridKey()}.csv`,
+    });
+  }
+
+  private csvValue(row: T, c: GridColumn<T>): string {
+    if (c.kind === 'money' || c.kind === 'number') return String(row[c.field] ?? '');
+    if (c.render && !c.html) return c.render(row);
+    return this.isBlank(row, c) ? '' : this.rawText(row, c);
+  }
+
+  // Cells
+
+  headerOf(c: GridColumn<T>): string {
+    // The currency is named once in the header rather than repeated in every cell.
+    return c.kind === 'money' ? `${c.header} (${currencyCode()})` : c.header;
+  }
+
+  widthOf(c: GridColumn<T>): string | null {
+    return c.width ? `${c.width}px` : null;
+  }
+
+  isBlank(row: T, c: GridColumn<T>): boolean {
+    if (c.render) return false;
+    const v = row[c.field];
+    return v === null || v === undefined || v === '';
+  }
+
+  cellText(row: T, c: GridColumn<T>): string {
+    if (c.render) return c.render(row);
+    return this.isBlank(row, c) ? '—' : this.rawText(row, c);
+  }
+
+  private rawText(row: T, c: GridColumn<T>): string {
+    const v = row[c.field];
+    switch (c.kind) {
+      case 'money':
+        return formatAmount(v);
+      case 'number':
+        return Number(v).toLocaleString('en-US', { maximumFractionDigits: 2 });
+      case 'date':
+        return formatDate(v);
+      case 'bool':
+        return v ? 'Yes' : 'No';
+      case 'enum':
+        return humanize(String(v));
+      default:
+        return String(v);
+    }
+  }
+
+  isNumeric(c: GridColumn<T>): boolean {
+    return kind(c.kind) === 'number';
+  }
+
+  visibleActions(row: T): GridAction<T>[] {
+    return this.actions().filter((a) => !a.visible || a.visible(row));
+  }
+
+  clickableRows(): boolean {
+    return this.rowClicked.observed;
+  }
+
+  // Menus
+
+  toggleMenu(m: 'columns' | 'export', ev: Event): void {
+    ev.stopPropagation();
+    this.menu.set(this.menu() === m ? null : m);
+  }
+
+  closeMenus(): void {
+    this.menu.set(null);
+  }
+
+  onDocClick(ev: Event): void {
+    const t = ev.target as HTMLElement;
+    if (this.menu() && !t.closest('[data-menu]')) this.menu.set(null);
+  }
+
+  private prefsKey(id: string): string {
+    return `techtill.grid.${id}.prefs`;
+  }
+
+  private readPrefs(id: string): { pageSize?: number; hidden?: string[] } | null {
+    try {
+      return JSON.parse(localStorage.getItem(this.prefsKey(id)) ?? 'null');
+    } catch {
       return null;
+    }
+  }
+
+  private savePrefs(): void {
+    try {
+      localStorage.setItem(
+        this.prefsKey(this.gridKey()),
+        JSON.stringify({ pageSize: this.pageSize(), hidden: [...this.hiddenCols()] }),
+      );
+    } catch {
+      // The grid still works, the choice just will not be remembered.
+    }
   }
 }
 
-export function formatMoney(value: unknown): string {
-  return formatAmount(value);
+const NUMBER = '-?\\d+(?:\\.\\d+)?';
+const RANGE = new RegExp(`^(${NUMBER})\\s*\\.\\.\\s*(${NUMBER})$`);
+const COMPARE = new RegExp(`^(>=|<=|!=|>|<|=)?\\s*(${NUMBER})$`);
+const COMPARE_OPS: Record<string, FilterOperator> = {
+  '>': FilterOperator.GreaterThan,
+  '>=': FilterOperator.GreaterThanOrEqual,
+  '<': FilterOperator.LessThan,
+  '<=': FilterOperator.LessThanOrEqual,
+  '!=': FilterOperator.NotEquals,
+  '=': FilterOperator.Equals,
+};
+
+/** Reads ">500", "<=20", "10..20" or a plain number. Anything else filters nothing. */
+export function numberRule(field: string, raw: string): FilterRule | null {
+  const text = raw.trim();
+  const range = RANGE.exec(text);
+  if (range) {
+    return { field, operator: FilterOperator.Between, value: range[1], value2: range[2] };
+  }
+
+  const match = COMPARE.exec(text);
+  return match
+    ? { field, operator: COMPARE_OPS[match[1] ?? '='], value: match[2], value2: null }
+    : null;
+}
+
+/** Reads "from..to". The server treats a Between end date as the whole of that day. */
+export function dateRule(field: string, raw: string): FilterRule | null {
+  const [from, to] = raw.split('..');
+  if (from && to) return { field, operator: FilterOperator.Between, value: from, value2: to };
+  if (from) return { field, operator: FilterOperator.GreaterThanOrEqual, value: from, value2: null };
+  if (to) return { field, operator: FilterOperator.Between, value: '1900-01-01', value2: to };
+  return null;
+}
+
+/** Quotes a CSV cell, and stops a spreadsheet reading text as a formula. */
+export function csvCell(value: string): string {
+  const safe = /^[=+\-@\t\r]/.test(value) && Number.isNaN(Number(value)) ? `'${value}` : value;
+  return `"${safe.replace(/"/g, '""')}"`;
 }
 
 export function formatDate(value: unknown): string {
@@ -649,4 +674,8 @@ export function formatDate(value: unknown): string {
   }
 
   return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+}
+
+export function formatMoney(value: unknown): string {
+  return formatAmount(value);
 }

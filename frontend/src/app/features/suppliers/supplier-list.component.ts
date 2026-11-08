@@ -10,6 +10,8 @@ import { AuthService } from '../../core/services/auth.service';
 import { DataGridComponent, GridDataSource } from '../../shared/grid/data-grid.component';
 import { GridAction, GridColumn } from '../../shared/grid/grid.models';
 import { DrawerComponent } from '../../shared/ui/drawer.component';
+import { LucideAngularModule } from 'lucide-angular';
+import { PageHeader } from '../../shared/ui/ui';
 
 type Row = SupplierDto & Record<string, unknown>;
 
@@ -18,32 +20,21 @@ const BLANK: SaveSupplierRequest = { name: '', phone: '', address: '', isActive:
 @Component({
   selector: 'tt-supplier-list',
   standalone: true,
-  imports: [CommonModule, FormsModule, DataGridComponent, DrawerComponent],
+  imports: [LucideAngularModule, PageHeader, CommonModule, FormsModule, DataGridComponent, DrawerComponent],
   template: `
-    <div class="tt-page">
-      <header class="tt-page-head">
-        <div class="tt-page-head__text">
-          <h1 class="tt-page-head__title">Suppliers</h1>
-          <p class="tt-page-head__sub">
-            Payable is what is still owed on bills for the shops you can see.
-          </p>
-        </div>
-
+    <div class="page-stack">
+      <app-page-header title="Suppliers" icon="truck" subtitle="Payable is what is still owed on bills for the shops you can see.">
         @if (canWrite) {
-          <div class="tt-page-head__actions">
-            <button type="button" class="tt-btn tt-btn--primary" (click)="create()">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                   stroke-linecap="round" aria-hidden="true">
-                <path d="M12 5v14M5 12h14" />
-              </svg>
+          <div class="contents">
+            <button type="button" class="btn btn-primary" (click)="create()">
+              <lucide-icon name="plus" [size]="15" />
               Add supplier
             </button>
           </div>
         }
-      </header>
+      </app-page-header>
 
-      <div class="tt-panel">
-        <tt-data-grid
+      <tt-data-grid
           #grid
           gridKey="suppliers"
           [columns]="columns"
@@ -54,7 +45,6 @@ const BLANK: SaveSupplierRequest = { name: '', phone: '', address: '', isActive:
           emptyTitle="No suppliers yet"
           emptyText="Add the shops you buy stock from."
         />
-      </div>
     </div>
 
     <tt-drawer
@@ -62,39 +52,39 @@ const BLANK: SaveSupplierRequest = { name: '', phone: '', address: '', isActive:
       [heading]="editingId() ? 'Edit supplier' : 'Add supplier'"
       (closed)="close()"
     >
-      <form class="tt-form" (ngSubmit)="save()" id="supplier-form">
-        <div class="tt-field">
-          <label class="tt-field__label" for="name">Supplier name</label>
-          <input id="name" class="tt-input" name="name" required
-                 [class.tt-input--invalid]="error()"
+      <form class="grid gap-3.5" (ngSubmit)="save()" id="supplier-form">
+        <div class="block min-w-0">
+          <label class="label" for="name">Supplier name</label>
+          <input id="name" class="input" name="name" required
+                 [class.invalid]="error()"
                  [ngModel]="form().name" (ngModelChange)="patch('name', $event)" />
           @if (error()) {
-            <p class="tt-field__error">{{ error() }}</p>
+            <p class="error-text">{{ error() }}</p>
           }
         </div>
 
-        <div class="tt-field">
-          <label class="tt-field__label" for="phone">Phone</label>
-          <input id="phone" class="tt-input" name="phone" inputmode="tel"
+        <div class="block min-w-0">
+          <label class="label" for="phone">Phone</label>
+          <input id="phone" class="input" name="phone" inputmode="tel"
                  [ngModel]="form().phone" (ngModelChange)="patch('phone', $event)" />
         </div>
 
-        <div class="tt-field">
-          <label class="tt-field__label" for="address">Address</label>
-          <textarea id="address" class="tt-textarea" name="address"
+        <div class="block min-w-0">
+          <label class="label" for="address">Address</label>
+          <textarea id="address" class="textarea" name="address"
                     [ngModel]="form().address" (ngModelChange)="patch('address', $event)"></textarea>
         </div>
 
-        <label class="tt-checkbox">
+        <label class="inline-flex items-center gap-2 text-[13px] text-ink-2">
           <input type="checkbox" name="isActive" [ngModel]="form().isActive"
                  (ngModelChange)="patch('isActive', $event)" />
           Available when recording a purchase
         </label>
       </form>
 
-      <div drawerFooter>
-        <button type="button" class="tt-btn tt-btn--ghost" (click)="close()">Cancel</button>
-        <button type="submit" form="supplier-form" class="tt-btn tt-btn--primary" [disabled]="saving()">
+      <div drawerFooter class="contents">
+        <button type="button" class="btn btn-neutral" (click)="close()">Cancel</button>
+        <button type="submit" form="supplier-form" class="btn btn-primary" [disabled]="saving()">
           {{ saving() ? 'Saving' : editingId() ? 'Save changes' : 'Add supplier' }}
         </button>
       </div>
@@ -129,27 +119,27 @@ export class SupplierListComponent {
       html: true,
       render: (row) =>
         row.isActive
-          ? '<span class="tt-chip tt-chip--success">Active</span>'
-          : '<span class="tt-chip tt-chip--neutral">Inactive</span>',
+          ? '<span class="badge badge-dot tone-success">Active</span>'
+          : '<span class="badge badge-dot tone-neutral">Inactive</span>',
     },
   ];
 
   readonly actions: GridAction<Row>[] = [
     {
       label: 'Open ledger',
-      icon: 'M4 4h16v16H4V4Zm4 12V9m4 7v-4m4 4v-8',
+      icon: 'book-open',
       run: (row) => void this.router.navigate(['/suppliers', row.id, 'ledger']),
     },
     ...(this.canWrite
       ? [
           {
             label: 'Edit supplier',
-            icon: 'M4 20h4l10-10-4-4L4 16v4Z',
+            icon: 'pencil',
             run: (row: Row) => this.edit(row),
           },
           {
             label: 'Remove supplier',
-            icon: 'M4 7h16M9 7V5h6v2m-8 0 1 13h8l1-13',
+            icon: 'trash-2',
             kind: 'danger' as const,
             run: (row: Row) => void this.remove(row),
           },

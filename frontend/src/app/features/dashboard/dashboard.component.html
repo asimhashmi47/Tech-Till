@@ -1,244 +1,273 @@
-<div class="tt-page">
-  <header class="tt-page-head">
-    <div class="tt-page-head__text">
-      <h1 class="tt-page-head__title">Dashboard</h1>
-      <p class="tt-page-head__sub">
-        {{ shopLabel() }}@if (rangeLabel()) { <span>, {{ rangeLabel() }}</span> }
-      </p>
-    </div>
-    <div class="tt-page-head__actions">
-      <button type="button" class="tt-btn tt-btn--ghost" (click)="retry()" [disabled]="loading()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
-             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M20 12a8 8 0 1 1-2.3-5.7M20 4v5h-5" />
-        </svg>
-        Refresh
+<app-page-header [title]="greeting()" [subtitle]="subtitle()">
+  <button type="button" class="btn btn-neutral" (click)="retry()" [disabled]="loading()">
+    <lucide-icon name="refresh-cw" [size]="15" [class.animate-spin]="loading()" /> Refresh
+  </button>
+  @if (canSell()) {
+    <a routerLink="/pos" class="btn btn-primary"
+      ><lucide-icon name="shopping-cart" [size]="15" /> Open the till</a
+    >
+  }
+</app-page-header>
+
+<!-- Date range. Balances read as at the end date, totals cover the whole window. -->
+<section class="card card-pad mb-4 flex flex-wrap items-end gap-3 enter-rise" aria-label="Date range">
+  <div>
+    <label class="label" for="range-from">From</label>
+    <input
+      id="range-from"
+      class="input !w-40"
+      type="date"
+      name="from"
+      [max]="to()"
+      [ngModel]="from()"
+      (ngModelChange)="from.set($event)"
+    />
+  </div>
+  <div>
+    <label class="label" for="range-to">To</label>
+    <input
+      id="range-to"
+      class="input !w-40"
+      type="date"
+      name="to"
+      [min]="from()"
+      [ngModel]="to()"
+      (ngModelChange)="to.set($event)"
+    />
+  </div>
+  <button type="button" class="btn btn-primary" (click)="apply()" [disabled]="loading()">
+    Apply
+  </button>
+  <div class="tabs sm:ml-auto" role="group" aria-label="Quick ranges">
+    @for (preset of presets; track preset.days) {
+      <button
+        type="button"
+        class="tab"
+        [class.active]="isPresetActive(preset.days)"
+        (click)="applyPreset(preset.days)"
+      >
+        {{ preset.label }}
       </button>
-    </div>
-  </header>
+    }
+  </div>
+  @if (rangeInvalid()) {
+    <p class="hint basis-full" role="status">
+      The start date is after the end date, so the two will be swapped.
+    </p>
+  }
+</section>
 
-  <!-- Date range. Balances read as at the end date, totals cover the whole window. -->
-  <section class="range" aria-label="Date range">
-    <div class="range__dates">
-      <div class="range__field">
-        <label class="tt-field__label" for="range-from">From</label>
-        <input id="range-from" class="tt-input" type="date" name="from" [max]="to()"
-               [ngModel]="from()" (ngModelChange)="from.set($event)" />
-      </div>
+@if (failed()) {
+  <section class="card grid place-items-center gap-2 py-14 px-5 text-center">
+    <span class="grid place-items-center size-11 rounded-xl bg-bad-soft text-bad-ink"
+      ><lucide-icon name="circle-alert" [size]="20"
+    /></span>
+    <p class="text-sm font-semibold text-ink">The dashboard could not load</p>
+    <p class="text-xs text-muted">The server did not answer. Your data is unaffected.</p>
+    <button type="button" class="btn btn-primary btn-sm mt-1" (click)="retry()">Try again</button>
+  </section>
+} @else {
+  <!-- KPI tiles -->
+  <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4 mb-4">
+    @for (t of tiles(); track t.label; let i = $index) {
+      @if (t.route) {
+        <a
+          class="block text-left enter-rise rounded-xl"
+          [style.animation-delay.ms]="i * 40"
+          [routerLink]="t.route"
+          [attr.aria-label]="t.label + ': ' + t.value"
+        >
+          <app-stat [label]="t.label" [value]="t.value" [icon]="t.icon" [tone]="t.tone" [caption]="t.caption" />
+        </a>
+      } @else {
+        <div class="enter-rise rounded-xl" [style.animation-delay.ms]="i * 40">
+          <app-stat [label]="t.label" [value]="t.value" [icon]="t.icon" [tone]="t.tone" [caption]="t.caption" />
+        </div>
+      }
+    } @empty {
+      @for (i of [1, 2, 3, 4, 5, 6, 7, 8]; track i) {
+        <div class="skeleton h-[118px] rounded-xl"></div>
+      }
+    }
+  </div>
 
-      <div class="range__field">
-        <label class="tt-field__label" for="range-to">To</label>
-        <input id="range-to" class="tt-input" type="date" name="to" [min]="from()"
-               [ngModel]="to()" (ngModelChange)="to.set($event)" />
-      </div>
-
-      <button type="button" class="tt-btn tt-btn--primary" (click)="apply()" [disabled]="loading()">
-        Apply
-      </button>
-    </div>
-
-    <div class="range__presets" role="group" aria-label="Quick ranges">
-      @for (preset of presets; track preset.days) {
-        <button type="button" class="range__preset" [class.range__preset--on]="isPresetActive(preset.days)"
-                (click)="applyPreset(preset.days)">
-          {{ preset.label }}
-        </button>
+  <!-- Trend -->
+  <section class="card mb-4 enter-rise">
+    <header class="px-4 pt-4">
+      <h2 class="text-sm font-bold">Sales and expenses</h2>
+      <p class="text-2xs text-muted">{{ bucketLabel() }}, over the selected range</p>
+    </header>
+    <div class="px-2 pb-2 min-h-[300px]">
+      @if (salesChart(); as o) {
+        <app-chart [options]="o" />
+      } @else {
+        <div class="skeleton h-[290px] m-2"></div>
       }
     </div>
-
-    @if (rangeInvalid()) {
-      <p class="range__hint" role="status">
-        The start date is after the end date, so the two will be swapped.
-      </p>
-    }
   </section>
 
-  @if (failed()) {
-    <div class="tt-panel">
-      <div class="tt-error-state">
-        <div class="tt-empty__icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
-               stroke-linecap="round" aria-hidden="true">
-            <path d="M12 8v5m0 3.5v.5M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18Z" />
-          </svg>
-        </div>
-        <p class="tt-empty__title">The dashboard could not load</p>
-        <p class="tt-empty__text">The server did not answer. Your data is unaffected.</p>
-        <button type="button" class="tt-btn tt-btn--primary" (click)="retry()">Try again</button>
-      </div>
-    </div>
-  } @else {
-    <!-- Eight KPI cards, each with its own accent -->
-    <section class="kpi-grid" aria-label="Key figures">
-      <tt-kpi-card label="Today sales" accent="indigo" [icon]="icons.todaySales"
-                   [value]="kpi()?.todaySales ?? 0" [loading]="loading()"
-                   [link]="links().todaySales" note="Invoices raised today" />
-      <tt-kpi-card label="Sales in range" accent="violet" [icon]="icons.monthSales"
-                   [value]="kpi()?.periodSales ?? 0" [loading]="loading()"
-                   [link]="links().monthSales" [note]="rangeLabel()" />
-      <tt-kpi-card label="Gross profit" accent="emerald" [icon]="icons.grossProfit"
-                   [value]="kpi()?.grossProfit ?? 0" [loading]="loading()"
-                   [link]="links().grossProfit" note="Sales less cost of goods" />
-      <tt-kpi-card label="Expenses" accent="rose" [icon]="icons.expenses"
-                   [value]="kpi()?.expenses ?? 0" [loading]="loading()"
-                   [link]="links().expenses" note="In the selected range" />
-      <tt-kpi-card label="Receivables" accent="amber" [icon]="icons.receivables"
-                   [value]="kpi()?.receivables ?? 0" [loading]="loading()"
-                   [link]="links().receivables" note="Owed as at the end date" />
-      <tt-kpi-card label="Payables" accent="orange" [icon]="icons.payables"
-                   [value]="kpi()?.payables ?? 0" [loading]="loading()"
-                   [link]="links().payables" note="Owed as at the end date" />
-      <tt-kpi-card label="Cash in hand" accent="cyan" [icon]="icons.cash"
-                   [value]="kpi()?.cashInHand ?? 0" [loading]="loading()"
-                   [link]="links().cashInHand" note="Across the drawers" />
-      <tt-kpi-card label="Low stock items" accent="pink" [icon]="icons.lowStock"
-                   [value]="kpi()?.lowStockItems ?? 0" [money]="false" [loading]="loading()"
-                   [link]="links().lowStock" note="At or below reorder level" />
-    </section>
-
-    <!-- Six charts, each a different type -->
-    <section class="chart-grid" aria-label="Charts">
-      <div class="chart-grid__wide">
-        <tt-chart-card title="Sales and expenses" [subtitle]="bucketLabel()" type="bar"
-                       [data]="salesVsExpenses()" [options]="groupedBarOptions"
-                       [loading]="loading()" height="280px" />
-      </div>
-
-      <div class="chart-grid__wide">
-        <tt-chart-card title="Sales trend" [subtitle]="bucketLabel()" type="line"
-                       [data]="dailySales()" [options]="lineOptions"
-                       [loading]="loading()" height="280px" />
-      </div>
-
-      <tt-chart-card title="Sales by category" subtitle="In the selected range" type="doughnut"
-                     [data]="salesByCategory()" [options]="doughnutOptions"
-                     [loading]="loading()" [empty]="!hasData(data()?.salesByCategory)" />
-
-      <tt-chart-card title="Top products" subtitle="In the selected range" type="bar"
-                     [data]="topProducts()" [options]="horizontalBarOptions"
-                     [loading]="loading()" [empty]="!hasData(data()?.topProducts)" />
-
-      <tt-chart-card title="Receivable ageing" subtitle="As at the end date" type="bar"
-                     [data]="ageing()" [options]="stackedOptions"
-                     [loading]="loading()" [empty]="!ageingHasData" />
-
-      <tt-chart-card title="Shop comparison" subtitle="Sales in the selected range" type="polarArea"
-                     [data]="shopSales()" [options]="polarOptions"
-                     [loading]="loading()" [empty]="!hasData(data()?.shopSales)" />
-    </section>
-
-    <!-- Recent invoices and low stock -->
-    <section class="list-grid">
-      <div class="tt-panel">
-        <div class="tt-panel__head">
-          <h2 class="tt-panel__title">Recent invoices</h2>
-          @if (canSeeInvoices()) {
-            <a class="tt-btn tt-btn--quiet" routerLink="/invoices">View all</a>
-          }
-        </div>
-
-        @if (loading()) {
-          <div class="tt-panel__body skeleton-rows">
-            @for (row of [1, 2, 3, 4, 5]; track row) {
-              <div class="tt-skeleton tt-skeleton-text"></div>
-            }
-          </div>
-        } @else if ((data()?.recentInvoices?.length ?? 0) === 0) {
-          <div class="tt-empty">
-            <div class="tt-empty__icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
-                   stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <path [attr.d]="icons.invoice" />
-              </svg>
-            </div>
-            <p class="tt-empty__title">No invoices yet</p>
-            <p class="tt-empty__text">Completed sales from the till appear here.</p>
-          </div>
+  <div class="grid gap-4 xl:grid-cols-[1.25fr_1fr] mb-4">
+    <section class="card enter-rise">
+      <header class="px-4 pt-4">
+        <h2 class="text-sm font-bold">Sales trend</h2>
+        <p class="text-2xs text-muted">{{ bucketLabel() }}, over the selected range</p>
+      </header>
+      <div class="px-2 pb-2 min-h-[260px]">
+        @if (trendChart(); as o) {
+          <app-chart [options]="o" />
         } @else {
-          <table class="mini-table">
-            <thead>
-              <tr>
-                <th scope="col">Invoice</th>
-                <th scope="col">Customer</th>
-                <th scope="col" class="tt-num">Total</th>
-                <th scope="col">Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (invoice of data()!.recentInvoices; track invoice.id) {
-                <tr>
-                  <td>
-                    @if (canSeeInvoices()) {
-                      <a [routerLink]="['/invoices', invoice.id]" class="mini-table__link">
-                        {{ invoice.invoiceNo }}
-                      </a>
-                    } @else {
-                      {{ invoice.invoiceNo }}
-                    }
-                  </td>
-                  <td class="mini-table__truncate">{{ invoice.customerName }}</td>
-                  <td class="tt-num">{{ money(invoice.total) }}</td>
-                  <td><span [class]="statusClass(invoice.status)">{{ invoice.status }}</span></td>
-                </tr>
-              }
-            </tbody>
-          </table>
-        }
-      </div>
-
-      <div class="tt-panel">
-        <div class="tt-panel__head">
-          <h2 class="tt-panel__title">Low stock</h2>
-          @if (canSeeStock()) {
-            <a class="tt-btn tt-btn--quiet" routerLink="/stock">Open stock</a>
-          }
-        </div>
-
-        @if (loading()) {
-          <div class="tt-panel__body skeleton-rows">
-            @for (row of [1, 2, 3, 4, 5]; track row) {
-              <div class="tt-skeleton tt-skeleton-text"></div>
-            }
-          </div>
-        } @else if ((data()?.lowStock?.length ?? 0) === 0) {
-          <div class="tt-empty">
-            <div class="tt-empty__icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
-                   stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <path d="M20 6 9 17l-5-5" />
-              </svg>
-            </div>
-            <p class="tt-empty__title">Every product is above its reorder level</p>
-            <p class="tt-empty__text">Items drop in here when stock runs down.</p>
-          </div>
-        } @else {
-          <table class="mini-table">
-            <thead>
-              <tr>
-                <th scope="col">Product</th>
-                <th scope="col">Shop</th>
-                <th scope="col" class="tt-num">Qty</th>
-                <th scope="col" class="tt-num">Reorder at</th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (row of data()!.lowStock; track row.productId + '-' + row.shopId) {
-                <tr>
-                  <td class="mini-table__truncate">
-                    <span class="tt-strong">{{ row.productName }}</span>
-                    <span class="mini-table__sku">{{ row.sku }}</span>
-                  </td>
-                  <td class="mini-table__truncate">{{ row.shopName }}</td>
-                  <td class="tt-num">
-                    <span [class.tt-neg]="row.qty <= 0">{{ row.qty }}</span>
-                  </td>
-                  <td class="tt-num tt-muted">{{ row.reorderLevel }}</td>
-                </tr>
-              }
-            </tbody>
-          </table>
+          <div class="skeleton h-[250px] m-2"></div>
         }
       </div>
     </section>
-  }
-</div>
+
+    <section class="card enter-rise">
+      <header class="px-4 pt-4">
+        <h2 class="text-sm font-bold">Sales by category</h2>
+        <p class="text-2xs text-muted">In the selected range</p>
+      </header>
+      <div class="px-2 pb-2 min-h-[260px]">
+        @if (categoryChart(); as o) {
+          @if (hasData(data()?.salesByCategory)) {
+            <app-chart [options]="o" />
+          } @else {
+            <p class="py-24 text-center text-xs text-muted">No data for this period yet.</p>
+          }
+        } @else {
+          <div class="skeleton h-[250px] m-2"></div>
+        }
+      </div>
+    </section>
+  </div>
+
+  <div class="grid gap-4 xl:grid-cols-3 mb-4">
+    <section class="card enter-rise">
+      <header class="px-4 pt-4">
+        <h2 class="text-sm font-bold">Top products</h2>
+        <p class="text-2xs text-muted">In the selected range</p>
+      </header>
+      <div class="px-2 pb-2 min-h-[260px]">
+        @if (productChart(); as o) {
+          @if (hasData(data()?.topProducts)) {
+            <app-chart [options]="o" />
+          } @else {
+            <p class="py-24 text-center text-xs text-muted">No data for this period yet.</p>
+          }
+        } @else {
+          <div class="skeleton h-[250px] m-2"></div>
+        }
+      </div>
+    </section>
+
+    <section class="card enter-rise">
+      <header class="px-4 pt-4">
+        <h2 class="text-sm font-bold">Receivable ageing</h2>
+        <p class="text-2xs text-muted">As at the end date</p>
+      </header>
+      <div class="px-2 pb-2 min-h-[260px]">
+        @if (ageingChart(); as o) {
+          @if (ageingHasData()) {
+            <app-chart [options]="o" />
+          } @else {
+            <p class="py-24 text-center text-xs text-muted">Nothing is owed as at this date.</p>
+          }
+        } @else {
+          <div class="skeleton h-[250px] m-2"></div>
+        }
+      </div>
+    </section>
+
+    <section class="card enter-rise">
+      <header class="px-4 pt-4">
+        <h2 class="text-sm font-bold">Shop comparison</h2>
+        <p class="text-2xs text-muted">Sales in the selected range</p>
+      </header>
+      <div class="px-2 pb-2 min-h-[260px]">
+        @if (shopChart(); as o) {
+          @if (hasData(data()?.shopSales)) {
+            <app-chart [options]="o" />
+          } @else {
+            <p class="py-24 text-center text-xs text-muted">No data for this period yet.</p>
+          }
+        } @else {
+          <div class="skeleton h-[250px] m-2"></div>
+        }
+      </div>
+    </section>
+  </div>
+
+  <div class="grid gap-4 xl:grid-cols-2">
+    <!-- Recent invoices -->
+    <section class="card enter-rise">
+      <header class="flex items-start px-4 pt-4 pb-2">
+        <div>
+          <h2 class="text-sm font-bold">Recent invoices</h2>
+          <p class="text-2xs text-muted">The latest sales from the till</p>
+        </div>
+        @if (canSeeInvoices()) {
+          <a routerLink="/invoices" class="ml-auto text-2xs font-semibold text-brand-ink hover:underline"
+            >All invoices</a
+          >
+        }
+      </header>
+      <ul class="px-2 pb-3">
+        @for (invoice of data()?.recentInvoices ?? []; track invoice.id) {
+          <li>
+            <a
+              [routerLink]="canSeeInvoices() ? ['/invoices', invoice.id] : null"
+              class="flex items-center gap-3 rounded-lg px-2 py-2 hover:bg-lilac-50/70 transition-colors"
+            >
+              <span class="flex-1 min-w-0">
+                <span class="block text-[13px] font-medium truncate">{{ invoice.invoiceNo }}</span>
+                <span class="block text-2xs text-muted truncate">{{ invoice.customerName }}</span>
+              </span>
+              <span class="text-right">
+                <span class="block text-[13px] font-bold tabular">{{ money(invoice.total) }}</span>
+                <span class="badge tone-{{ invoice.status.toLowerCase() }}">{{ invoice.status }}</span>
+              </span>
+            </a>
+          </li>
+        } @empty {
+          <li class="px-2 py-6 text-center text-xs text-muted">
+            Completed sales from the till appear here.
+          </li>
+        }
+      </ul>
+    </section>
+
+    <!-- Low stock -->
+    <section class="card enter-rise">
+      <header class="flex items-start px-4 pt-4 pb-2">
+        <div>
+          <h2 class="text-sm font-bold">Low stock</h2>
+          <p class="text-2xs text-muted">At or below the reorder level</p>
+        </div>
+        @if (canSeeStock()) {
+          <a routerLink="/stock" class="ml-auto text-2xs font-semibold text-brand-ink hover:underline"
+            >Open stock</a
+          >
+        }
+      </header>
+      <ul class="px-2 pb-3">
+        @for (row of data()?.lowStock ?? []; track row.productId + '-' + row.shopId) {
+          <li class="flex items-center gap-3 rounded-lg px-2 py-2 hover:bg-lilac-50/70 transition-colors">
+            <span class="flex-1 min-w-0">
+              <span class="block text-[13px] font-medium truncate">{{ row.productName }}</span>
+              <span class="block text-2xs text-muted truncate">{{ row.sku }} · {{ row.shopName }}</span>
+            </span>
+            <span class="text-right">
+              <span class="block text-[13px] font-bold tabular" [class.text-bad-ink]="row.qty <= 0">{{
+                row.qty
+              }}</span>
+              <span class="block text-2xs text-muted tabular">Reorder at {{ row.reorderLevel }}</span>
+            </span>
+          </li>
+        } @empty {
+          <li class="px-2 py-6 text-center text-xs text-muted">
+            Every product is above its reorder level.
+          </li>
+        }
+      </ul>
+    </section>
+  </div>
+}

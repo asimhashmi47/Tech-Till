@@ -14,6 +14,8 @@ import { AuthService } from '../../core/services/auth.service';
 import { DataGridComponent, GridDataSource } from '../../shared/grid/data-grid.component';
 import { GridAction, GridColumn } from '../../shared/grid/grid.models';
 import { DrawerComponent } from '../../shared/ui/drawer.component';
+import { LucideAngularModule } from 'lucide-angular';
+import { PageHeader } from '../../shared/ui/ui';
 
 const BLANK: SaveProductRequest = {
   sku: '',
@@ -29,7 +31,7 @@ const BLANK: SaveProductRequest = {
 @Component({
   selector: 'tt-product-list',
   standalone: true,
-  imports: [CommonModule, FormsModule, DataGridComponent, DrawerComponent],
+  imports: [LucideAngularModule, PageHeader, CommonModule, FormsModule, DataGridComponent, DrawerComponent],
   templateUrl: './product-list.component.html',
 })
 export class ProductListComponent {
@@ -64,8 +66,8 @@ export class ProductListComponent {
       html: true,
       render: (row) =>
         row.isActive
-          ? '<span class="tt-chip tt-chip--success">Active</span>'
-          : '<span class="tt-chip tt-chip--neutral">Retired</span>',
+          ? '<span class="badge badge-dot tone-success">Active</span>'
+          : '<span class="badge badge-dot tone-neutral">Retired</span>',
     },
   ];
 
@@ -73,12 +75,12 @@ export class ProductListComponent {
     ? [
         {
           label: 'Edit product',
-          icon: 'M4 20h4l10-10-4-4L4 16v4Z',
+          icon: 'pencil',
           run: (row) => this.edit(row),
         },
         {
           label: 'Remove product',
-          icon: 'M4 7h16M9 7V5h6v2m-8 0 1 13h8l1-13',
+          icon: 'trash-2',
           kind: 'danger',
           run: (row) => void this.remove(row),
         },

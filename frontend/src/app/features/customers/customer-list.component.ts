@@ -16,6 +16,8 @@ import { DataGridComponent, GridDataSource } from '../../shared/grid/data-grid.c
 import { GridAction, GridColumn } from '../../shared/grid/grid.models';
 import { DrawerComponent } from '../../shared/ui/drawer.component';
 import { formatMoney } from '../../core/services/currency';
+import { LucideAngularModule } from 'lucide-angular';
+import { PageHeader } from '../../shared/ui/ui';
 
 type Row = CustomerDto & Record<string, unknown>;
 
@@ -24,7 +26,7 @@ const BLANK: SaveCustomerRequest = { name: '', phone: '', address: '', isActive:
 @Component({
   selector: 'tt-customer-list',
   standalone: true,
-  imports: [CommonModule, FormsModule, DataGridComponent, DrawerComponent],
+  imports: [LucideAngularModule, PageHeader, CommonModule, FormsModule, DataGridComponent, DrawerComponent],
   templateUrl: './customer-list.component.html',
 })
 export class CustomerListComponent {
@@ -69,8 +71,8 @@ export class CustomerListComponent {
       html: true,
       render: (row) =>
         row.isWalkIn
-          ? '<span class="tt-chip tt-chip--info">Walk-in</span>'
-          : '<span class="tt-chip tt-chip--neutral">Account</span>',
+          ? '<span class="badge badge-dot tone-info">Walk-in</span>'
+          : '<span class="badge badge-dot tone-neutral">Account</span>',
     },
     {
       field: 'isActive',
@@ -81,33 +83,33 @@ export class CustomerListComponent {
       html: true,
       render: (row) =>
         row.isActive
-          ? '<span class="tt-chip tt-chip--success">Active</span>'
-          : '<span class="tt-chip tt-chip--neutral">Inactive</span>',
+          ? '<span class="badge badge-dot tone-success">Active</span>'
+          : '<span class="badge badge-dot tone-neutral">Inactive</span>',
     },
   ];
 
   readonly actions: GridAction<Row>[] = [
     {
       label: 'Open ledger',
-      icon: 'M4 4h16v16H4V4Zm4 12V9m4 7v-4m4 4v-8',
+      icon: 'book-open',
       run: (row) => void this.router.navigate(['/customers', row.id, 'ledger']),
     },
     ...(this.canWrite
       ? [
           {
             label: 'Record a receipt',
-            icon: 'M4 4h16v13l-3-2-3 2-3-2-3 2V4Zm4 4h8M8 12h5',
+            icon: 'receipt',
             run: (row: Row) => this.openReceipt(row),
             visible: (row: Row) => row.receivable > 0,
           },
           {
             label: 'Edit customer',
-            icon: 'M4 20h4l10-10-4-4L4 16v4Z',
+            icon: 'pencil',
             run: (row: Row) => this.edit(row),
           },
           {
             label: 'Remove customer',
-            icon: 'M4 7h16M9 7V5h6v2m-8 0 1 13h8l1-13',
+            icon: 'trash-2',
             kind: 'danger' as const,
             run: (row: Row) => void this.remove(row),
             visible: (row: Row) => !row.isWalkIn,

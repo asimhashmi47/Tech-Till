@@ -1,16 +1,12 @@
 <div class="pos">
   <!-- The till gives its vertical space to products and the cart, so the page heading is
        read out rather than drawn. Every screen still has exactly one h1. -->
-  <h1 class="tt-visually-hidden">Point of sale</h1>
+  <h1 class="sr-only">Point of sale</h1>
 
   <!-- Left: find products -->
   <section class="pos__catalog" aria-label="Products">
     <div class="pos__search">
-      <svg class="pos__search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-           stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
-        <circle cx="11" cy="11" r="7" />
-        <path d="m20 20-3.5-3.5" />
-      </svg>
+      <lucide-icon name="search" [size]="15" class="pos__search-icon" />
       <input
         #searchBox
         class="pos__search-input"
@@ -27,16 +23,13 @@
     </div>
 
     @if (needsShop()) {
-      <div class="tt-panel">
-        <div class="tt-empty">
-          <div class="tt-empty__icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
-                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M4 9h16v11H4V9Zm-1-5h18l-2 5H5L3 4Z" />
-            </svg>
+      <div class="card overflow-hidden">
+        <div class="grid place-items-center gap-2 py-14 px-5 text-center">
+          <div class="grid place-items-center size-11 rounded-xl bg-lilac-50 text-brand-ink">
+            <lucide-icon name="store" [size]="15" />
           </div>
-          <p class="tt-empty__title">Choose a shop to start selling</p>
-          <p class="tt-empty__text">
+          <p class="text-sm font-semibold text-ink">Choose a shop to start selling</p>
+          <p class="text-xs text-muted max-w-[44ch]">
             Stock and invoice numbers belong to one shop, so the till needs to know which one.
             Use the shop switcher in the top bar.
           </p>
@@ -61,14 +54,14 @@
       @if (searching() && results().length === 0) {
         <div class="pos__tiles">
           @for (n of [1,2,3,4,5,6,7,8]; track n) {
-            <div class="tt-skeleton pos__tile-skeleton"></div>
+            <div class="skeleton pos__tile-skeleton"></div>
           }
         </div>
       } @else if (visibleResults().length === 0) {
-        <div class="tt-panel">
-          <div class="tt-empty">
-            <p class="tt-empty__title">Nothing matches that</p>
-            <p class="tt-empty__text">Try a shorter search, or clear it to see everything in stock.</p>
+        <div class="card overflow-hidden">
+          <div class="grid place-items-center gap-2 py-14 px-5 text-center">
+            <p class="text-sm font-semibold text-ink">Nothing matches that</p>
+            <p class="text-xs text-muted max-w-[44ch]">Try a shorter search, or clear it to see everything in stock.</p>
           </div>
         </div>
       } @else {
@@ -102,13 +95,13 @@
       <header class="pos-cart__head">
         <h2 class="pos-cart__title">Current sale</h2>
         @if (cart().length > 0) {
-          <button type="button" class="tt-btn tt-btn--quiet" (click)="clearCart()">Clear</button>
+          <button type="button" class="btn btn-ghost btn-sm" (click)="clearCart()">Clear</button>
         }
       </header>
 
       <div class="pos-cart__customer">
-        <label class="tt-field__label" for="customer">Customer</label>
-        <select id="customer" class="tt-select" name="customer"
+        <label class="label" for="customer">Customer</label>
+        <select id="customer" class="select" name="customer"
                 [ngModel]="customerId()" (ngModelChange)="customerId.set(+$event)">
           @for (customer of customers(); track customer.id) {
             <option [value]="customer.id">
@@ -121,7 +114,7 @@
       <div class="pos-cart__lines">
         @if (cart().length === 0) {
           <div class="pos-cart__empty">
-            <p class="tt-muted">The cart is empty. Pick a product on the left.</p>
+            <p class="text-muted">The cart is empty. Pick a product on the left.</p>
           </div>
         } @else {
           @for (line of cart(); track line.productId) {
@@ -135,16 +128,14 @@
                 <div class="pos-qty">
                   <button type="button" (click)="setQty(line.productId, line.qty - 1)"
                           [disabled]="line.qty <= 1" aria-label="Reduce quantity">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                         stroke-linecap="round" aria-hidden="true"><path d="M5 12h14" /></svg>
+                    <lucide-icon name="minus" [size]="15" />
                   </button>
                   <input class="pos-qty__input" type="number" min="1" [max]="line.available"
                          [ngModel]="line.qty" (ngModelChange)="setQty(line.productId, +$event)"
                          [name]="'qty' + line.productId" aria-label="Quantity" />
                   <button type="button" (click)="setQty(line.productId, line.qty + 1)"
                           [disabled]="line.qty >= line.available" aria-label="Increase quantity">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                         stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
+                    <lucide-icon name="plus" [size]="15" />
                   </button>
                 </div>
 
@@ -156,10 +147,7 @@
 
                 <button type="button" class="pos-line__remove" (click)="removeLine(line.productId)"
                         [attr.aria-label]="'Remove ' + line.name">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                       stroke-linecap="round" aria-hidden="true">
-                    <path d="M6 6l12 12M18 6 6 18" />
-                  </svg>
+                  <lucide-icon name="x" [size]="15" />
                 </button>
               </div>
             </div>
@@ -170,7 +158,7 @@
       <div class="pos-cart__totals">
         <div class="pos-total">
           <span>Sub total</span>
-          <span class="tt-num">{{ money(subTotal()) }}</span>
+          <span class="text-right tabular">{{ money(subTotal()) }}</span>
         </div>
 
         <div class="pos-total">
@@ -182,7 +170,7 @@
 
         <div class="pos-total pos-total--grand">
           <span>Total</span>
-          <span class="tt-num">{{ money(total()) }}</span>
+          <span class="text-right tabular">{{ money(total()) }}</span>
         </div>
       </div>
 
@@ -197,15 +185,15 @@
         </div>
 
         <div class="pos-received">
-          <label class="tt-field__label" for="received">Received</label>
+          <label class="label" for="received">Received</label>
           <div class="pos-received__row">
-            <input id="received" class="tt-input tt-input--number" type="number" step="0.01" min="0"
+            <input id="received" class="input text-right tabular" type="number" step="0.01" min="0"
                    [ngModel]="paidNow()" (ngModelChange)="paidNow.set(+$event)" name="paidNow" />
-            <button type="button" class="tt-btn tt-btn--ghost" (click)="payExact()">Exact</button>
+            <button type="button" class="btn btn-neutral" (click)="payExact()">Exact</button>
           </div>
 
           @if (change() > 0) {
-            <p class="pos-received__note tt-pos">Change due {{ money(change()) }}</p>
+            <p class="pos-received__note text-ok-ink">Change due {{ money(change()) }}</p>
           } @else if (dueAfterPayment() > 0) {
             <p class="pos-received__note">
               {{ money(dueAfterPayment()) }} will stay on the customer account
@@ -217,7 +205,7 @@
           <p class="pos-blocker" role="status">{{ reason }}</p>
         }
 
-        <button type="button" class="tt-btn tt-btn--primary tt-btn--lg pos-pay"
+        <button type="button" class="btn btn-primary btn-lg pos-pay"
                 (click)="checkout()" [disabled]="!canCheckout()">
           <span>{{ submitting() ? 'Recording sale' : 'Take payment' }}</span>
           <kbd class="pos__kbd pos__kbd--on-dark">F9</kbd>

@@ -15,6 +15,8 @@ import { AuthService } from '../../core/services/auth.service';
 import { DataGridComponent, GridDataSource } from '../../shared/grid/data-grid.component';
 import { GridAction, GridColumn } from '../../shared/grid/grid.models';
 import { DrawerComponent } from '../../shared/ui/drawer.component';
+import { LucideAngularModule } from 'lucide-angular';
+import { PageHeader } from '../../shared/ui/ui';
 
 type LevelRow = StockLevelDto & Record<string, unknown>;
 type MovementRow = StockMovementDto & Record<string, unknown>;
@@ -33,7 +35,7 @@ const MOVEMENT_TONE: Record<string, string> = {
 @Component({
   selector: 'tt-stock',
   standalone: true,
-  imports: [CommonModule, FormsModule, DataGridComponent, DrawerComponent],
+  imports: [LucideAngularModule, PageHeader, CommonModule, FormsModule, DataGridComponent, DrawerComponent],
   templateUrl: './stock.component.html',
 })
 export class StockComponent {
@@ -97,9 +99,9 @@ export class StockComponent {
       html: true,
       render: (row) =>
         row.qty <= 0
-          ? `<span class="tt-neg tt-num">${row.qty}</span>`
-          : `<span class="tt-num">${row.qty}</span>`,
-      cellClass: 'tt-cell-number',
+          ? `<span class="text-bad-ink text-right tabular">${row.qty}</span>`
+          : `<span class="text-right tabular">${row.qty}</span>`,
+      cellClass: 'text-right tabular',
     },
     { field: 'reorderLevel', header: 'Reorder at', kind: 'number', width: 115 },
     { field: 'costPrice', header: 'Cost', kind: 'money', width: 110, hidden: true },
@@ -111,7 +113,7 @@ export class StockComponent {
       width: 110,
       html: true,
       render: (row) =>
-        row.isLow ? '<span class="tt-chip tt-chip--warning">Low</span>' : '<span class="tt-muted">Fine</span>',
+        row.isLow ? '<span class="badge badge-dot tone-warning">Low</span>' : '<span class="text-muted">Fine</span>',
     },
   ];
 
@@ -137,7 +139,7 @@ export class StockComponent {
       ],
       html: true,
       render: (row) =>
-        `<span class="tt-chip tt-chip--${MOVEMENT_TONE[row.type] ?? 'neutral'}">${row.type}</span>`,
+        `<span class="badge badge-dot tone-${MOVEMENT_TONE[row.type] ?? 'neutral'}">${row.type}</span>`,
     },
     {
       field: 'qty',
@@ -147,9 +149,9 @@ export class StockComponent {
       html: true,
       render: (row) =>
         row.qty < 0
-          ? `<span class="tt-neg tt-num">${row.qty}</span>`
-          : `<span class="tt-pos tt-num">+${row.qty}</span>`,
-      cellClass: 'tt-cell-number',
+          ? `<span class="text-bad-ink text-right tabular">${row.qty}</span>`
+          : `<span class="text-ok-ink text-right tabular">+${row.qty}</span>`,
+      cellClass: 'text-right tabular',
     },
     { field: 'reference', header: 'Reference', kind: 'text', width: 165 },
     { field: 'reason', header: 'Reason', kind: 'text', flex: 2, minWidth: 160 },
@@ -160,7 +162,7 @@ export class StockComponent {
     ? [
         {
           label: 'Adjust stock',
-          icon: 'M12 5v14M5 12h14',
+          icon: 'plus',
           run: (row) => this.openAdjust(row),
         },
       ]

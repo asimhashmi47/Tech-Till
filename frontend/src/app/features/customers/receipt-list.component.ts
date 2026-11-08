@@ -5,6 +5,7 @@ import { CustomerPaymentDto, QueryRequest } from '../../core/models/api.models';
 import { ApiService } from '../../core/services/api.service';
 import { DataGridComponent, GridDataSource } from '../../shared/grid/data-grid.component';
 import { GridColumn } from '../../shared/grid/grid.models';
+import { PageHeader } from '../../shared/ui/ui';
 
 type Row = CustomerPaymentDto & Record<string, unknown>;
 
@@ -12,20 +13,12 @@ type Row = CustomerPaymentDto & Record<string, unknown>;
 @Component({
   selector: 'tt-receipt-list',
   standalone: true,
-  imports: [CommonModule, DataGridComponent],
+  imports: [PageHeader, CommonModule, DataGridComponent],
   template: `
-    <div class="tt-page">
-      <header class="tt-page-head">
-        <div class="tt-page-head__text">
-          <h1 class="tt-page-head__title">Customer receipts</h1>
-          <p class="tt-page-head__sub">
-            Every payment taken from a customer, whether at the till or against an account later.
-          </p>
-        </div>
-      </header>
+    <div class="page-stack">
+      <app-page-header title="Customer receipts" icon="receipt" subtitle="Every payment taken from a customer, whether at the till or against an account later." />
 
-      <div class="tt-panel">
-        <tt-data-grid
+      <tt-data-grid
           gridKey="customer-receipts"
           [columns]="columns"
           [dataSource]="dataSource"
@@ -34,7 +27,6 @@ type Row = CustomerPaymentDto & Record<string, unknown>;
           emptyTitle="No receipts yet"
           emptyText="Payments appear here as soon as money is taken."
         />
-      </div>
     </div>
   `,
 })

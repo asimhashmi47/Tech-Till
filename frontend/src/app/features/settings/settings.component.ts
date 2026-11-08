@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { AlertService } from '../../core/services/alert.service';
 import { CurrencyOption, formatMoney } from '../../core/services/currency';
 import { SettingsService } from '../../core/services/settings.service';
+import { PageHeader } from '../../shared/ui/ui';
 
 /**
  * Owner only. Currency is stored on the server, so changing it here changes every money
@@ -13,7 +14,7 @@ import { SettingsService } from '../../core/services/settings.service';
 @Component({
   selector: 'tt-settings',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [PageHeader, CommonModule, FormsModule],
   templateUrl: './settings.component.html',
   styleUrl: './settings.component.scss',
 })

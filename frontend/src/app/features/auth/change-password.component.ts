@@ -5,85 +5,80 @@ import { Router } from '@angular/router';
 
 import { AlertService } from '../../core/services/alert.service';
 import { AuthService } from '../../core/services/auth.service';
+import { PageHeader } from '../../shared/ui/ui';
 
 @Component({
   selector: 'tt-change-password',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [PageHeader, CommonModule, FormsModule],
   template: `
-    <div class="tt-page">
-      <header class="tt-page-head">
-        <div class="tt-page-head__text">
-          <h1 class="tt-page-head__title">Change password</h1>
-          <p class="tt-page-head__sub">
-            Signed in as {{ profile()?.username }}. Changing this signs you out of every
-            other browser and device.
-          </p>
-        </div>
-      </header>
+    <div class="page-stack">
+      <app-page-header title="Change password" icon="key-round">
+        <span pageSub>Signed in as {{ profile()?.username }}. Changing this signs you out of every other browser and device.</span>
+      </app-page-header>
 
-      <div class="tt-panel narrow">
-        <div class="tt-panel__body">
-          <form class="tt-form" (ngSubmit)="submit()">
-            <div class="tt-field">
-              <label class="tt-field__label" for="current">Current password</label>
+      <div class="card overflow-hidden narrow">
+        <div class="p-4">
+          <form class="grid gap-3.5" (ngSubmit)="submit()">
+            <div class="block min-w-0">
+              <label class="label" for="current">Current password</label>
               <input
                 id="current"
-                class="tt-input"
+                class="input"
                 type="password"
                 name="current"
                 autocomplete="current-password"
                 required
-                [class.tt-input--invalid]="errors()['current']"
+                [class.invalid]="errors()['current']"
                 [ngModel]="current()"
                 (ngModelChange)="current.set($event)"
               />
               @if (errors()['current']) {
-                <p class="tt-field__error">{{ errors()['current'] }}</p>
+                <p class="error-text">{{ errors()['current'] }}</p>
               }
             </div>
 
-            <div class="tt-field">
-              <label class="tt-field__label" for="next">New password</label>
+            <div class="block min-w-0">
+              <label class="label" for="next">New password</label>
               <input
                 id="next"
-                class="tt-input"
+                class="input"
                 type="password"
                 name="next"
                 autocomplete="new-password"
                 required
-                [class.tt-input--invalid]="errors()['next']"
+                [class.invalid]="errors()['next']"
                 [ngModel]="next()"
                 (ngModelChange)="next.set($event)"
               />
               @if (errors()['next']) {
-                <p class="tt-field__error">{{ errors()['next'] }}</p>
+                <p class="error-text">{{ errors()['next'] }}</p>
               } @else {
-                <p class="tt-field__hint">At least 8 characters.</p>
+                <p class="hint">At least 8 characters.</p>
               }
             </div>
 
-            <div class="tt-field">
-              <label class="tt-field__label" for="confirm">Repeat new password</label>
+            <div class="block min-w-0">
+              <label class="label" for="confirm">Repeat new password</label>
               <input
                 id="confirm"
-                class="tt-input"
+                class="input"
                 type="password"
                 name="confirm"
                 autocomplete="new-password"
                 required
-                [class.tt-input--invalid]="errors()['confirm']"
+                [class.invalid]="errors()['confirm']"
                 [ngModel]="confirm()"
                 (ngModelChange)="confirm.set($event)"
               />
               @if (errors()['confirm']) {
-                <p class="tt-field__error">{{ errors()['confirm'] }}</p>
+                <p class="error-text">{{ errors()['confirm'] }}</p>
               }
             </div>
 
-            <div class="tt-form-actions">
-              <button type="button" class="tt-btn tt-btn--ghost" (click)="cancel()">Cancel</button>
-              <button type="submit" class="tt-btn tt-btn--primary" [disabled]="busy() || !ready()">
+            <div class="flex items-center justify-end gap-2 pt-2">
+              <button type="button" class="btn btn-neutral" (click)="cancel()">Cancel</button>
+              <button type="submit" class="btn btn-primary" [disabled]="busy() || !ready()">
                 {{ busy() ? 'Changing' : 'Change password' }}
               </button>
             </div>

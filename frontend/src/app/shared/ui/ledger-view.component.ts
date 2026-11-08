@@ -6,6 +6,8 @@ import { LedgerDto } from '../../core/models/api.models';
 import { ApiService } from '../../core/services/api.service';
 import { AuthService } from '../../core/services/auth.service';
 import { formatMoney } from '../../core/services/currency';
+import { LucideAngularModule } from 'lucide-angular';
+import { PageHeader } from './ui';
 
 /**
  * Running balance statement for one customer or supplier. Debit, credit and a balance
@@ -14,7 +16,7 @@ import { formatMoney } from '../../core/services/currency';
 @Component({
   selector: 'tt-ledger-view',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [LucideAngularModule, PageHeader, CommonModule, FormsModule],
   templateUrl: './ledger-view.component.html',
   styleUrl: './ledger-view.component.scss',
 })

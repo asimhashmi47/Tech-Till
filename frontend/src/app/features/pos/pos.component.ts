@@ -22,6 +22,7 @@ import { AlertService } from '../../core/services/alert.service';
 import { ApiService } from '../../core/services/api.service';
 import { AuthService } from '../../core/services/auth.service';
 import { formatMoney } from '../../core/services/currency';
+import { LucideAngularModule } from 'lucide-angular';
 
 interface CartLine {
   productId: number;
@@ -40,7 +41,7 @@ interface CartLine {
 @Component({
   selector: 'tt-pos',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [LucideAngularModule, CommonModule, FormsModule],
   templateUrl: './pos.component.html',
   styleUrl: './pos.component.scss',
 })

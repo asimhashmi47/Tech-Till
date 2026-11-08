@@ -1,27 +1,16 @@
-<div class="tt-page">
-  <header class="tt-page-head">
-    <div class="tt-page-head__text">
-      <h1 class="tt-page-head__title">Products</h1>
-      <p class="tt-page-head__sub">
-        Computers, laptops and accessories. Stock shown is the total across the shops you can see.
-      </p>
-    </div>
-
+<div class="page-stack">
+  <app-page-header title="Products" icon="package" subtitle="Computers, laptops and accessories. Stock shown is the total across the shops you can see.">
     @if (canWrite) {
-      <div class="tt-page-head__actions">
-        <button type="button" class="tt-btn tt-btn--primary" (click)="create()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-               stroke-linecap="round" aria-hidden="true">
-            <path d="M12 5v14M5 12h14" />
-          </svg>
+      <div class="contents">
+        <button type="button" class="btn btn-primary" (click)="create()">
+          <lucide-icon name="plus" [size]="15" />
           Add product
         </button>
       </div>
     }
-  </header>
+  </app-page-header>
 
-  <div class="tt-panel">
-    <tt-data-grid
+  <tt-data-grid
       #grid
       gridKey="products"
       [columns]="columns"
@@ -33,7 +22,6 @@
       emptyText="Add your first product, or clear the filters if you expected to see something."
       [useShopScope]="true"
     />
-  </div>
 </div>
 
 <tt-drawer
@@ -42,22 +30,22 @@
   subheading="Cost drives profit on every future sale, so keep it current."
   (closed)="close()"
 >
-  <form class="tt-form" (ngSubmit)="save()" id="product-form">
-    <div class="tt-form tt-form--2col">
-      <div class="tt-field">
-        <label class="tt-field__label" for="sku">SKU</label>
-        <input id="sku" class="tt-input" name="sku" required
-               [class.tt-input--invalid]="errors()['sku']"
+  <form class="grid gap-3.5" (ngSubmit)="save()" id="product-form">
+    <div class="grid gap-3.5 sm:grid-cols-2 gap-x-3">
+      <div class="block min-w-0">
+        <label class="label" for="sku">SKU</label>
+        <input id="sku" class="input" name="sku" required
+               [class.invalid]="errors()['sku']"
                [ngModel]="form().sku" (ngModelChange)="patch('sku', $event)" />
         @if (errors()['sku']) {
-          <p class="tt-field__error">{{ errors()['sku'] }}</p>
+          <p class="error-text">{{ errors()['sku'] }}</p>
         }
       </div>
 
-      <div class="tt-field">
-        <label class="tt-field__label" for="category">Category</label>
-        <select id="category" class="tt-select" name="categoryId"
-                [class.tt-select--invalid]="errors()['categoryId']"
+      <div class="block min-w-0">
+        <label class="label" for="category">Category</label>
+        <select id="category" class="select" name="categoryId"
+                [class.invalid]="errors()['categoryId']"
                 [ngModel]="form().categoryId" (ngModelChange)="patch('categoryId', +$event)">
           <option [value]="0" disabled>Choose a category</option>
           @for (category of categories(); track category.id) {
@@ -65,59 +53,59 @@
           }
         </select>
         @if (errors()['categoryId']) {
-          <p class="tt-field__error">{{ errors()['categoryId'] }}</p>
+          <p class="error-text">{{ errors()['categoryId'] }}</p>
         }
       </div>
     </div>
 
-    <div class="tt-field">
-      <label class="tt-field__label" for="name">Product name</label>
-      <input id="name" class="tt-input" name="name" required
-             [class.tt-input--invalid]="errors()['name']"
+    <div class="block min-w-0">
+      <label class="label" for="name">Product name</label>
+      <input id="name" class="input" name="name" required
+             [class.invalid]="errors()['name']"
              [ngModel]="form().name" (ngModelChange)="patch('name', $event)" />
       @if (errors()['name']) {
-        <p class="tt-field__error">{{ errors()['name'] }}</p>
+        <p class="error-text">{{ errors()['name'] }}</p>
       }
     </div>
 
-    <div class="tt-field">
-      <label class="tt-field__label" for="brand">Brand</label>
-      <input id="brand" class="tt-input" name="brand"
+    <div class="block min-w-0">
+      <label class="label" for="brand">Brand</label>
+      <input id="brand" class="input" name="brand"
              [ngModel]="form().brand" (ngModelChange)="patch('brand', $event)" />
-      <p class="tt-field__hint">Optional. Useful for searching the till.</p>
+      <p class="hint">Optional. Useful for searching the till.</p>
     </div>
 
-    <div class="tt-form tt-form--2col">
-      <div class="tt-field">
-        <label class="tt-field__label" for="cost">Cost price</label>
-        <input id="cost" class="tt-input tt-input--number" type="number" step="0.01" min="0"
+    <div class="grid gap-3.5 sm:grid-cols-2 gap-x-3">
+      <div class="block min-w-0">
+        <label class="label" for="cost">Cost price</label>
+        <input id="cost" class="input text-right tabular" type="number" step="0.01" min="0"
                name="costPrice" [ngModel]="form().costPrice"
                (ngModelChange)="patch('costPrice', +$event)" />
       </div>
 
-      <div class="tt-field">
-        <label class="tt-field__label" for="price">Sale price</label>
-        <input id="price" class="tt-input tt-input--number" type="number" step="0.01" min="0"
-               name="salePrice" [class.tt-input--invalid]="errors()['salePrice']"
+      <div class="block min-w-0">
+        <label class="label" for="price">Sale price</label>
+        <input id="price" class="input text-right tabular" type="number" step="0.01" min="0"
+               name="salePrice" [class.invalid]="errors()['salePrice']"
                [ngModel]="form().salePrice" (ngModelChange)="patch('salePrice', +$event)" />
         @if (errors()['salePrice']) {
-          <p class="tt-field__error">{{ errors()['salePrice'] }}</p>
+          <p class="error-text">{{ errors()['salePrice'] }}</p>
         }
       </div>
     </div>
 
-    <div class="tt-form tt-form--2col">
-      <div class="tt-field">
-        <label class="tt-field__label" for="reorder">Reorder level</label>
-        <input id="reorder" class="tt-input tt-input--number" type="number" min="0" step="1"
+    <div class="grid gap-3.5 sm:grid-cols-2 gap-x-3">
+      <div class="block min-w-0">
+        <label class="label" for="reorder">Reorder level</label>
+        <input id="reorder" class="input text-right tabular" type="number" min="0" step="1"
                name="reorderLevel" [ngModel]="form().reorderLevel"
                (ngModelChange)="patch('reorderLevel', +$event)" />
-        <p class="tt-field__hint">The dashboard flags stock at or below this.</p>
+        <p class="hint">The dashboard flags stock at or below this.</p>
       </div>
 
-      <div class="tt-field">
-        <span class="tt-field__label">Availability</span>
-        <label class="tt-checkbox">
+      <div class="block min-w-0">
+        <span class="label">Availability</span>
+        <label class="inline-flex items-center gap-2 text-[13px] text-ink-2">
           <input type="checkbox" name="isActive" [ngModel]="form().isActive"
                  (ngModelChange)="patch('isActive', $event)" />
           Sell this product at the till
@@ -126,9 +114,9 @@
     </div>
   </form>
 
-  <div drawerFooter>
-    <button type="button" class="tt-btn tt-btn--ghost" (click)="close()">Cancel</button>
-    <button type="submit" form="product-form" class="tt-btn tt-btn--primary" [disabled]="saving()">
+  <div drawerFooter class="contents">
+    <button type="button" class="btn btn-neutral" (click)="close()">Cancel</button>
+    <button type="submit" form="product-form" class="btn btn-primary" [disabled]="saving()">
       {{ saving() ? 'Saving' : editingId() ? 'Save changes' : 'Add product' }}
     </button>
   </div>

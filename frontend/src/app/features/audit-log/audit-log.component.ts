@@ -5,6 +5,7 @@ import { AuditLogDto, QueryRequest } from '../../core/models/api.models';
 import { ApiService } from '../../core/services/api.service';
 import { DataGridComponent, GridDataSource } from '../../shared/grid/data-grid.component';
 import { GridColumn } from '../../shared/grid/grid.models';
+import { PageHeader } from '../../shared/ui/ui';
 
 type Row = AuditLogDto & Record<string, unknown>;
 
@@ -25,21 +26,12 @@ const ACTION_TONE: Record<string, string> = {
 @Component({
   selector: 'tt-audit-log',
   standalone: true,
-  imports: [CommonModule, DataGridComponent],
+  imports: [PageHeader, CommonModule, DataGridComponent],
   template: `
-    <div class="tt-page">
-      <header class="tt-page-head">
-        <div class="tt-page-head__text">
-          <h1 class="tt-page-head__title">Audit log</h1>
-          <p class="tt-page-head__sub">
-            Written by the server, not the browser, so it records what actually happened.
-            Entries cannot be edited or removed.
-          </p>
-        </div>
-      </header>
+    <div class="page-stack">
+      <app-page-header title="Audit log" icon="scroll-text" subtitle="Written by the server, not the browser, so it records what actually happened. Entries cannot be edited or removed." />
 
-      <div class="tt-panel">
-        <tt-data-grid
+      <tt-data-grid
           gridKey="audit-log"
           [columns]="columns"
           [dataSource]="dataSource"
@@ -49,7 +41,6 @@ const ACTION_TONE: Record<string, string> = {
           emptyText="Actions appear here as soon as anyone uses the app."
           [useShopScope]="false"
         />
-      </div>
     </div>
   `,
 })
@@ -91,7 +82,7 @@ export class AuditLogComponent {
       ],
       html: true,
       render: (row) =>
-        `<span class="tt-chip tt-chip--${ACTION_TONE[row.action] ?? 'neutral'}">${row.action}</span>`,
+        `<span class="badge badge-dot tone-${ACTION_TONE[row.action] ?? 'neutral'}">${row.action}</span>`,
     },
     {
       field: 'module',

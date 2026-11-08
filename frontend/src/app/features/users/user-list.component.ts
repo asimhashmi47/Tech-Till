@@ -17,6 +17,8 @@ import { AuthService } from '../../core/services/auth.service';
 import { DataGridComponent, GridDataSource } from '../../shared/grid/data-grid.component';
 import { GridAction, GridColumn } from '../../shared/grid/grid.models';
 import { DrawerComponent } from '../../shared/ui/drawer.component';
+import { LucideAngularModule } from 'lucide-angular';
+import { PageHeader } from '../../shared/ui/ui';
 
 type Row = UserListDto & Record<string, unknown>;
 
@@ -39,7 +41,7 @@ const ASSIGNABLE: { module: ModuleName; label: string }[] = [
 @Component({
   selector: 'tt-user-list',
   standalone: true,
-  imports: [CommonModule, FormsModule, DataGridComponent, DrawerComponent],
+  imports: [LucideAngularModule, PageHeader, CommonModule, FormsModule, DataGridComponent, DrawerComponent],
   templateUrl: './user-list.component.html',
   styleUrl: './user-list.component.scss',
 })
@@ -85,8 +87,8 @@ export class UserListComponent {
       html: true,
       render: (row) =>
         row.role === 'Admin'
-          ? '<span class="tt-chip tt-chip--info">Owner</span>'
-          : '<span class="tt-chip tt-chip--neutral">Staff</span>',
+          ? '<span class="badge badge-dot tone-info">Owner</span>'
+          : '<span class="badge badge-dot tone-neutral">Staff</span>',
     },
     { field: 'shops', header: 'Shops', kind: 'text', flex: 2, minWidth: 180 },
     {
@@ -111,20 +113,20 @@ export class UserListComponent {
       html: true,
       render: (row) =>
         row.isActive
-          ? '<span class="tt-chip tt-chip--success">Active</span>'
-          : '<span class="tt-chip tt-chip--void">Disabled</span>',
+          ? '<span class="badge badge-dot tone-success">Active</span>'
+          : '<span class="badge badge-dot tone-void">Disabled</span>',
     },
   ];
 
   readonly actions: GridAction<Row>[] = [
     {
       label: 'Edit user and permissions',
-      icon: 'M4 20h4l10-10-4-4L4 16v4Z',
+      icon: 'pencil',
       run: (row) => this.edit(row.id),
     },
     {
       label: 'Disable user',
-      icon: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18Zm-5 5 10 10',
+      icon: 'ban',
       kind: 'danger',
       run: (row) => void this.deactivate(row),
       visible: (row) => row.role !== 'Admin' && row.isActive,

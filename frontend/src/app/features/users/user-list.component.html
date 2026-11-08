@@ -1,26 +1,14 @@
-<div class="tt-page">
-  <header class="tt-page-head">
-    <div class="tt-page-head__text">
-      <h1 class="tt-page-head__title">Users and permissions</h1>
-      <p class="tt-page-head__sub">
-        Access is set per module and per shop. The server checks the same matrix on every
-        request, so hiding a menu is not what protects the data.
-      </p>
-    </div>
-
-    <div class="tt-page-head__actions">
-      <button type="button" class="tt-btn tt-btn--primary" (click)="create()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-             stroke-linecap="round" aria-hidden="true">
-          <path d="M12 5v14M5 12h14" />
-        </svg>
+<div class="page-stack">
+  <app-page-header title="Users and permissions" icon="users" subtitle="Access is set per module and per shop. The server checks the same matrix on every request, so hiding a menu is not what protects the data.">
+    <div class="contents">
+      <button type="button" class="btn btn-primary" (click)="create()">
+        <lucide-icon name="plus" [size]="15" />
         Add user
       </button>
     </div>
-  </header>
+  </app-page-header>
 
-  <div class="tt-panel">
-    <tt-data-grid
+  <tt-data-grid
       #grid
       gridKey="users"
       [columns]="columns"
@@ -33,7 +21,6 @@
       [useShopScope]="false"
       (rowClicked)="edit($event.id)"
     />
-  </div>
 </div>
 
 <tt-drawer
@@ -44,63 +31,63 @@
   (closed)="close()"
 >
   @if (loadingDetail()) {
-    <div class="tt-stack">
+    <div class="flex flex-col gap-4">
       @for (n of [1, 2, 3, 4, 5]; track n) {
-        <div class="tt-skeleton tt-skeleton-text"></div>
+        <div class="skeleton h-3"></div>
       }
     </div>
   } @else {
-    <form class="tt-stack" (ngSubmit)="save()" id="user-form">
-      <div class="tt-form tt-form--2col">
-        <div class="tt-field">
-          <label class="tt-field__label" for="username">Username</label>
-          <input id="username" class="tt-input" name="username" autocapitalize="none"
-                 spellcheck="false" required [class.tt-input--invalid]="errors()['username']"
+    <form class="flex flex-col gap-4" (ngSubmit)="save()" id="user-form">
+      <div class="grid gap-3.5 sm:grid-cols-2 gap-x-3">
+        <div class="block min-w-0">
+          <label class="label" for="username">Username</label>
+          <input id="username" class="input" name="username" autocapitalize="none"
+                 spellcheck="false" required [class.invalid]="errors()['username']"
                  [ngModel]="username()" (ngModelChange)="username.set($event)" />
           @if (errors()['username']) {
-            <p class="tt-field__error">{{ errors()['username'] }}</p>
+            <p class="error-text">{{ errors()['username'] }}</p>
           }
         </div>
 
-        <div class="tt-field">
-          <label class="tt-field__label" for="fullName">Full name</label>
-          <input id="fullName" class="tt-input" name="fullName" required
-                 [class.tt-input--invalid]="errors()['fullName']"
+        <div class="block min-w-0">
+          <label class="label" for="fullName">Full name</label>
+          <input id="fullName" class="input" name="fullName" required
+                 [class.invalid]="errors()['fullName']"
                  [ngModel]="fullName()" (ngModelChange)="fullName.set($event)" />
           @if (errors()['fullName']) {
-            <p class="tt-field__error">{{ errors()['fullName'] }}</p>
+            <p class="error-text">{{ errors()['fullName'] }}</p>
           }
         </div>
       </div>
 
-      <div class="tt-form tt-form--2col">
-        <div class="tt-field">
-          <label class="tt-field__label" for="role">Role</label>
-          <select id="role" class="tt-select" name="role"
+      <div class="grid gap-3.5 sm:grid-cols-2 gap-x-3">
+        <div class="block min-w-0">
+          <label class="label" for="role">Role</label>
+          <select id="role" class="select" name="role"
                   [ngModel]="role()" (ngModelChange)="role.set($event)">
             <option value="Standard">Staff, access set below</option>
             <option value="Admin">Owner, full access to everything</option>
           </select>
         </div>
 
-        <div class="tt-field">
-          <label class="tt-field__label" for="password">
+        <div class="block min-w-0">
+          <label class="label" for="password">
             {{ editingId() ? 'New password' : 'Password' }}
           </label>
-          <input id="password" class="tt-input" type="password" name="password"
+          <input id="password" class="input" type="password" name="password"
                  autocomplete="new-password"
                  [placeholder]="editingId() ? 'Leave blank to keep the current one' : ''"
-                 [class.tt-input--invalid]="errors()['password']"
+                 [class.invalid]="errors()['password']"
                  [ngModel]="password()" (ngModelChange)="password.set($event)" />
           @if (errors()['password']) {
-            <p class="tt-field__error">{{ errors()['password'] }}</p>
+            <p class="error-text">{{ errors()['password'] }}</p>
           } @else {
-            <p class="tt-field__hint">At least 8 characters.</p>
+            <p class="hint">At least 8 characters.</p>
           }
         </div>
       </div>
 
-      <label class="tt-checkbox">
+      <label class="inline-flex items-center gap-2 text-[13px] text-ink-2">
         <input type="checkbox" name="isActive" [ngModel]="isActive()"
                (ngModelChange)="isActive.set($event)" />
         Allowed to sign in
@@ -111,14 +98,14 @@
         <div class="block__head">
           <h3 class="block__title">Shops</h3>
           @if (isAdminRole()) {
-            <span class="tt-chip tt-chip--info">Owner sees every shop</span>
+            <span class="badge badge-dot tone-info">Owner sees every shop</span>
           }
         </div>
 
         @if (!isAdminRole()) {
           <div class="shop-grid">
             @for (shop of shops(); track shop.id) {
-              <label class="tt-checkbox">
+              <label class="inline-flex items-center gap-2 text-[13px] text-ink-2">
                 <input type="checkbox" [checked]="hasShop(shop.id)"
                        (change)="toggleShop(shop.id, $any($event.target).checked)" />
                 {{ shop.name }}
@@ -127,7 +114,7 @@
           </div>
 
           @if (errors()['shops']) {
-            <p class="tt-field__error">{{ errors()['shops'] }}</p>
+            <p class="error-text">{{ errors()['shops'] }}</p>
           }
         }
       </section>
@@ -137,19 +124,19 @@
         <div class="block__head">
           <h3 class="block__title">Module access</h3>
           @if (isAdminRole()) {
-            <span class="tt-chip tt-chip--info">Owner has write on everything</span>
+            <span class="badge badge-dot tone-info">Owner has write on everything</span>
           } @else {
-            <div class="tt-row">
-              <span class="tt-muted" style="font-size: var(--tt-text-xs)">
+            <div class="flex flex-wrap items-center gap-3">
+              <span class="text-muted" style="font-size: var(--tt-text-xs)">
                 {{ grantedCount() }} of {{ assignable.length }} granted
               </span>
-              <button type="button" class="tt-btn tt-btn--quiet" (click)="grantAll(false)">
+              <button type="button" class="btn btn-ghost btn-sm" (click)="grantAll(false)">
                 All read
               </button>
-              <button type="button" class="tt-btn tt-btn--quiet" (click)="grantAll(true)">
+              <button type="button" class="btn btn-ghost btn-sm" (click)="grantAll(true)">
                 All write
               </button>
-              <button type="button" class="tt-btn tt-btn--quiet" (click)="clearAll()">Clear</button>
+              <button type="button" class="btn btn-ghost btn-sm" (click)="clearAll()">Clear</button>
             </div>
           }
         </div>
@@ -182,7 +169,7 @@
             </tbody>
           </table>
 
-          <p class="tt-field__hint">
+          <p class="hint">
             Write includes read. Users and the audit log stay with the owner account and
             cannot be granted here.
           </p>
@@ -191,9 +178,9 @@
     </form>
   }
 
-  <div drawerFooter>
-    <button type="button" class="tt-btn tt-btn--ghost" (click)="close()">Cancel</button>
-    <button type="submit" form="user-form" class="tt-btn tt-btn--primary"
+  <div drawerFooter class="contents">
+    <button type="button" class="btn btn-neutral" (click)="close()">Cancel</button>
+    <button type="submit" form="user-form" class="btn btn-primary"
             [disabled]="saving() || loadingDetail()">
       {{ saving() ? 'Saving' : editingId() ? 'Save changes' : 'Create user' }}
     </button>

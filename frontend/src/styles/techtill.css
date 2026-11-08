@@ -1,0 +1,256 @@
+/*
+  TechTill-only additions to the shared design system.
+  styles.css is the same stylesheet NexCRM Lite uses. Screens with no NexCRM counterpart (the till,
+  statements, invoices) keep their own component styles, and read these aliases so they stay on the palette.
+*/
+:root {
+  --tt-neutral-0: var(--color-surface);
+  --tt-neutral-25: var(--color-canvas);
+  --tt-neutral-50: var(--color-subtle);
+  --tt-neutral-100: var(--color-line);
+  --tt-neutral-200: var(--color-line-strong);
+  --tt-neutral-300: var(--color-line-strong);
+  --tt-neutral-400: var(--color-faint);
+  --tt-neutral-500: var(--color-muted);
+  --tt-neutral-600: var(--color-ink-2);
+  --tt-neutral-700: var(--color-ink-2);
+  --tt-neutral-800: var(--color-ink);
+  --tt-neutral-900: var(--color-ink);
+
+  --tt-ink: var(--color-ink);
+  --tt-ink-strong: var(--color-ink);
+  --tt-ink-body: var(--color-ink-2);
+  --tt-ink-muted: var(--color-muted);
+  --tt-ink-inverse: var(--color-surface);
+
+  --tt-surface: var(--color-surface);
+  --tt-surface-sunken: var(--color-canvas);
+  --tt-surface-raised: var(--color-surface);
+  --tt-surface-hover: var(--color-subtle);
+  --tt-app-bg: var(--color-canvas);
+  --tt-border: var(--color-line);
+  --tt-border-subtle: var(--color-line);
+  --tt-border-strong: var(--color-line-strong);
+
+  --tt-indigo: var(--color-brand);
+  --tt-indigo-text: var(--color-brand-ink);
+  --tt-indigo-soft: var(--color-lilac-50);
+  --tt-indigo-ring: oklch(0.52 0.2 302 / 0.16);
+  --tt-violet: var(--color-brand);
+  --tt-violet-text: var(--color-brand-ink);
+  --tt-violet-soft: var(--color-lilac-50);
+  --tt-emerald: var(--color-ok);
+  --tt-emerald-text: var(--color-ok-ink);
+  --tt-emerald-soft: var(--color-ok-soft);
+  --tt-amber: var(--color-warn);
+  --tt-amber-text: var(--color-warn-ink);
+  --tt-amber-soft: var(--color-warn-soft);
+  --tt-rose: var(--color-bad);
+  --tt-rose-text: var(--color-bad-ink);
+  --tt-rose-soft: var(--color-bad-soft);
+  --tt-cyan: var(--color-info);
+  --tt-cyan-text: var(--color-info-ink);
+  --tt-cyan-soft: var(--color-info-soft);
+  --tt-orange: var(--color-warn);
+  --tt-orange-text: var(--color-warn-ink);
+  --tt-orange-soft: var(--color-warn-soft);
+  --tt-pink: var(--color-plum);
+  --tt-pink-text: var(--color-plum-ink);
+  --tt-pink-soft: var(--color-plum-soft);
+  --tt-slate: var(--color-muted);
+  --tt-slate-text: var(--color-ink-2);
+  --tt-slate-soft: var(--color-subtle);
+
+  --tt-primary: var(--color-brand);
+  --tt-primary-text: var(--color-brand-ink);
+  --tt-primary-soft: var(--color-lilac-50);
+  --tt-primary-hover: var(--color-brand-strong);
+  --tt-primary-active: var(--color-brand-strong);
+  --tt-success: var(--color-ok);
+  --tt-success-text: var(--color-ok-ink);
+  --tt-success-soft: var(--color-ok-soft);
+  --tt-warning: var(--color-warn);
+  --tt-warning-text: var(--color-warn-ink);
+  --tt-warning-soft: var(--color-warn-soft);
+  --tt-danger: var(--color-bad);
+  --tt-danger-text: var(--color-bad-ink);
+  --tt-danger-soft: var(--color-bad-soft);
+  --tt-danger-hover: oklch(0.44 0.16 12);
+  --tt-info: var(--color-info);
+  --tt-info-text: var(--color-info-ink);
+  --tt-info-soft: var(--color-info-soft);
+
+  --tt-font-sans: var(--font-sans);
+  --tt-font-mono: var(--font-mono);
+  --tt-text-2xs: 0.6875rem;
+  --tt-text-xs: 0.75rem;
+  --tt-text-sm: 0.8125rem;
+  --tt-text-base: 0.875rem;
+  --tt-text-md: 1rem;
+  --tt-text-lg: 1.125rem;
+  --tt-text-xl: 1.375rem;
+  --tt-text-2xl: 1.75rem;
+  --tt-text-3xl: 2.125rem;
+  --tt-text-4xl: 2.625rem;
+  --tt-weight-regular: 400;
+  --tt-weight-medium: 500;
+  --tt-weight-semibold: 600;
+  --tt-weight-bold: 700;
+  --tt-leading-tight: 1.15;
+  --tt-leading-snug: 1.35;
+  --tt-leading-normal: 1.55;
+  --tt-leading-relaxed: 1.7;
+  --tt-tracking-tight: -0.018em;
+  --tt-tracking-normal: 0;
+  --tt-tracking-wide: 0.01em;
+
+  --tt-space-0: 0;
+  --tt-space-1: 0.25rem;
+  --tt-space-2: 0.5rem;
+  --tt-space-3: 0.75rem;
+  --tt-space-4: 1rem;
+  --tt-space-5: 1.25rem;
+  --tt-space-6: 1.5rem;
+  --tt-space-8: 2rem;
+  --tt-space-10: 2.5rem;
+  --tt-space-12: 3rem;
+  --tt-space-16: 4rem;
+  --tt-space-20: 5rem;
+
+  --tt-radius-xs: 4px;
+  --tt-radius-sm: var(--radius-sm);
+  --tt-radius-md: var(--radius-md);
+  --tt-radius-lg: var(--radius-lg);
+  --tt-radius-xl: var(--radius-xl);
+  --tt-radius-2xl: 20px;
+  --tt-radius-pill: 999px;
+
+  --tt-shadow-xs: var(--shadow-xs);
+  --tt-shadow-sm: var(--shadow-card);
+  --tt-shadow-md: var(--shadow-card);
+  --tt-shadow-lg: var(--shadow-pop);
+  --tt-shadow-xl: var(--shadow-pop);
+  --tt-focus-ring: 0 0 0 3px oklch(0.52 0.2 302 / 0.16);
+
+  --tt-topbar-height: 3.5rem;
+  --tt-content-max: 1600px;
+  --tt-prose-max: 68ch;
+
+  --tt-z-base: 0;
+  --tt-z-raised: 10;
+  --tt-z-sticky: var(--z-sticky);
+  --tt-z-sidebar: var(--z-sidebar);
+  --tt-z-dropdown: var(--z-dropdown);
+  --tt-z-overlay: var(--z-drawer-backdrop);
+  --tt-z-drawer: var(--z-drawer);
+  --tt-z-modal: var(--z-drawer);
+  --tt-z-toast: var(--z-toast);
+  --tt-z-tooltip: 90;
+  --tt-z-progress: 100;
+
+  --tt-ease-out: var(--ease-out-expo);
+  --tt-ease-out-quart: var(--ease-out-quart);
+  --tt-ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --tt-duration-instant: 80ms;
+  --tt-duration-fast: 140ms;
+  --tt-duration-normal: 220ms;
+  --tt-duration-slow: 320ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --tt-duration-instant: 1ms;
+    --tt-duration-fast: 1ms;
+    --tt-duration-normal: 1ms;
+    --tt-duration-slow: 1ms;
+  }
+}
+
+@layer base {
+  input[type='checkbox'],
+  input[type='radio'] {
+    accent-color: var(--color-brand);
+  }
+}
+
+@layer components {
+  .page-stack {
+    @apply flex flex-col gap-4;
+  }
+  .page-stack > app-page-header > div {
+    @apply mb-0;
+  }
+
+  /* Status words the API returns, mapped onto the shared badge tones. */
+  .tone-paid,
+  .tone-success {
+    @apply bg-ok-soft text-ok-ink;
+  }
+  .tone-partial,
+  .tone-warning {
+    @apply bg-warn-soft text-warn-ink;
+  }
+  .tone-unpaid {
+    @apply bg-bad-soft text-bad-ink;
+  }
+  .tone-void,
+  .tone-neutral {
+    @apply bg-subtle text-ink-2;
+  }
+
+  /* Report tables read as statements, so they carry no row actions or filters. */
+  .tt-statement {
+    @apply w-full border-collapse text-[13px];
+  }
+  .tt-statement th {
+    @apply h-9 px-4 bg-subtle/70 border-b border-line text-left text-2xs font-semibold text-muted whitespace-nowrap;
+  }
+  .tt-statement td {
+    @apply h-10 px-4 border-b border-line/70;
+  }
+  .tt-statement tbody tr {
+    @apply transition-colors hover:bg-lilac-50/70;
+  }
+  .tt-statement tr.tt-statement__total td {
+    @apply bg-subtle/70 border-t border-line border-b-0 font-semibold text-ink;
+  }
+  .tt-statement tr.tt-statement__sub td {
+    @apply font-semibold text-ink;
+  }
+  .tt-statement .tt-statement__indent {
+    @apply pl-8 text-ink-2;
+  }
+
+  /* A read-only figure above a form field, such as the balance a receipt is taken against. */
+  .owed {
+    @apply flex items-baseline justify-between gap-4 px-3 py-2.5 rounded-lg border border-lilac-100 bg-lilac-50/70 text-xs text-muted;
+  }
+  .owed strong {
+    @apply text-base font-bold text-ink;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .inline-add {
+    @apply grid grid-cols-[minmax(0,1fr)_auto] gap-2;
+  }
+
+  .pick-list {
+    @apply flex flex-col gap-0.5 p-1 m-0 list-none bg-surface border border-line rounded-lg shadow-pop max-h-56 overflow-y-auto;
+  }
+  .pick-list__item {
+    @apply flex w-full items-center justify-between gap-3 px-2.5 py-1.5 rounded-md text-[13px] text-ink-2 text-left cursor-pointer hover:bg-lilac-50 hover:text-brand-ink;
+  }
+
+  .table-scroll {
+    @apply w-full overflow-x-auto;
+  }
+}
+
+@media print {
+  .tt-no-print {
+    display: none !important;
+  }
+  body {
+    background: #fff;
+  }
+}

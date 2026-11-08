@@ -15,6 +15,7 @@ import { ApiService } from '../../core/services/api.service';
 import { DataGridComponent, GridDataSource } from '../../shared/grid/data-grid.component';
 import { GridColumn } from '../../shared/grid/grid.models';
 import { formatMoney } from '../../core/services/currency';
+import { PageHeader } from '../../shared/ui/ui';
 
 type Row = AgeingRowDto & Record<string, unknown>;
 type Mode = 'receivable' | 'payable';
@@ -35,7 +36,7 @@ const EMPTY: AgeingSummaryDto = {
 @Component({
   selector: 'tt-ageing',
   standalone: true,
-  imports: [CommonModule, DataGridComponent],
+  imports: [PageHeader, CommonModule, DataGridComponent],
   templateUrl: './ageing.component.html',
   styleUrl: './ageing.component.scss',
 })

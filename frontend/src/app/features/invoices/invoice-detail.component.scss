@@ -21,13 +21,6 @@
   text-decoration: underline;
 }
 
-.tt-page-head__title {
-  display: flex;
-  align-items: center;
-  gap: var(--tt-space-3);
-  flex-wrap: wrap;
-}
-
 .void-note {
   padding: var(--tt-space-3) var(--tt-space-4);
   border: 1px solid color-mix(in oklch, var(--tt-danger) 26%, var(--tt-border));
@@ -66,7 +59,7 @@
   text-align: left;
 }
 
-.lines th.tt-num {
+.lines th.tabular {
   text-align: right;
 }
 

@@ -1,5 +1,5 @@
-import { CommonModule } from '@angular/common';
-import { Component, HostListener, input, output } from '@angular/core';
+import { Component, computed, input, output } from '@angular/core';
+import { LucideAngularModule } from 'lucide-angular';
 
 /**
  * Right hand sheet used for every create and edit form. A drawer keeps the list visible
@@ -8,68 +8,56 @@ import { Component, HostListener, input, output } from '@angular/core';
 @Component({
   selector: 'tt-drawer',
   standalone: true,
-  imports: [CommonModule],
+  imports: [LucideAngularModule],
+  host: { '(document:keydown.escape)': 'open() && closed.emit()' },
   template: `
     @if (open()) {
-      <div class="scrim" (click)="requestClose()" aria-hidden="true"></div>
-
+      <div
+        class="fixed inset-0 bg-ink/25 backdrop-blur-[1px] enter-fade"
+        style="z-index: var(--z-drawer-backdrop)"
+        (click)="closed.emit()"
+        aria-hidden="true"
+      ></div>
       <aside
-        class="drawer"
-        [class.drawer--wide]="wide()"
+        class="fixed right-0 top-0 h-dvh bg-surface shadow-pop flex flex-col enter-drawer border-l border-line"
+        [style.width]="width()"
+        style="z-index: var(--z-drawer)"
         role="dialog"
         aria-modal="true"
         [attr.aria-label]="heading()"
       >
-        <header class="drawer__head">
-          <div>
-            <h2 class="drawer__title">{{ heading() }}</h2>
+        <header class="flex items-start gap-3 px-5 py-4 border-b border-line">
+          <div class="min-w-0">
+            <h2 class="text-base font-bold text-ink">{{ heading() }}</h2>
             @if (subheading()) {
-              <p class="drawer__sub">{{ subheading() }}</p>
+              <p class="text-xs text-muted mt-0.5">{{ subheading() }}</p>
             }
           </div>
-
-          <button type="button" class="drawer__close" (click)="requestClose()" aria-label="Close">
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              aria-hidden="true"
-            >
-              <path d="M6 6l12 12M18 6 6 18" />
-            </svg>
+          <button
+            type="button"
+            class="btn btn-ghost btn-sm btn-icon ml-auto"
+            (click)="closed.emit()"
+            aria-label="Close panel"
+          >
+            <lucide-icon name="x" [size]="16" />
           </button>
         </header>
-
-        <div class="drawer__body">
-          <ng-content />
-        </div>
-
-        <footer class="drawer__foot">
+        <div class="flex-1 overflow-y-auto px-5 py-4"><ng-content /></div>
+        <footer
+          class="px-5 py-3 border-t border-line flex items-center justify-end gap-2 bg-subtle/50"
+        >
           <ng-content select="[drawerFooter]" />
         </footer>
       </aside>
     }
   `,
-  styleUrl: './drawer.component.scss',
 })
 export class DrawerComponent {
   readonly open = input<boolean>(false);
   readonly heading = input<string>('');
   readonly subheading = input<string>('');
   readonly wide = input<boolean>(false);
-
   readonly closed = output<void>();
 
-  requestClose(): void {
-    this.closed.emit();
-  }
-
-  @HostListener('document:keydown.escape')
-  onEscape(): void {
-    if (this.open()) {
-      this.closed.emit();
-    }
-  }
+  readonly width = computed(() => `min(100vw, ${this.wide() ? '720px' : '520px'})`);
 }
