@@ -6,7 +6,7 @@ Every criterion has at least one test tagged with its id: `[Trait("AC", "SALE-01
 
 1. One business owns all shops, so there is no tenant boundary. Isolation is per shop, per user.
 2. Customers, suppliers, products and categories are shared master data across shops. Their balances and stock are shop scoped.
-3. Unit price is deliberately editable at the till. The risk is tracked as a security finding, not a criterion.
+3. Unit price stays editable at the till. Staff carts cannot go more than 10% below list price (SALE-17); the owner has no limit.
 4. Money is stored as SQLite REAL. Tests compare to two decimal places where a sum crosses the database.
 5. Tests run on a disposable database. The developer's `techtill.db` is never opened by a test.
 
@@ -72,6 +72,7 @@ Every criterion has at least one test tagged with its id: `[Trait("AC", "SALE-01
 | SALE-14 | A failure part way through a sale rolls everything back |
 | SALE-15 | Parallel voids of one invoice succeed once and restore stock and cash once |
 | SALE-16 | The same Idempotency-Key from one cashier bills once and returns the same invoice; a different cart on that key returns 409 |
+| SALE-17 | A staff cart cannot total more than 10% below list price, the owner has no limit, and any override records list and charged in the audit log |
 
 ## Stock
 

@@ -110,6 +110,9 @@ public sealed class SalesService(
     IExcelExportService excel,
     IDateTimeProvider clock)
 {
+    /// <summary>How far below list price a cart can go without the owner. The owner has no limit.</summary>
+    public const decimal MaxStaffDiscountPercent = 10m;
+
     private const int MaxIdempotencyKeyLength = 100;
 
     public static QuerySpec<InvoiceListDto> Spec { get; } = new QuerySpec<InvoiceListDto>()
@@ -337,6 +340,17 @@ public sealed class SalesService(
             }
         }
 
+        var listTotal = request.Items.Sum(i => i.Qty * products[i.ProductId].SalePrice);
+        var lowestAllowed = listTotal * (100m - MaxStaffDiscountPercent) / 100m;
+
+        // Measured on the whole cart, so a cashier can trade a line price against a discount.
+        if (!currentUser.IsAdmin && total < lowestAllowed)
+        {
+            throw ValidationFailedException.ForField(
+                nameof(request.Items),
+                $"Staff can give at most {MaxStaffDiscountPercent:0.##}% off list price, so this cart cannot go below {lowestAllowed:0.00}. Ask the owner to ring it up.");
+        }
+
         var invoice = new SalesInvoice
         {
             InvoiceNo = await numbers.NextInvoiceNoAsync(request.ShopId, ct).ConfigureAwait(false),
@@ -419,12 +433,14 @@ public sealed class SalesService(
         await tx.CommitAsync(ct).ConfigureAwait(false);
         cache.RemoveGroup(CacheKeys.Dashboard);
 
+        var overrideNote = Math.Abs(listTotal - total) >= 0.01m ? $" (list {listTotal:0.00}, charged {total:0.00})" : string.Empty;
+
         await audit.LogAsync(
             Module.Pos,
             AuditAction.Create,
             nameof(SalesInvoice),
             invoice.Id,
-            $"{invoice.InvoiceNo} total {total:0.00} paid {request.PaidNow:0.00}",
+            $"{invoice.InvoiceNo} total {total:0.00} paid {request.PaidNow:0.00}{overrideNote}",
             request.ShopId,
             ct: ct).ConfigureAwait(false);
 
