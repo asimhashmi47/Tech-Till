@@ -50,6 +50,7 @@ Every criterion has at least one test tagged with its id: `[Trait("AC", "SALE-01
 | QRY-06 | SQL metacharacters in a value are treated as literal data |
 | QRY-07 | Sort honours direction and multiple rules |
 | QRY-08 | Malformed values are ignored rather than failing the request |
+| QRY-09 | More than 50 filter nodes, 5 group levels or 10 sort keys return 400 on every query and export path |
 
 ## Sales
 

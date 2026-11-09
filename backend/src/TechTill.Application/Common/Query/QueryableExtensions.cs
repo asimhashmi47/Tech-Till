@@ -24,6 +24,8 @@ public static class QueryableExtensions
 
     public static IQueryable<T> ApplyFilters<T>(this IQueryable<T> source, QueryRequest request, QuerySpec<T> spec)
     {
+        QueryLimits.EnsureFilters(request);
+
         var parameter = Expression.Parameter(typeof(T), "e");
         Expression? predicate = null;
 
@@ -61,6 +63,8 @@ public static class QueryableExtensions
 
     public static IQueryable<T> ApplySort<T>(this IQueryable<T> source, QueryRequest request, QuerySpec<T> spec)
     {
+        QueryLimits.EnsureSort(request);
+
         var applied = false;
         IOrderedQueryable<T>? ordered = null;
 

@@ -3,6 +3,7 @@ using System.Text.Json.Serialization;
 using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.EntityFrameworkCore;
@@ -11,6 +12,7 @@ using Serilog;
 using TechTill.Api.Middleware;
 using TechTill.Api.Security;
 using TechTill.Application.Common.Interfaces;
+using TechTill.Application.Common.Query;
 using TechTill.Infrastructure;
 using TechTill.Infrastructure.Persistence;
 using TechTill.Infrastructure.Services;
@@ -26,7 +28,14 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUser, CurrentUser>();
 
 builder.Services
-    .AddControllers(options => options.SuppressAsyncSuffixInActionNames = false)
+    .AddControllers(options =>
+    {
+        options.SuppressAsyncSuffixInActionNames = false;
+
+        // Model validation walks these trees before the action runs, and a deep one fails
+        // with a 500. Their size is checked by QueryLimits, so validation can skip them.
+        options.ModelMetadataDetailsProviders.Add(new SuppressChildValidationMetadataProvider(typeof(FilterGroup)));
+    })
     .AddJsonOptions(options =>
     {
         options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
