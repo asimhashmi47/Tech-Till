@@ -130,6 +130,9 @@ public sealed class StockService(
         }
 
         var product = await LoadProductAsync(request.ProductId, ct).ConfigureAwait(false);
+
+        await using var tx = await db.BeginTransactionAsync(ct).ConfigureAwait(false);
+
         var current = await CurrentQtyAsync(request.ShopId, request.ProductId, ct).ConfigureAwait(false);
         var delta = request.Qty - current;
 
@@ -149,6 +152,7 @@ public sealed class StockService(
             ct).ConfigureAwait(false);
 
         await db.SaveChangesAsync(ct).ConfigureAwait(false);
+        await tx.CommitAsync(ct).ConfigureAwait(false);
         cache.RemoveGroup(CacheKeys.Dashboard);
 
         await audit.LogAsync(
@@ -176,6 +180,9 @@ public sealed class StockService(
         }
 
         var product = await LoadProductAsync(request.ProductId, ct).ConfigureAwait(false);
+
+        await using var tx = await db.BeginTransactionAsync(ct).ConfigureAwait(false);
+
         var current = await CurrentQtyAsync(request.ShopId, request.ProductId, ct).ConfigureAwait(false);
 
         if (current + request.Qty < 0)
@@ -196,6 +203,7 @@ public sealed class StockService(
             ct).ConfigureAwait(false);
 
         await db.SaveChangesAsync(ct).ConfigureAwait(false);
+        await tx.CommitAsync(ct).ConfigureAwait(false);
         cache.RemoveGroup(CacheKeys.Dashboard);
 
         await audit.LogAsync(
@@ -224,6 +232,9 @@ public sealed class StockService(
         await shopScope.EnsureWritableAsync(request.ToShopId, ct).ConfigureAwait(false);
 
         var product = await LoadProductAsync(request.ProductId, ct).ConfigureAwait(false);
+
+        await using var tx = await db.BeginTransactionAsync(ct).ConfigureAwait(false);
+
         var available = await CurrentQtyAsync(request.FromShopId, request.ProductId, ct).ConfigureAwait(false);
 
         if (available < request.Qty)
@@ -232,8 +243,6 @@ public sealed class StockService(
                 nameof(request.Qty),
                 $"Only {available} in stock at the source shop.");
         }
-
-        await using var tx = await db.BeginTransactionAsync(ct).ConfigureAwait(false);
 
         var reference = $"Transfer {product.Sku} x{request.Qty}";
         await ApplyAsync(request.FromShopId, request.ProductId, -request.Qty, StockMovementType.TransferOut,

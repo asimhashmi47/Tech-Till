@@ -275,6 +275,10 @@ public sealed class SalesService(
                 "A walk-in sale must be paid in full. Pick a named customer for credit.");
         }
 
+        // BEGIN IMMEDIATE takes SQLite's write lock, so the stock read below and the decrement
+        // further down are one atomic step and parallel sales cannot both see the last unit.
+        await using var tx = await db.BeginTransactionAsync(ct).ConfigureAwait(false);
+
         var productIds = request.Items.Select(i => i.ProductId).Distinct().ToList();
         var products = await db.Products
             .Where(p => productIds.Contains(p.Id) && !p.IsDeleted)
@@ -298,8 +302,6 @@ public sealed class SalesService(
                     $"{product.Name} has {onHand} in stock but the cart asks for {wanted}.");
             }
         }
-
-        await using var tx = await db.BeginTransactionAsync(ct).ConfigureAwait(false);
 
         var invoice = new SalesInvoice
         {

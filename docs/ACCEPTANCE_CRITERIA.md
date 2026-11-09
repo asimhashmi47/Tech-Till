@@ -81,6 +81,7 @@ Every criterion has at least one test tagged with its id: `[Trait("AC", "SALE-01
 | STK-04 | Quantity on hand always equals the sum of its movements |
 | STK-05 | Low stock lists rows at or below the reorder level, most urgent first |
 | STK-06 | A change that would overflow the stored quantity returns 400 |
+| STK-07 | Parallel sales, adjustments and transfers can never take a shop below zero |
 ## Purchases
 
 | Id | Criterion |
