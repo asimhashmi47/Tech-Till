@@ -150,15 +150,17 @@ app.MapControllers();
 
 app.MapGet("/health", () => Results.Ok(new { status = "ok", at = DateTime.UtcNow })).AllowAnonymous();
 
-// SQLite in WAL mode handles a handful of tills comfortably, and migrations plus the demo
-// seed run on start so a clean clone is usable straight away.
+// SQLite in WAL mode handles a handful of tills comfortably. Migrations run on start; a new
+// database gets the demo seed in Development and only the owner account everywhere else.
 await using (var scope = app.Services.CreateAsyncScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     await db.Database.ExecuteSqlRawAsync("PRAGMA journal_mode=WAL;").ConfigureAwait(false);
 
     var seeder = scope.ServiceProvider.GetRequiredService<DatabaseSeeder>();
-    await seeder.SeedAsync().ConfigureAwait(false);
+    await seeder
+        .InitialiseAsync(app.Environment.IsDevelopment(), app.Configuration["Bootstrap:AdminPassword"])
+        .ConfigureAwait(false);
 }
 
 await app.RunAsync().ConfigureAwait(false);

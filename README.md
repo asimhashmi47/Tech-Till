@@ -127,7 +127,7 @@ npm start
 | `omar` | Standard | Writes expenses, petty cash. Reads reports, invoices. Both shops |
 | `zoya` | Standard | Read only, shop 1 |
 
-On first start the database is created at `backend/src/TechTill.Api/techtill.db` and seeded with two shops, a product catalogue, customers, suppliers and six months of sales, purchases, expenses and cash movements. Delete the file to start again.
+On first start in Development the database is created at `backend/src/TechTill.Api/techtill.db` and seeded with two shops, a product catalogue, customers, suppliers and six months of sales, purchases, expenses and cash movements. Delete the file to start again.
 
 <details>
 <summary><b>Configuration, secrets and production build</b></summary>
@@ -139,6 +139,7 @@ Settings come from `appsettings.json`, then the environment, then user secrets.
 | Key | Environment variable | Notes |
 |---|---|---|
 | `Jwt:Secret` | `JWT__SECRET` | Required, at least 32 characters. The app refuses to start without it |
+| `Bootstrap:AdminPassword` | `BOOTSTRAP__ADMINPASSWORD` | Required outside Development when the database is new: the `admin` password, at least 12 characters. A new database then gets only that account and the walk-in customer |
 | `Jwt:Issuer` / `Jwt:Audience` | `JWT__ISSUER` / `JWT__AUDIENCE` | Default `TechTill` |
 | `Jwt:AccessTokenMinutes` | `JWT__ACCESSTOKENMINUTES` | Default 30 |
 | `Jwt:RefreshTokenDays` | `JWT__REFRESHTOKENDAYS` | Default 7 |

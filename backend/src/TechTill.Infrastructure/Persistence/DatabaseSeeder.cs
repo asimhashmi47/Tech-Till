@@ -14,6 +14,7 @@ namespace TechTill.Infrastructure.Persistence;
 public sealed class DatabaseSeeder(AppDbContext db, IPasswordHasher hasher, ILogger<DatabaseSeeder> logger)
 {
     private const string DemoPassword = "TechTill#2026";
+    private const int MinOwnerPasswordLength = 12;
 
     private static readonly Action<ILogger, Exception?> LogSeedStart =
         LoggerMessage.Define(LogLevel.Information, new EventId(1, "SeedStart"), "Seeding the TechTill demo database");
@@ -23,15 +24,52 @@ public sealed class DatabaseSeeder(AppDbContext db, IPasswordHasher hasher, ILog
 
     private static readonly Random Rng = new(20260411);
 
-    public async Task SeedAsync(CancellationToken ct = default)
+    /// <summary>
+    /// Applies migrations, then fills a brand new database: demo data on a developer machine,
+    /// and only the owner account everywhere else, so no install runs on a published password.
+    /// </summary>
+    public async Task InitialiseAsync(bool demoData, string? ownerPassword, CancellationToken ct = default)
     {
         await db.Database.MigrateAsync(ct).ConfigureAwait(false);
 
-        if (await db.Shops.AnyAsync(ct).ConfigureAwait(false))
+        if (await db.Users.AnyAsync(ct).ConfigureAwait(false))
         {
             return;
         }
 
+        if (demoData)
+        {
+            await SeedDemoAsync(ct).ConfigureAwait(false);
+        }
+        else
+        {
+            await CreateOwnerAsync(ownerPassword, ct).ConfigureAwait(false);
+        }
+    }
+
+    private async Task CreateOwnerAsync(string? password, CancellationToken ct)
+    {
+        if (password is null || password.Length < MinOwnerPasswordLength || password == DemoPassword)
+        {
+            throw new InvalidOperationException(
+                $"This is a new database, so Bootstrap:AdminPassword must be set to a private password of at least {MinOwnerPasswordLength} " +
+                "characters. Use the BOOTSTRAP__ADMINPASSWORD environment variable. See the README configuration section.");
+        }
+
+        db.AppSettings.Add(New(new AppSetting { Key = "Currency", Value = "PKR" }));
+        db.Users.Add(New(new AppUser
+        {
+            Username = "admin",
+            FullName = "Shop Owner",
+            Role = UserRole.Admin,
+            PasswordHash = hasher.Hash(password)
+        }));
+        db.Customers.Add(New(new Customer { Name = "Walk-in customer", IsWalkIn = true }));
+        await db.SaveChangesAsync(ct).ConfigureAwait(false);
+    }
+
+    private async Task SeedDemoAsync(CancellationToken ct)
+    {
         LogSeedStart(logger, null);
 
         db.AppSettings.Add(New(new AppSetting { Key = "Currency", Value = "PKR" }));

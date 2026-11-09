@@ -81,7 +81,6 @@ Every criterion has at least one test tagged with its id: `[Trait("AC", "SALE-01
 | STK-04 | Quantity on hand always equals the sum of its movements |
 | STK-05 | Low stock lists rows at or below the reorder level, most urgent first |
 | STK-06 | A change that would overflow the stored quantity returns 400 |
-
 ## Purchases
 
 | Id | Criterion |
@@ -155,6 +154,8 @@ Every criterion has at least one test tagged with its id: `[Trait("AC", "SALE-01
 | API-04 | Responses match the documented contract: paging fields, enums as strings, nulls omitted |
 | API-05 | Exports return a spreadsheet with a filename |
 | API-06 | Repeating an already-applied void, delete or logout is safe |
+| BOOT-01 | Outside Development, a new database refuses to start without a private owner password of 12+ characters |
+| BOOT-02 | Outside Development, a new database gets only the owner and the walk-in customer, and an existing database is left alone |
 
 ## Client and user journeys
 
