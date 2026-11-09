@@ -234,7 +234,11 @@ public sealed class SalesInvoiceConfiguration : IEntityTypeConfiguration<SalesIn
         builder.Money(nameof(SalesInvoice.Total));
         builder.Money(nameof(SalesInvoice.PaidAmount));
         builder.Ignore(i => i.Outstanding);
+        builder.Property(i => i.IdempotencyKey).HasMaxLength(100);
         builder.HasIndex(i => new { i.ShopId, i.InvoiceNo }).IsUnique();
+        builder.HasIndex(i => new { i.ShopId, i.CreatedBy, i.IdempotencyKey })
+            .IsUnique()
+            .HasFilter("\"IdempotencyKey\" IS NOT NULL");
         builder.HasIndex(i => i.InvoiceDate);
         builder.HasIndex(i => i.CustomerId);
         builder.HasIndex(i => i.Status);

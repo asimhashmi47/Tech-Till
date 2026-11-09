@@ -22,6 +22,9 @@ public class SalesInvoice : AuditableEntity
     public string? VoidReason { get; set; }
     public string? Note { get; set; }
 
+    /// <summary>Sent by the till, so a retried request finds the sale it already made.</summary>
+    public string? IdempotencyKey { get; set; }
+
     public ICollection<SalesItem> Items { get; set; } = [];
     public decimal Outstanding => Status == InvoiceStatus.Void ? 0m : Total - PaidAmount;
 }

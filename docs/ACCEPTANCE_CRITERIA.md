@@ -71,6 +71,7 @@ Every criterion has at least one test tagged with its id: `[Trait("AC", "SALE-01
 | SALE-13 | Amounts too large to compute return 400, not 500 |
 | SALE-14 | A failure part way through a sale rolls everything back |
 | SALE-15 | Parallel voids of one invoice succeed once and restore stock and cash once |
+| SALE-16 | The same Idempotency-Key from one cashier bills once and returns the same invoice; a different cart on that key returns 409 |
 
 ## Stock
 

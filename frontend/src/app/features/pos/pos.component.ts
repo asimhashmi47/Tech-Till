@@ -62,6 +62,8 @@ export class PosComponent {
   readonly customers = signal<CustomerDto[]>([]);
   readonly customerId = signal<number>(0);
   readonly cart = signal<CartLine[]>([]);
+  private saleKey: string | null = null;
+
   readonly discount = signal(0);
   readonly method = signal<PaymentMethod>('Cash');
   readonly paidNow = signal(0);
@@ -304,22 +306,31 @@ export class PosComponent {
 
     this.submitting.set(true);
 
+    // Kept until the sale succeeds, so pressing Complete again after a dropped connection
+    // finds the invoice already made instead of billing the customer twice.
+    this.saleKey ??= newSaleKey();
+
     this.api
-      .post<InvoiceDetailDto>('pos/sale', {
-        shopId,
-        customerId: this.customerId(),
-        discount: this.discount(),
-        paidNow: this.paidNow(),
-        paymentMethod: this.method(),
-        note: this.note().trim() || null,
-        items: this.cart().map((line) => ({
-          productId: line.productId,
-          qty: line.qty,
-          unitPrice: line.unitPrice,
-        })),
-      })
+      .post<InvoiceDetailDto>(
+        'pos/sale',
+        {
+          shopId,
+          customerId: this.customerId(),
+          discount: this.discount(),
+          paidNow: this.paidNow(),
+          paymentMethod: this.method(),
+          note: this.note().trim() || null,
+          items: this.cart().map((line) => ({
+            productId: line.productId,
+            qty: line.qty,
+            unitPrice: line.unitPrice,
+          })),
+        },
+        { 'Idempotency-Key': this.saleKey },
+      )
       .subscribe({
         next: (invoice) => {
+          this.saleKey = null;
           this.submitting.set(false);
           this.alerts.success(`Sale ${invoice.invoiceNo} recorded`, `Total ${money(invoice.total)}`);
 
@@ -353,6 +364,12 @@ export class PosComponent {
       this.checkout();
     }
   }
+}
+
+/** getRandomValues works on plain http, where crypto.randomUUID does not exist. */
+function newSaleKey(): string {
+  const bytes = crypto.getRandomValues(new Uint8Array(16));
+  return Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
 }
 
 function money(value: number): string {

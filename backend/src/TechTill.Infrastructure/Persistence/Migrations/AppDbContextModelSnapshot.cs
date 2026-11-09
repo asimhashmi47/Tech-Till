@@ -661,6 +661,10 @@ namespace TechTill.Infrastructure.Persistence.Migrations
                     b.Property<decimal>("Discount")
                         .HasColumnType("REAL");
 
+                    b.Property<string>("IdempotencyKey")
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
                     b.Property<DateTime>("InvoiceDate")
                         .HasColumnType("TEXT");
 
@@ -721,6 +725,10 @@ namespace TechTill.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("ShopId", "InvoiceNo")
                         .IsUnique();
+
+                    b.HasIndex("ShopId", "CreatedBy", "IdempotencyKey")
+                        .IsUnique()
+                        .HasFilter("\"IdempotencyKey\" IS NOT NULL");
 
                     b.ToTable("SalesInvoices");
                 });

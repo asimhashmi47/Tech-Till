@@ -99,8 +99,11 @@ public sealed class PosController(SalesService sales) : ApiControllerBase
 {
     [RequirePermission(Module.Pos, Access.Write)]
     [HttpPost("sale")]
-    public Task<InvoiceDetailDto> Sale(CreateSaleRequest request, CancellationToken ct)
-        => sales.CreateSaleAsync(request, ct);
+    public Task<InvoiceDetailDto> Sale(
+        CreateSaleRequest request,
+        [FromHeader(Name = "Idempotency-Key")] string? idempotencyKey,
+        CancellationToken ct)
+        => sales.CreateSaleAsync(request, idempotencyKey, ct);
 }
 
 public sealed class InvoicesController(SalesService sales) : ApiControllerBase

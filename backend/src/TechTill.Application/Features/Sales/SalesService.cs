@@ -110,6 +110,8 @@ public sealed class SalesService(
     IExcelExportService excel,
     IDateTimeProvider clock)
 {
+    private const int MaxIdempotencyKeyLength = 100;
+
     public static QuerySpec<InvoiceListDto> Spec { get; } = new QuerySpec<InvoiceListDto>()
         .Map("id", i => i.Id, "Id")
         .Text("invoiceNo", i => i.InvoiceNo, "Invoice no")
@@ -211,9 +213,19 @@ public sealed class SalesService(
                 .ToList());
     }
 
-    public async Task<InvoiceDetailDto> CreateSaleAsync(CreateSaleRequest request, CancellationToken ct = default)
+    public async Task<InvoiceDetailDto> CreateSaleAsync(
+        CreateSaleRequest request,
+        string? idempotencyKey = null,
+        CancellationToken ct = default)
     {
         await shopScope.EnsureWritableAsync(request.ShopId, ct).ConfigureAwait(false);
+
+        var key = string.IsNullOrWhiteSpace(idempotencyKey) ? null : idempotencyKey.Trim();
+
+        if (key is { Length: > MaxIdempotencyKeyLength })
+        {
+            throw ValidationFailedException.ForField("IdempotencyKey", "That idempotency key is too long.");
+        }
 
         if (request.Items.Count == 0)
         {
@@ -279,6 +291,28 @@ public sealed class SalesService(
         // further down are one atomic step and parallel sales cannot both see the last unit.
         await using var tx = await db.BeginTransactionAsync(ct).ConfigureAwait(false);
 
+        // Checked before stock: a retry must find its sale even if that sale took the last unit.
+        if (key is not null)
+        {
+            var earlier = await db.SalesInvoices
+                .AsNoTracking()
+                .Where(i => i.ShopId == request.ShopId && i.CreatedBy == currentUser.Username && i.IdempotencyKey == key)
+                .Select(i => new { i.Id, i.Total, i.CustomerId })
+                .FirstOrDefaultAsync(ct)
+                .ConfigureAwait(false);
+
+            if (earlier is not null)
+            {
+                // Money is REAL in SQLite, so compare to the cent rather than exactly.
+                if (earlier.CustomerId != request.CustomerId || Math.Abs(earlier.Total - total) >= 0.01m)
+                {
+                    throw new ConflictException("That idempotency key was already used for a different sale.");
+                }
+
+                return await GetAsync(earlier.Id, ct).ConfigureAwait(false);
+            }
+        }
+
         var productIds = request.Items.Select(i => i.ProductId).Distinct().ToList();
         var products = await db.Products
             .Where(p => productIds.Contains(p.Id) && !p.IsDeleted)
@@ -316,6 +350,7 @@ public sealed class SalesService(
             PaymentMethod = request.PaymentMethod,
             Status = StatusFor(total, request.PaidNow),
             Note = request.Note,
+            IdempotencyKey = key,
             CreatedAt = clock.UtcNow,
             CreatedBy = currentUser.Username
         };
