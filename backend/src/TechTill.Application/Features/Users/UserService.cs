@@ -142,6 +142,18 @@ public sealed class UserService(
             throw ValidationFailedException.ForField(nameof(request.Username), "That username is already taken.");
         }
 
+        if (user.Role == UserRole.Admin && user.IsActive && (request.Role != UserRole.Admin || !request.IsActive))
+        {
+            var anotherOwner = await db.Users
+                .AnyAsync(u => u.Id != id && u.Role == UserRole.Admin && u.IsActive && !u.IsDeleted, ct)
+                .ConfigureAwait(false);
+
+            if (!anotherOwner)
+            {
+                throw new ConflictException("This is the only active owner account, so it has to stay active and stay an owner.");
+            }
+        }
+
         // Withdrawing access has to reach tokens already issued, or it waits for them to expire.
         if (user.Role != request.Role || (user.IsActive && !request.IsActive))
         {

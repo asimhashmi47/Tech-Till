@@ -128,6 +128,7 @@ Every criterion has at least one test tagged with its id: `[Trait("AC", "SALE-01
 | USR-01 | Creating a user needs a unique non-blank username, a full name and an 8+ character password |
 | USR-02 | Shops and permissions are replaced on save, and must reference real shops |
 | USR-03 | Deactivating revokes sessions; an admin cannot be deactivated |
+| USR-04 | The last active owner cannot be demoted or set inactive through an edit |
 | SET-01 | Only admin can change currency, and only to a listed code |
 | AUD-01 | Sensitive actions write an audit row with user, module and action; long summaries are trimmed |
 | AUD-02 | Only admin can read the audit log |
