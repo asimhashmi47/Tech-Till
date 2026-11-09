@@ -409,6 +409,9 @@ public sealed class SalesService(
             throw ValidationFailedException.ForField(nameof(request.Reason), "A reason is required to void an invoice.");
         }
 
+        // The status has to be read under the write lock, or parallel voids all see "not void yet".
+        await using var tx = await db.BeginTransactionAsync(ct).ConfigureAwait(false);
+
         var invoice = await db.SalesInvoices
             .Include(i => i.Items)
             .FirstOrDefaultAsync(i => i.Id == id && !i.IsDeleted, ct)
@@ -418,8 +421,6 @@ public sealed class SalesService(
         {
             throw new ConflictException("That invoice is already void.");
         }
-
-        await using var tx = await db.BeginTransactionAsync(ct).ConfigureAwait(false);
 
         foreach (var item in invoice.Items)
         {

@@ -70,6 +70,7 @@ Every criterion has at least one test tagged with its id: `[Trait("AC", "SALE-01
 | SALE-12 | A receipt against an invoice must match its customer and shop, must not exceed its outstanding, and cannot target a void invoice |
 | SALE-13 | Amounts too large to compute return 400, not 500 |
 | SALE-14 | A failure part way through a sale rolls everything back |
+| SALE-15 | Parallel voids of one invoice succeed once and restore stock and cash once |
 
 ## Stock
 
