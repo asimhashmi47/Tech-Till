@@ -60,6 +60,10 @@ public sealed class MemoryCacheService(IMemoryCache cache) : ICacheService
         }
     }
 
+    public void Mark(string key, TimeSpan ttl) => cache.Set(key, true, ttl);
+
+    public bool IsMarked(string key) => cache.TryGetValue(key, out _);
+
     public void RemoveGroup(string group)
     {
         if (!_groups.TryRemove(group, out var keys))

@@ -67,6 +67,7 @@ public static class DependencyInjection
     {
         services.AddScoped<DocumentNumberService>();
         services.AddScoped<AuthService>();
+        services.AddScoped<SessionGuard>();
         services.AddScoped<ShopService>();
         services.AddScoped<UserService>();
         services.AddScoped<CategoryService>();

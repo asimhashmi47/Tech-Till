@@ -142,6 +142,12 @@ public sealed class UserService(
             throw ValidationFailedException.ForField(nameof(request.Username), "That username is already taken.");
         }
 
+        // Withdrawing access has to reach tokens already issued, or it waits for them to expire.
+        if (user.Role != request.Role || (user.IsActive && !request.IsActive))
+        {
+            user.TokenVersion++;
+        }
+
         user.Username = username;
         user.FullName = request.FullName.Trim();
         user.Role = request.Role;
@@ -183,6 +189,7 @@ public sealed class UserService(
         }
 
         user.IsActive = false;
+        user.TokenVersion++;
         user.UpdatedAt = clock.UtcNow;
         user.UpdatedBy = currentUser.Username;
 

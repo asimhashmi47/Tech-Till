@@ -11,6 +11,8 @@ public static class CacheKeys
 
     public static string Permission(long userId) => $"{Permissions}:user:{userId}";
     public static string AllowedShops(long userId) => $"{Permissions}:shops:{userId}";
+    public static string Session(long userId) => $"{Permissions}:session:{userId}";
+    public static string EndedToken(string tokenId) => $"ended-token:{tokenId}";
     public static string Dashboards(long? shopId, long userId) => $"{Dashboard}:{userId}:{shopId?.ToString(CultureInfo.InvariantCulture) ?? "all"}";
     public static string Lookup(string name) => $"{Lookups}:{name}";
 }

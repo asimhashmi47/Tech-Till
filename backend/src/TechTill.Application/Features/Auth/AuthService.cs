@@ -13,8 +13,11 @@ public sealed class AuthService(
     IPermissionService permissions,
     IAuditService audit,
     ICurrentUser currentUser,
+    ICacheService cache,
     IDateTimeProvider clock)
 {
+    private static readonly TimeSpan ClockSkewAllowance = TimeSpan.FromMinutes(1);
+
     public async Task<AuthResult> LoginAsync(LoginRequest request, CancellationToken ct = default)
     {
         var user = await db.Users
@@ -83,6 +86,12 @@ public sealed class AuthService(
             }
         }
 
+        // Only this token: the same account signed in on another device stays signed in.
+        if (currentUser.TokenId is { } tokenId)
+        {
+            cache.Mark(CacheKeys.EndedToken(tokenId), tokens.AccessTokenLifetime.Add(ClockSkewAllowance));
+        }
+
         await audit.LogAsync(Module.Users, AuditAction.Logout, nameof(AppUser), currentUser.UserId, ct: ct)
             .ConfigureAwait(false);
         await db.SaveChangesAsync(ct).ConfigureAwait(false);
@@ -105,6 +114,7 @@ public sealed class AuthService(
         }
 
         user.PasswordHash = hasher.Hash(request.NewPassword);
+        user.TokenVersion++;
         user.UpdatedAt = clock.UtcNow;
         user.UpdatedBy = currentUser.Username;
 
@@ -117,6 +127,7 @@ public sealed class AuthService(
         await audit.LogAsync(Module.Users, AuditAction.PasswordChange, nameof(AppUser), userId, ct: ct)
             .ConfigureAwait(false);
         await db.SaveChangesAsync(ct).ConfigureAwait(false);
+        permissions.Invalidate(userId);
     }
 
     public async Task<UserProfile> MeAsync(CancellationToken ct = default)

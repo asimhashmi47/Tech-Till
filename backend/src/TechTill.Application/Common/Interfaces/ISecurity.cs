@@ -15,4 +15,11 @@ public interface IJwtTokenService
     AccessToken CreateAccessToken(AppUser user);
     string CreateRefreshToken();
     TimeSpan RefreshTokenLifetime { get; }
+    TimeSpan AccessTokenLifetime { get; }
+}
+
+public static class SessionClaims
+{
+    public const string TokenVersion = "tv";
+    public const string TokenId = "jti";
 }

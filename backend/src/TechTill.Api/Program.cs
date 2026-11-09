@@ -71,6 +71,7 @@ builder.Services
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwt.Secret)),
             ClockSkew = TimeSpan.FromSeconds(30)
         };
+        options.Events = new JwtBearerEvents { OnTokenValidated = SessionValidation.ValidateAsync };
     });
 
 builder.Services.AddAuthorization();

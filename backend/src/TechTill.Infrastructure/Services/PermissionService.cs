@@ -92,6 +92,7 @@ public sealed class PermissionService(AppDbContext db, ICacheService cache) : IP
     {
         cache.Remove(CacheKeys.Permission(userId));
         cache.Remove(CacheKeys.AllowedShops(userId));
+        cache.Remove(CacheKeys.Session(userId));
     }
 }
 

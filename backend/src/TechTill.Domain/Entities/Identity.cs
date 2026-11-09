@@ -23,6 +23,9 @@ public class AppUser : AuditableEntity
     public bool IsActive { get; set; } = true;
     public DateTime? LastLoginAt { get; set; }
 
+    /// <summary>Carried in the access token. Raising it ends every token already issued.</summary>
+    public int TokenVersion { get; set; }
+
     public ICollection<UserShop> UserShops { get; set; } = [];
     public ICollection<UserPermission> Permissions { get; set; } = [];
     public ICollection<RefreshToken> RefreshTokens { get; set; } = [];

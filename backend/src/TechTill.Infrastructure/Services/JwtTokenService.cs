@@ -23,6 +23,8 @@ public sealed class JwtTokenService(JwtOptions options, IDateTimeProvider clock)
 {
     public TimeSpan RefreshTokenLifetime => TimeSpan.FromDays(options.RefreshTokenDays);
 
+    public TimeSpan AccessTokenLifetime => TimeSpan.FromMinutes(options.AccessTokenMinutes);
+
     public AccessToken CreateAccessToken(AppUser user)
     {
         var expires = clock.UtcNow.AddMinutes(options.AccessTokenMinutes);
@@ -35,6 +37,7 @@ public sealed class JwtTokenService(JwtOptions options, IDateTimeProvider clock)
             new(ClaimTypes.Name, user.Username),
             new(ClaimTypes.Role, user.Role.ToString()),
             new("fullName", user.FullName),
+            new(SessionClaims.TokenVersion, user.TokenVersion.ToString(CultureInfo.InvariantCulture)),
             new(JwtRegisteredClaimNames.JwtId, Guid.NewGuid().ToString())
         };
 

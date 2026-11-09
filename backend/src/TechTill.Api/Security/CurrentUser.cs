@@ -28,5 +28,7 @@ public sealed class CurrentUser(IHttpContextAccessor accessor) : ICurrentUser
 
     public string? CorrelationId => accessor.HttpContext?.TraceIdentifier;
 
+    public string? TokenId => Principal?.FindFirst(SessionClaims.TokenId)?.Value;
+
     private ClaimsPrincipal? Principal => accessor.HttpContext?.User;
 }

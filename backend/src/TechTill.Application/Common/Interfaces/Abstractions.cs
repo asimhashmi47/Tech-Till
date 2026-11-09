@@ -11,6 +11,9 @@ public interface ICurrentUser
     bool IsAdmin { get; }
     string? Ip { get; }
     string? CorrelationId { get; }
+
+    /// <summary>The id of the access token on this request, so logout can end just that one.</summary>
+    string? TokenId => null;
 }
 
 public interface IDateTimeProvider
@@ -47,6 +50,11 @@ public interface ICacheService
 {
     Task<T> GetOrCreateAsync<T>(string key, Func<Task<T>> factory, TimeSpan? ttl = null);
     void Remove(string key);
+
+    /// <summary>Records that a key exists for a while, with no value worth reading back.</summary>
+    void Mark(string key, TimeSpan ttl);
+
+    bool IsMarked(string key);
 
     /// <summary>Drops every cached entry under a logical group, for example dashboard aggregates.</summary>
     void RemoveGroup(string group);

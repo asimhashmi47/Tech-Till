@@ -111,7 +111,7 @@ public sealed class TestApp : IDisposable
     public DashboardService Dashboard => new(Db, Scope, User, Cache, Clock, Ledgers, Stock, Sales);
     public AuditLogService AuditLog => new(Db, Excel, Audit);
     public JwtTokenService Tokens => new(Jwt, Clock);
-    public AuthService Auth => new(Db, Hasher, Tokens, Permissions, Audit, User, Clock);
+    public AuthService Auth => new(Db, Hasher, Tokens, Permissions, Audit, User, Cache, Clock);
 
     public void AsAdmin()
     {
