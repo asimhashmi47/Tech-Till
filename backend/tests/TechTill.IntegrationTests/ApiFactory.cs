@@ -68,10 +68,32 @@ public sealed class ApiFactory : WebApplicationFactory<CurrentUser>
 
     public FaultInjector Fault { get; } = new();
 
-    private ApiFactory(string database, string environment)
+    private readonly Dictionary<string, string> _settings;
+
+    private ApiFactory(string database, string environment, Dictionary<string, string>? settings = null)
     {
         _database = database;
         _environment = environment;
+        _settings = settings ?? [];
+    }
+
+    /// <summary>A brand new install: no template copy, so first-run behaviour is what runs.</summary>
+    public static Task<ApiFactory> StartEmptyAsync(string environment, Dictionary<string, string>? settings = null)
+    {
+        Directory.CreateDirectory(Folder);
+        var factory = new ApiFactory(Path.Combine(Folder, Guid.NewGuid().ToString("N") + ".db"), environment, settings);
+
+        try
+        {
+            _ = factory.Services;
+        }
+        catch
+        {
+            factory.Dispose();
+            throw;
+        }
+
+        return Task.FromResult(factory);
     }
 
     public static async Task<ApiFactory> StartAsync(string environment = "Testing")
@@ -84,7 +106,7 @@ public sealed class ApiFactory : WebApplicationFactory<CurrentUser>
             if (_template is null)
             {
                 var path = Path.Combine(Folder, "template.db");
-                var seed = new ApiFactory(path, "Testing") { _keepDatabase = true };
+                var seed = new ApiFactory(path, "Development") { _keepDatabase = true };
                 _ = seed.Services;
                 await seed.DisposeAsync();
                 SqliteConnection.ClearAllPools();
@@ -109,6 +131,11 @@ public sealed class ApiFactory : WebApplicationFactory<CurrentUser>
         builder.UseSetting("ConnectionStrings:Default", $"Data Source={_database}");
         builder.UseSetting("Jwt:Secret", Secret);
         builder.UseSetting("Serilog:WriteTo:0:Args:path", Path.Combine(Folder, "log-.txt"));
+        foreach (var (key, value) in _settings)
+        {
+            builder.UseSetting(key, value);
+        }
+
         builder.ConfigureTestServices(services =>
             services.ConfigureDbContext<AppDbContext>(options => options.AddInterceptors(Fault)));
     }
