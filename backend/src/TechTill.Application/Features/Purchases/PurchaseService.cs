@@ -152,9 +152,9 @@ public sealed class PurchaseService(
     {
         var shopIds = await shopScope.ResolveAsync(null, ct).ConfigureAwait(false);
 
+        // Lines are a separate direct lookup: including them joined through every purchase line.
         var bill = await db.PurchaseBills
             .AsNoTracking()
-            .Include(b => b.Items).ThenInclude(i => i.Product)
             .Include(b => b.Shop)
             .Include(b => b.Supplier)
             .FirstOrDefaultAsync(b => b.Id == id && !b.IsDeleted && shopIds.Contains(b.ShopId), ct)
@@ -163,6 +163,22 @@ public sealed class PurchaseService(
         var paid = await db.SupplierPayments
             .Where(p => p.PurchaseBillId == id && !p.IsDeleted)
             .SumAsync(p => p.Amount, ct)
+            .ConfigureAwait(false);
+
+        var lines = await db.PurchaseItems
+            .AsNoTracking()
+            .Where(i => i.PurchaseBillId == id)
+            .OrderBy(i => i.Id)
+            .Select(i => new PurchaseItemDto
+            {
+                ProductId = i.ProductId,
+                Sku = i.Product.Sku,
+                ProductName = i.Product.Name,
+                Qty = i.Qty,
+                UnitCost = i.UnitCost,
+                LineTotal = i.Qty * i.UnitCost
+            })
+            .ToListAsync(ct)
             .ConfigureAwait(false);
 
         return new PurchaseBillDetailDto(
@@ -178,17 +194,7 @@ public sealed class PurchaseService(
             bill.Total - paid,
             bill.PaymentMethod,
             bill.Note,
-            bill.Items
-                .Select(i => new PurchaseItemDto
-                {
-                    ProductId = i.ProductId,
-                    Sku = i.Product.Sku,
-                    ProductName = i.Product.Name,
-                    Qty = i.Qty,
-                    UnitCost = i.UnitCost,
-                    LineTotal = i.Qty * i.UnitCost
-                })
-                .ToList());
+            lines);
     }
 
     public async Task<PurchaseBillDetailDto> CreateAsync(CreatePurchaseRequest request, CancellationToken ct = default)

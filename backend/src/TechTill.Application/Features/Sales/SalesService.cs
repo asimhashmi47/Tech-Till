@@ -175,13 +175,30 @@ public sealed class SalesService(
     {
         var shopIds = await shopScope.ResolveAsync(null, ct).ConfigureAwait(false);
 
+        // Header and lines are two direct lookups. Including the lines made EF join them through
+        // a derived table of every sales line in the database, which SQLite built in full each time.
         var invoice = await db.SalesInvoices
             .AsNoTracking()
-            .Include(i => i.Items).ThenInclude(x => x.Product)
             .Include(i => i.Shop)
             .Include(i => i.Customer)
             .FirstOrDefaultAsync(i => i.Id == id && !i.IsDeleted && shopIds.Contains(i.ShopId), ct)
             .ConfigureAwait(false) ?? throw new NotFoundException(nameof(SalesInvoice), id);
+
+        var lines = await db.SalesItems
+            .AsNoTracking()
+            .Where(x => x.SalesInvoiceId == id)
+            .OrderBy(x => x.Id)
+            .Select(x => new InvoiceItemDto
+            {
+                ProductId = x.ProductId,
+                Sku = x.Product.Sku,
+                ProductName = x.Product.Name,
+                Qty = x.Qty,
+                UnitPrice = x.UnitPrice,
+                LineTotal = x.Qty * x.UnitPrice
+            })
+            .ToListAsync(ct)
+            .ConfigureAwait(false);
 
         return new InvoiceDetailDto(
             invoice.Id,
@@ -204,17 +221,7 @@ public sealed class SalesService(
             invoice.Note,
             invoice.VoidReason,
             invoice.CreatedBy,
-            invoice.Items
-                .Select(x => new InvoiceItemDto
-                {
-                    ProductId = x.ProductId,
-                    Sku = x.Product.Sku,
-                    ProductName = x.Product.Name,
-                    Qty = x.Qty,
-                    UnitPrice = x.UnitPrice,
-                    LineTotal = x.Qty * x.UnitPrice
-                })
-                .ToList());
+            lines);
     }
 
     public async Task<InvoiceDetailDto> CreateSaleAsync(

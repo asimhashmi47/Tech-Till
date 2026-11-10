@@ -26,6 +26,45 @@ public class QueryPlanTests(SharedApi shared)
             return string.Join(" | ", steps);
         });
 
+    /// <summary>
+    /// Loading one invoice joined its lines through every sales line in the database, which
+    /// cost about 1.3 s per sale under load.
+    /// </summary>
+    [Fact]
+    [Trait("AC", "PERF-03")]
+    public async Task OpeningAnInvoice_NeverScansATable()
+    {
+        await using var api = await ApiFactory.StartAsync();
+        var admin = await api.AsAsync("admin");
+        var id = await api.DbAsync(db => db.SalesInvoices.OrderByDescending(i => i.Id).Select(i => i.Id).FirstAsync());
+        api.Fault.Seen.Clear();
+
+        await admin.GetAsync($"/api/invoices/{id}").ExpectOkAsync();
+
+        var statements = api.Fault.Seen.Where(s => s.Contains("\"SalesInvoices\"", StringComparison.Ordinal) || s.Contains("\"SalesItems\"", StringComparison.Ordinal)).ToList();
+        Assert.NotEmpty(statements);
+        foreach (var sql in statements)
+        {
+            var plan = await api.DbAsync(async db =>
+            {
+                var connection = db.Database.GetDbConnection();
+                await connection.OpenAsync();
+                await using var command = connection.CreateCommand();
+                command.CommandText = "EXPLAIN QUERY PLAN " + sql;
+                await using var reader = await command.ExecuteReaderAsync();
+                var steps = new List<string>();
+                while (await reader.ReadAsync())
+                {
+                    steps.Add(reader.GetString(3));
+                }
+
+                return string.Join(" | ", steps);
+            });
+
+            Assert.DoesNotContain("SCAN", plan, StringComparison.Ordinal);
+        }
+    }
+
     [Fact]
     [Trait("AC", "PERF-02")]
     public async Task CountingAShopsInvoices_ReadsOnlyAnIndex()

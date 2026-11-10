@@ -19,6 +19,9 @@ public sealed class FaultInjector : DbCommandInterceptor
 {
     public string? FailWhenSqlContains { get; set; }
 
+    /// <summary>Every statement run, so a test can check the plan of the SQL EF really sent.</summary>
+    public System.Collections.Concurrent.ConcurrentQueue<string> Seen { get; } = new();
+
     public override ValueTask<InterceptionResult<DbDataReader>> ReaderExecutingAsync(
         DbCommand command,
         CommandEventData eventData,
@@ -41,6 +44,8 @@ public sealed class FaultInjector : DbCommandInterceptor
 
     private void Check(DbCommand command)
     {
+        Seen.Enqueue(command.CommandText);
+
         if (FailWhenSqlContains is { } text && command.CommandText.Contains(text, StringComparison.Ordinal))
         {
             throw new InvalidOperationException("Injected database failure");

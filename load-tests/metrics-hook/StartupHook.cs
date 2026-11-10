@@ -221,6 +221,6 @@ internal sealed class EventObserver : IObserver<KeyValuePair<string, object?>>
         }
 
         var flat = string.Create(CultureInfo.InvariantCulture, $"{builder}");
-        return flat.Length > 220 ? flat[..220] : flat;
+        return flat.Length > 4000 ? flat[..4000] : flat;
     }
 }
