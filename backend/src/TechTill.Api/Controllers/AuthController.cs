@@ -14,7 +14,7 @@ public sealed class AuthController(AuthService auth) : ApiControllerBase
         => auth.LoginAsync(request, ct);
 
     [AllowAnonymous]
-    [EnableRateLimiting("login")]
+    [EnableRateLimiting("refresh")]
     [HttpPost("refresh")]
     public Task<AuthResult> Refresh(RefreshRequest request, CancellationToken ct)
         => auth.RefreshAsync(request, ct);

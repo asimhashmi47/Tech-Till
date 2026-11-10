@@ -94,6 +94,8 @@ public sealed class ExceptionHandlingMiddleware(
                 (StatusCodes.Status403Forbidden, "Forbidden", f.Message, null),
             ConflictException c =>
                 (StatusCodes.Status409Conflict, "Conflict", c.Message, null),
+            TooManyRequestsException t =>
+                (StatusCodes.Status429TooManyRequests, "Too many attempts", t.Message, null),
             OperationCanceledException =>
                 (StatusCodesExtra.Status499ClientClosedRequest, "Request cancelled", "The request was cancelled.", null),
             _ =>

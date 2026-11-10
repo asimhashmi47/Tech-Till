@@ -43,6 +43,9 @@ export function startApi({ database, environment = 'Production', metricsFile }) 
       `--Jwt:Secret=${SECRET}`,
       '--Jwt:Issuer=TechTill',
       '--Jwt:Audience=TechTill',
+      // Every virtual user comes from this one address, which real tills do not.
+      '--RateLimits:SignInPerIpPerMinute=1000000',
+      '--RateLimits:RefreshPerIpPerMinute=1000000',
       `--ConnectionStrings:Default=Data Source=${database}`,
       `--Serilog:WriteTo:0:Args:path=${database}.log-.txt`,
     ],

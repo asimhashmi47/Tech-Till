@@ -56,6 +56,11 @@ public interface ICacheService
 
     bool IsMarked(string key);
 
+    /// <summary>Adds one to a counter that disappears when the window, set by the first call, ends.</summary>
+    int Increment(string key, TimeSpan window);
+
+    int CountOf(string key);
+
     /// <summary>Drops every cached entry under a logical group, for example dashboard aggregates.</summary>
     void RemoveGroup(string group);
 }

@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Runtime.CompilerServices;
 using Microsoft.Extensions.Caching.Memory;
 using TechTill.Application.Common.Interfaces;
 
@@ -63,6 +64,19 @@ public sealed class MemoryCacheService(IMemoryCache cache) : ICacheService
     public void Mark(string key, TimeSpan ttl) => cache.Set(key, true, ttl);
 
     public bool IsMarked(string key) => cache.TryGetValue(key, out _);
+
+    public int Increment(string key, TimeSpan window)
+    {
+        var counter = cache.GetOrCreate(key, entry =>
+        {
+            entry.AbsoluteExpirationRelativeToNow = window;
+            return new StrongBox<int>();
+        })!;
+
+        return Interlocked.Increment(ref counter.Value);
+    }
+
+    public int CountOf(string key) => cache.TryGetValue(key, out StrongBox<int>? counter) ? counter!.Value : 0;
 
     public void RemoveGroup(string group)
     {

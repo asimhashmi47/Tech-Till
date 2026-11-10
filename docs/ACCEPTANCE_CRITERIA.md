@@ -26,6 +26,7 @@ Every criterion has at least one test tagged with its id: `[Trait("AC", "SALE-01
 | AUTH-10 | The API refuses to start without a signing key of at least 32 characters |
 | AUTH-11 | Deactivating or demoting a user ends their access tokens on the next request; other edits do not |
 | AUTH-12 | Logout ends that access token only; a password change ends all of them |
+| AUTH-13 | Sign-in is limited per address, ten failures lock that account from that address for 15 minutes, a success clears them, and refresh has its own budget |
 
 ## Permissions
 

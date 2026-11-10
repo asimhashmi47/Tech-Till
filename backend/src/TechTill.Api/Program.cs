@@ -86,16 +86,21 @@ builder.Services.AddCors(options => options.AddPolicy("angular", policy => polic
     .AllowAnyMethod()
     .WithExposedHeaders("Content-Disposition")));
 
-// A fixed window on the login endpoint only. Everything else is behind a token already.
+// Per address, so one source can never use up everybody's sign-ins. AuthService also locks
+// a single account after repeated failures from one address.
+var signInLimit = builder.Configuration.GetValue("RateLimits:SignInPerIpPerMinute", 60);
+var refreshLimit = builder.Configuration.GetValue("RateLimits:RefreshPerIpPerMinute", 120);
+
+static RateLimitPartition<string> PerAddress(HttpContext context, int limit)
+    => RateLimitPartition.GetFixedWindowLimiter(
+        context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+        _ => new FixedWindowRateLimiterOptions { Window = TimeSpan.FromMinutes(1), PermitLimit = limit, QueueLimit = 0 });
+
 builder.Services.AddRateLimiter(options =>
 {
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
-    options.AddFixedWindowLimiter("login", limiter =>
-    {
-        limiter.Window = TimeSpan.FromMinutes(1);
-        limiter.PermitLimit = 10;
-        limiter.QueueLimit = 0;
-    });
+    options.AddPolicy("login", context => PerAddress(context, signInLimit));
+    options.AddPolicy("refresh", context => PerAddress(context, refreshLimit));
 });
 
 if (builder.Environment.IsDevelopment())

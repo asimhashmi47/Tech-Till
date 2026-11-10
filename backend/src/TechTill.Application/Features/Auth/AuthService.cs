@@ -16,10 +16,21 @@ public sealed class AuthService(
     ICacheService cache,
     IDateTimeProvider clock)
 {
+    private const int MaxSignInFailures = 10;
+
+    private static readonly TimeSpan SignInLockWindow = TimeSpan.FromMinutes(15);
     private static readonly TimeSpan ClockSkewAllowance = TimeSpan.FromMinutes(1);
 
     public async Task<AuthResult> LoginAsync(LoginRequest request, CancellationToken ct = default)
     {
+        // Keyed by address too, so someone guessing from elsewhere cannot lock the owner out.
+        var failures = CacheKeys.SignInFailures(request.Username, currentUser.Ip);
+
+        if (cache.CountOf(failures) >= MaxSignInFailures)
+        {
+            throw new TooManyRequestsException("Too many failed attempts for this account. Try again in 15 minutes.");
+        }
+
         var user = await db.Users
             .Include(u => u.UserShops).ThenInclude(us => us.Shop)
             .Include(u => u.Permissions)
@@ -28,6 +39,8 @@ public sealed class AuthService(
 
         if (user is null || !user.IsActive || !hasher.Verify(request.Password, user.PasswordHash))
         {
+            cache.Increment(failures, SignInLockWindow);
+
             await audit.LogAsync(
                 Module.Users,
                 AuditAction.LoginFailed,
@@ -40,6 +53,7 @@ public sealed class AuthService(
             throw new ForbiddenException("Invalid username or password.");
         }
 
+        cache.Remove(failures);
         user.LastLoginAt = clock.UtcNow;
         var result = await IssueAsync(user, ct).ConfigureAwait(false);
 

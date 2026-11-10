@@ -22,3 +22,6 @@ public sealed class ValidationFailedException(IDictionary<string, string[]> erro
 
 /// <summary>Maps to 409.</summary>
 public sealed class ConflictException(string message) : Exception(message);
+
+/// <summary>Maps to 429.</summary>
+public sealed class TooManyRequestsException(string message) : Exception(message);
