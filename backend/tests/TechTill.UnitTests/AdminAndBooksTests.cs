@@ -1,3 +1,4 @@
+using TechTill.Application.Features.Auth;
 using ClosedXML.Excel;
 using Microsoft.EntityFrameworkCore;
 using TechTill.Application.Common.Exceptions;
@@ -109,7 +110,7 @@ public sealed class AdminTests : IDisposable
 
         var db = _app.Saved();
         Assert.False((await db.Users.SingleAsync(u => u.Id == _app.StaffId)).IsActive);
-        Assert.NotNull((await db.RefreshTokens.SingleAsync(t => t.Token == login.RefreshToken)).RevokedAt);
+        Assert.NotNull((await db.RefreshTokens.SingleAsync(t => t.Token == RefreshTokenHash.Of(login.RefreshToken))).RevokedAt);
     }
 
     [Fact]

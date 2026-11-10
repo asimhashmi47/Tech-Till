@@ -89,7 +89,7 @@ public sealed class AuthServiceTests : IDisposable
         var second = await _app.Auth.RefreshAsync(new RefreshRequest(first.RefreshToken));
 
         Assert.NotEqual(first.RefreshToken, second.RefreshToken);
-        var old = await _app.Saved().RefreshTokens.SingleAsync(t => t.Token == first.RefreshToken);
+        var old = await _app.Saved().RefreshTokens.SingleAsync(t => t.Token == RefreshTokenHash.Of(first.RefreshToken));
         Assert.NotNull(old.RevokedAt);
     }
 
@@ -152,7 +152,7 @@ public sealed class AuthServiceTests : IDisposable
         await _app.Auth.LogoutAsync(login.RefreshToken);
 
         var db = _app.Saved();
-        Assert.NotNull((await db.RefreshTokens.SingleAsync(t => t.Token == login.RefreshToken)).RevokedAt);
+        Assert.NotNull((await db.RefreshTokens.SingleAsync(t => t.Token == RefreshTokenHash.Of(login.RefreshToken))).RevokedAt);
         Assert.Single(db.AuditLogs.Where(a => a.Action == AuditAction.Logout));
     }
 
@@ -180,7 +180,7 @@ public sealed class AuthServiceTests : IDisposable
 
         var db = _app.Saved();
         Assert.Equal(_app.Hasher.Hash("a-new-password"), (await db.Users.SingleAsync(u => u.Id == _app.StaffId)).PasswordHash);
-        Assert.All(db.RefreshTokens.Where(t => t.Token == a.RefreshToken || t.Token == b.RefreshToken), t => Assert.NotNull(t.RevokedAt));
+        Assert.All(db.RefreshTokens.Where(t => t.Token == RefreshTokenHash.Of(a.RefreshToken) || t.Token == RefreshTokenHash.Of(b.RefreshToken)), t => Assert.NotNull(t.RevokedAt));
         Assert.Single(db.AuditLogs.Where(l => l.Action == AuditAction.PasswordChange));
     }
 

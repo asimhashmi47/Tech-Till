@@ -24,6 +24,7 @@ public sealed class AuthService(
         => _decoyHash ??= hasher.Hash(Convert.ToBase64String(System.Security.Cryptography.RandomNumberGenerator.GetBytes(24)));
 
     private static readonly TimeSpan SignInLockWindow = TimeSpan.FromMinutes(15);
+    private static readonly TimeSpan ReuseGrace = TimeSpan.FromSeconds(30);
     private static readonly TimeSpan ClockSkewAllowance = TimeSpan.FromMinutes(1);
 
     public async Task<AuthResult> LoginAsync(LoginRequest request, CancellationToken ct = default)
@@ -79,11 +80,20 @@ public sealed class AuthService(
 
     public async Task<AuthResult> RefreshAsync(RefreshRequest request, CancellationToken ct = default)
     {
+        var hash = RefreshTokenHash.Of(request.RefreshToken ?? string.Empty);
         var stored = await db.RefreshTokens
             .Include(t => t.User).ThenInclude(u => u.UserShops).ThenInclude(us => us.Shop)
             .Include(t => t.User).ThenInclude(u => u.Permissions)
-            .FirstOrDefaultAsync(t => t.Token == request.RefreshToken, ct)
+            .FirstOrDefaultAsync(t => t.Token == hash, ct)
             .ConfigureAwait(false);
+
+        // A token already rotated away is being used again: someone else holds a copy. Two tabs
+        // refreshing together look the same for a moment, so a short grace period applies.
+        if (stored?.RevokedAt is { } revokedAt && clock.UtcNow - revokedAt > ReuseGrace)
+        {
+            await EndEverySessionAsync(stored.User, ct).ConfigureAwait(false);
+            throw new ForbiddenException("The refresh token is no longer valid.");
+        }
 
         if (stored is null || stored.RevokedAt is not null || stored.ExpiresAt <= clock.UtcNow || !stored.User.IsActive)
         {
@@ -98,8 +108,9 @@ public sealed class AuthService(
     {
         if (!string.IsNullOrWhiteSpace(refreshToken))
         {
+            var hash = RefreshTokenHash.Of(refreshToken);
             var stored = await db.RefreshTokens
-                .FirstOrDefaultAsync(t => t.Token == refreshToken, ct)
+                .FirstOrDefaultAsync(t => t.Token == hash, ct)
                 .ConfigureAwait(false);
 
             if (stored is not null)
@@ -167,19 +178,39 @@ public sealed class AuthService(
     private async Task<AuthResult> IssueAsync(AppUser user, CancellationToken ct)
     {
         var access = tokens.CreateAccessToken(user);
-        var refresh = new RefreshToken
+        var raw = tokens.CreateRefreshToken();
+
+        db.RefreshTokens.Add(new RefreshToken
         {
             UserId = user.Id,
-            Token = tokens.CreateRefreshToken(),
+            Token = RefreshTokenHash.Of(raw),
             CreatedAt = clock.UtcNow,
             ExpiresAt = clock.UtcNow.Add(tokens.RefreshTokenLifetime)
-        };
-
-        db.RefreshTokens.Add(refresh);
+        });
         await db.SaveChangesAsync(ct).ConfigureAwait(false);
 
         var profile = await BuildProfileAsync(user, ct).ConfigureAwait(false);
-        return new AuthResult(access.Token, access.ExpiresAt, refresh.Token, profile);
+        return new AuthResult(access.Token, access.ExpiresAt, raw, profile);
+    }
+
+    private async Task EndEverySessionAsync(AppUser user, CancellationToken ct)
+    {
+        var active = await db.RefreshTokens
+            .Where(t => t.UserId == user.Id && t.RevokedAt == null)
+            .ToListAsync(ct).ConfigureAwait(false);
+        active.ForEach(t => t.RevokedAt = clock.UtcNow);
+        user.TokenVersion++;
+
+        await audit.LogAsync(
+            Module.Users,
+            AuditAction.Logout,
+            nameof(AppUser),
+            user.Id,
+            "Refresh token reused, every session ended",
+            usernameOverride: user.Username,
+            ct: ct).ConfigureAwait(false);
+        await db.SaveChangesAsync(ct).ConfigureAwait(false);
+        permissions.Invalidate(user.Id);
     }
 
     private async Task<UserProfile> BuildProfileAsync(AppUser user, CancellationToken ct)

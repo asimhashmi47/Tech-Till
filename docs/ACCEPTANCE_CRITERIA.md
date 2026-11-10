@@ -27,6 +27,7 @@ Every criterion has at least one test tagged with its id: `[Trait("AC", "SALE-01
 | AUTH-11 | Deactivating or demoting a user ends their access tokens on the next request; other edits do not |
 | AUTH-12 | Logout ends that access token only; a password change ends all of them |
 | AUTH-14 | A failed sign-in for an unknown or inactive user still runs one password check, so timing does not reveal the username |
+| AUTH-15 | Refresh tokens are stored only as a hash; replaying a rotated token after 30 seconds ends every session of that user |
 | AUTH-13 | Sign-in is limited per address, ten failures lock that account from that address for 15 minutes, a success clears them, and refresh has its own budget |
 
 ## Permissions
