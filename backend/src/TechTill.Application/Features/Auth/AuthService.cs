@@ -113,7 +113,8 @@ public sealed class AuthService(
                 .FirstOrDefaultAsync(t => t.Token == hash, ct)
                 .ConfigureAwait(false);
 
-            if (stored is not null)
+            // Only the caller's own session; someone else's token value proves nothing about them.
+            if (stored is not null && stored.UserId == currentUser.UserId)
             {
                 stored.RevokedAt = clock.UtcNow;
             }
