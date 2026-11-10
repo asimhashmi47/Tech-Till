@@ -25,20 +25,21 @@ public sealed class AuditService(AppDbContext db, ICurrentUser currentUser, IDat
         {
             At = clock.UtcNow,
             UserId = currentUser.UserId,
-            Username = usernameOverride ?? currentUser.Username,
+            // A failed sign-in records whatever was typed, so it is cut to the column's length.
+            Username = Cut(usernameOverride ?? currentUser.Username, 60)!,
             ShopId = shopId,
             Module = module,
             Action = action,
             Entity = entity,
             EntityId = entityId,
-            Summary = Trim(summary),
-            Ip = currentUser.Ip,
-            CorrelationId = currentUser.CorrelationId
+            Summary = Cut(summary, 1000),
+            Ip = Cut(currentUser.Ip, 60),
+            CorrelationId = Cut(currentUser.CorrelationId, 60)
         });
 
         await db.SaveChangesAsync(ct).ConfigureAwait(false);
     }
 
-    private static string? Trim(string? value)
-        => value is null || value.Length <= 1000 ? value : value[..1000];
+    private static string? Cut(string? value, int max)
+        => value is null || value.Length <= max ? value : value[..max];
 }

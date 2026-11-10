@@ -19,6 +19,10 @@ using TechTill.Infrastructure.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// No endpoint takes a file, so nothing legitimate comes near this.
+const long MaxRequestBytes = 1_048_576;
+builder.WebHost.ConfigureKestrel(options => options.Limits.MaxRequestBodySize = MaxRequestBytes);
+
 builder.Host.UseSerilog((context, configuration) => configuration
     .ReadFrom.Configuration(context.Configuration)
     .Enrich.FromLogContext());
@@ -136,6 +140,41 @@ var app = builder.Build();
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.UseMiddleware<SecurityHeadersMiddleware>();
+
+// Kestrel enforces the limit while reading; this answers declared oversize bodies at once,
+// and covers hosts that do not apply Kestrel's limit.
+app.Use(async (context, next) =>
+{
+    if (context.Request.ContentLength > MaxRequestBytes)
+    {
+        context.Response.StatusCode = StatusCodes.Status413PayloadTooLarge;
+        return;
+    }
+
+    // A chunked body declares no length, so it is read up to the limit first.
+    if (context.Request.ContentLength is null && context.Request.Body.CanRead && HttpMethods.IsPost(context.Request.Method) | HttpMethods.IsPut(context.Request.Method))
+    {
+        var buffered = new MemoryStream();
+        var chunk = new byte[16_384];
+        int read;
+        while ((read = await context.Request.Body.ReadAsync(chunk, context.RequestAborted).ConfigureAwait(false)) > 0)
+        {
+            if (buffered.Length + read > MaxRequestBytes)
+            {
+                context.Response.StatusCode = StatusCodes.Status413PayloadTooLarge;
+                return;
+            }
+
+            buffered.Write(chunk, 0, read);
+        }
+
+        buffered.Position = 0;
+        context.Request.Body = buffered;
+        context.Response.RegisterForDispose(buffered);
+    }
+
+    await next(context).ConfigureAwait(false);
+});
 app.UseSerilogRequestLogging();
 
 if (app.Environment.IsDevelopment())

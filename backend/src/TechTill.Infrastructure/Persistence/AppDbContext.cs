@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
+using TechTill.Application.Common.Exceptions;
 using TechTill.Application.Common.Interfaces;
 using TechTill.Domain.Entities;
 
@@ -36,6 +37,45 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
 
     public new Task<int> SaveChangesAsync(CancellationToken ct = default)
         => base.SaveChangesAsync(ct);
+
+    public override Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default)
+    {
+        EnforceTextLengths();
+        return base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
+    }
+
+    public override int SaveChanges(bool acceptAllChangesOnSuccess)
+    {
+        EnforceTextLengths();
+        return base.SaveChanges(acceptAllChangesOnSuccess);
+    }
+
+    /// <summary>
+    /// SQLite stores any length whatever the column says, so the declared limits are enforced
+    /// here, once, for every write rather than in each service.
+    /// </summary>
+    private void EnforceTextLengths()
+    {
+        foreach (var entry in ChangeTracker.Entries())
+        {
+            if (entry.State is not (EntityState.Added or EntityState.Modified))
+            {
+                continue;
+            }
+
+            foreach (var property in entry.Properties)
+            {
+                if (property.Metadata.GetMaxLength() is { } max
+                    && property.CurrentValue is string text
+                    && text.Length > max)
+                {
+                    throw ValidationFailedException.ForField(
+                        property.Metadata.Name,
+                        $"Use at most {max} characters.");
+                }
+            }
+        }
+    }
 
     public async Task<IAppTransaction> BeginTransactionAsync(CancellationToken ct = default)
     {
