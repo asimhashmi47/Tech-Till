@@ -43,9 +43,15 @@ public sealed class FakeUser : ICurrentUser
 /// <summary>Fast and reversible, so tests can assert on the stored value without BCrypt's cost.</summary>
 public sealed class FakeHasher : IPasswordHasher
 {
+    public int VerifyCalls { get; private set; }
+
     public string Hash(string password) => "hash:" + password;
 
-    public bool Verify(string password, string hash) => hash == "hash:" + password;
+    public bool Verify(string password, string hash)
+    {
+        VerifyCalls++;
+        return hash == "hash:" + password;
+    }
 }
 
 /// <summary>A private in-memory database with two shops, two users and a little stock.</summary>

@@ -18,6 +18,11 @@ public sealed class AuthService(
 {
     private const int MaxSignInFailures = 10;
 
+    private static string? _decoyHash;
+
+    private static string DecoyHash(IPasswordHasher hasher)
+        => _decoyHash ??= hasher.Hash(Convert.ToBase64String(System.Security.Cryptography.RandomNumberGenerator.GetBytes(24)));
+
     private static readonly TimeSpan SignInLockWindow = TimeSpan.FromMinutes(15);
     private static readonly TimeSpan ClockSkewAllowance = TimeSpan.FromMinutes(1);
 
@@ -37,7 +42,10 @@ public sealed class AuthService(
             .FirstOrDefaultAsync(u => u.Username == request.Username && !u.IsDeleted, ct)
             .ConfigureAwait(false);
 
-        if (user is null || !user.IsActive || !hasher.Verify(request.Password, user.PasswordHash))
+        // Always pay for one hash check, so the response time does not reveal which usernames exist.
+        var passwordMatches = hasher.Verify(request.Password, user?.PasswordHash ?? DecoyHash(hasher));
+
+        if (user is null || !user.IsActive || !passwordMatches)
         {
             cache.Increment(failures, SignInLockWindow);
 
