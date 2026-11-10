@@ -142,9 +142,9 @@ public sealed class AuthService(
             throw ValidationFailedException.ForField(nameof(request.CurrentPassword), "The current password is not correct.");
         }
 
-        if (request.NewPassword.Length < 8)
+        if (PasswordPolicy.Problem(request.NewPassword, user.Username) is { } problem)
         {
-            throw ValidationFailedException.ForField(nameof(request.NewPassword), "Use at least 8 characters.");
+            throw ValidationFailedException.ForField(nameof(request.NewPassword), problem);
         }
 
         user.PasswordHash = hasher.Hash(request.NewPassword);

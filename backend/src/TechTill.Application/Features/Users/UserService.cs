@@ -1,3 +1,4 @@
+using TechTill.Application.Features.Auth;
 using Microsoft.EntityFrameworkCore;
 using TechTill.Application.Common.Exceptions;
 using TechTill.Application.Common.Interfaces;
@@ -91,9 +92,9 @@ public sealed class UserService(
 
     public async Task<UserDetailDto> CreateAsync(SaveUserRequest request, CancellationToken ct = default)
     {
-        if (string.IsNullOrWhiteSpace(request.Password) || request.Password.Length < 8)
+        if (PasswordPolicy.Problem(request.Password, request.Username) is { } problem)
         {
-            throw ValidationFailedException.ForField(nameof(request.Password), "Use at least 8 characters.");
+            throw ValidationFailedException.ForField(nameof(request.Password), problem);
         }
 
         await ValidateAsync(request, ct).ConfigureAwait(false);
@@ -110,7 +111,8 @@ public sealed class UserService(
             FullName = request.FullName.Trim(),
             Role = request.Role,
             IsActive = request.IsActive,
-            PasswordHash = hasher.Hash(request.Password),
+            // PasswordPolicy has already refused a missing password.
+            PasswordHash = hasher.Hash(request.Password!),
             CreatedAt = clock.UtcNow,
             CreatedBy = currentUser.Username
         };
@@ -169,12 +171,20 @@ public sealed class UserService(
 
         if (!string.IsNullOrWhiteSpace(request.Password))
         {
-            if (request.Password.Length < 8)
+            if (PasswordPolicy.Problem(request.Password, request.Username) is { } problem)
             {
-                throw ValidationFailedException.ForField(nameof(request.Password), "Use at least 8 characters.");
+                throw ValidationFailedException.ForField(nameof(request.Password), problem);
             }
 
             user.PasswordHash = hasher.Hash(request.Password);
+
+            // A reset is usually a response to a leaked or forgotten password, so every
+            // session that the old password opened ends with it.
+            user.TokenVersion++;
+            var sessions = await db.RefreshTokens
+                .Where(t => t.UserId == id && t.RevokedAt == null)
+                .ToListAsync(ct).ConfigureAwait(false);
+            sessions.ForEach(t => t.RevokedAt = clock.UtcNow);
         }
 
         await ApplyAssignmentsAsync(user, request, ct).ConfigureAwait(false);
