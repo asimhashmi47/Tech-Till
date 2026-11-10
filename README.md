@@ -142,6 +142,8 @@ Settings come from `appsettings.json`, then the environment, then user secrets.
 | `Bootstrap:AdminPassword` | `BOOTSTRAP__ADMINPASSWORD` | Required outside Development when the database is new: the `admin` password, at least 12 characters. A new database then gets only that account and the walk-in customer |
 | `RateLimits:SignInPerIpPerMinute` | `RATELIMITS__SIGNINPERIPPERMINUTE` | Default 60. Behind a reverse proxy every client shares one address until forwarded headers are configured |
 | `RateLimits:RefreshPerIpPerMinute` | `RATELIMITS__REFRESHPERIPPERMINUTE` | Default 120 |
+| `RateLimits:RequestsPerUserPerMinute` | `RATELIMITS__REQUESTSPERUSERPERMINUTE` | Default 600 |
+| `RateLimits:ExportsPerUserPerMinute` | `RATELIMITS__EXPORTSPERUSERPERMINUTE` | Default 10 |
 | `Jwt:Issuer` / `Jwt:Audience` | `JWT__ISSUER` / `JWT__AUDIENCE` | Default `TechTill` |
 | `Jwt:AccessTokenMinutes` | `JWT__ACCESSTOKENMINUTES` | Default 30 |
 | `Jwt:RefreshTokenDays` | `JWT__REFRESHTOKENDAYS` | Default 7 |

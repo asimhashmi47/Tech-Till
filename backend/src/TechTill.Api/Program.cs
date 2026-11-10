@@ -100,9 +100,31 @@ static RateLimitPartition<string> PerAddress(HttpContext context, int limit)
         context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
         _ => new FixedWindowRateLimiterOptions { Window = TimeSpan.FromMinutes(1), PermitLimit = limit, QueueLimit = 0 });
 
+// Every signed-in user also gets a budget, and a much smaller one for Excel exports, which
+// load and format up to 50,000 rows each.
+var requestsPerUser = builder.Configuration.GetValue("RateLimits:RequestsPerUserPerMinute", 600);
+var exportsPerUser = builder.Configuration.GetValue("RateLimits:ExportsPerUserPerMinute", 10);
+
+static RateLimitPartition<string> PerUser(string key, int limit)
+    => RateLimitPartition.GetFixedWindowLimiter(
+        key,
+        _ => new FixedWindowRateLimiterOptions { Window = TimeSpan.FromMinutes(1), PermitLimit = limit, QueueLimit = 0 });
+
 builder.Services.AddRateLimiter(options =>
 {
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(context =>
+    {
+        var userId = context.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (userId is null)
+        {
+            return RateLimitPartition.GetNoLimiter("anonymous");
+        }
+
+        return context.Request.Path.Value?.EndsWith("/export", StringComparison.OrdinalIgnoreCase) == true
+            ? PerUser($"export:{userId}", exportsPerUser)
+            : PerUser($"user:{userId}", requestsPerUser);
+    });
     options.AddPolicy("login", context => PerAddress(context, signInLimit));
     options.AddPolicy("refresh", context => PerAddress(context, refreshLimit));
 });
@@ -188,8 +210,9 @@ else
 }
 
 app.UseCors("angular");
-app.UseRateLimiter();
+// After authentication, so the per-user budget can see who is calling.
 app.UseAuthentication();
+app.UseRateLimiter();
 app.UseAuthorization();
 app.MapControllers();
 

@@ -96,7 +96,7 @@ public sealed class ApiFactory : WebApplicationFactory<CurrentUser>
         return Task.FromResult(factory);
     }
 
-    public static async Task<ApiFactory> StartAsync(string environment = "Testing")
+    public static async Task<ApiFactory> StartAsync(string environment = "Testing", Dictionary<string, string>? settings = null)
     {
         Directory.CreateDirectory(Folder);
         await TemplateLock.WaitAsync();
@@ -120,7 +120,7 @@ public sealed class ApiFactory : WebApplicationFactory<CurrentUser>
 
         var copy = Path.Combine(Folder, Guid.NewGuid().ToString("N") + ".db");
         File.Copy(_template, copy);
-        var factory = new ApiFactory(copy, environment);
+        var factory = new ApiFactory(copy, environment, settings);
         _ = factory.Services;
         return factory;
     }
@@ -131,6 +131,11 @@ public sealed class ApiFactory : WebApplicationFactory<CurrentUser>
         builder.UseSetting("ConnectionStrings:Default", $"Data Source={_database}");
         builder.UseSetting("Jwt:Secret", Secret);
         builder.UseSetting("Serilog:WriteTo:0:Args:path", Path.Combine(Folder, "log-.txt"));
+        // Suites share one account across hundreds of calls a minute. UserRateLimitTests puts
+        // the production limits back to prove them.
+        builder.UseSetting("RateLimits:RequestsPerUserPerMinute", "1000000");
+        builder.UseSetting("RateLimits:ExportsPerUserPerMinute", "1000000");
+
         foreach (var (key, value) in _settings)
         {
             builder.UseSetting(key, value);

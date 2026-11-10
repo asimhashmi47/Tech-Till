@@ -166,6 +166,7 @@ Every criterion has at least one test tagged with its id: `[Trait("AC", "SALE-01
 | API-04 | Responses match the documented contract: paging fields, enums as strings, nulls omitted |
 | API-05 | Exports return a spreadsheet with a filename |
 | API-06 | Repeating an already-applied void, delete or logout is safe |
+| API-08 | Each signed-in user has a budget of 600 requests and 10 exports a minute, beyond which they get 429 and nobody else is affected |
 | API-07 | Text longer than its column returns 400 on that field, and a body over 1 MB returns 413 |
 | BOOT-01 | Outside Development, a new database refuses to start without a private owner password of 12+ characters |
 | BOOT-02 | Outside Development, a new database gets only the owner and the walk-in customer, and an existing database is left alone |
