@@ -7,7 +7,7 @@ namespace TechTill.Api.Middleware;
 
 /// <summary>
 /// Turns every unhandled exception into an RFC 7807 ProblemDetails response carrying the
-/// correlation id. Stack traces are only included outside production.
+/// correlation id. Stack traces are only included in Development.
 /// </summary>
 public sealed class ExceptionHandlingMiddleware(
     RequestDelegate next,
@@ -65,7 +65,8 @@ public sealed class ExceptionHandlingMiddleware(
 
         problem.Extensions["correlationId"] = context.TraceIdentifier;
 
-        if (!environment.IsProduction() && status >= StatusCodes.Status500InternalServerError)
+        // Only on a developer's machine: staging and test hosts are often reachable by others.
+        if (environment.IsDevelopment() && status >= StatusCodes.Status500InternalServerError)
         {
             problem.Extensions["exception"] = exception.ToString();
         }
