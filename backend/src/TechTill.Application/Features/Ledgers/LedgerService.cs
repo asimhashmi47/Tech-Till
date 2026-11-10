@@ -1,3 +1,4 @@
+using TechTill.Application.Common;
 using Microsoft.EntityFrameworkCore;
 using TechTill.Application.Common.Interfaces;
 using TechTill.Application.Common.Query;
@@ -272,6 +273,8 @@ public sealed class LedgerService(
         DateTime? from,
         DateTime? to)
     {
+        DateBounds.EnsureRange(from, to);
+
         var fromUtc = from is null ? (DateTime?)null : DateTime.SpecifyKind(from.Value.Date, DateTimeKind.Utc);
         var toUtc = to is null ? (DateTime?)null : DateTime.SpecifyKind(to.Value.Date.AddDays(1), DateTimeKind.Utc);
 

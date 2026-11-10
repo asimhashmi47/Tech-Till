@@ -1,5 +1,6 @@
 using System.Globalization;
 using Microsoft.EntityFrameworkCore;
+using TechTill.Application.Common;
 using TechTill.Application.Common.Exceptions;
 using TechTill.Application.Common.Interfaces;
 using TechTill.Application.Common.Query;
@@ -76,6 +77,8 @@ public sealed class DashboardService(
     /// </summary>
     private (DateTime Start, DateTime EndExclusive) ResolveRange(DateTime? from, DateTime? to)
     {
+        DateBounds.EnsureRange(from, to);
+
         var today = DateTime.SpecifyKind(clock.UtcNow.Date, DateTimeKind.Utc);
 
         var start = DateTime.SpecifyKind((from ?? today.AddDays(-29)).Date, DateTimeKind.Utc);

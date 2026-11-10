@@ -151,6 +151,7 @@ Every criterion has at least one test tagged with its id: `[Trait("AC", "SALE-01
 | RPT-03 | Ageing totals equal receivables and payables on the balance sheet |
 | RPT-04 | Cash flow: opening plus in less out equals closing |
 | RPT-05 | Daily and monthly summaries bucket by date; a reversed range does not fail |
+| RPT-06 | Report, ledger and dashboard dates must fall in 2000 to 2099 and span at most 10 years, or return 400 |
 | DSH-01 | Dashboard swaps a reversed range, buckets by month past 62 days, and scopes to shop |
 | DOC-01 | Document numbers are per shop, per month, and increase |
 | XLS-01 | Excel export honours the column whitelist and writes user text as text, not formulas |

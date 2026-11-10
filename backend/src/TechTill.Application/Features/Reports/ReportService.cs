@@ -1,3 +1,4 @@
+using TechTill.Application.Common;
 using Microsoft.EntityFrameworkCore;
 using TechTill.Application.Common.Interfaces;
 using TechTill.Application.Common.Query;
@@ -227,6 +228,7 @@ public sealed class ReportService(
 
     public async Task<BalanceSheetDto> BalanceSheetAsync(ReportFilter filter, CancellationToken ct = default)
     {
+        DateBounds.EnsureRange(filter.From, filter.To);
         var shopIds = await shopScope.ResolveAsync(filter.ShopId, ct).ConfigureAwait(false);
         var asAt = DateTime.SpecifyKind((filter.To ?? clock.UtcNow).Date.AddDays(1), DateTimeKind.Utc);
 
@@ -369,6 +371,8 @@ public sealed class ReportService(
 
     private (DateTime From, DateTime To) Range(ReportFilter filter, int defaultDays)
     {
+        DateBounds.EnsureRange(filter.From, filter.To);
+
         var to = DateTime.SpecifyKind((filter.To ?? clock.UtcNow).Date.AddDays(1), DateTimeKind.Utc);
         var from = DateTime.SpecifyKind(
             (filter.From ?? to.AddDays(-defaultDays)).Date,
