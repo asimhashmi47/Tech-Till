@@ -50,6 +50,8 @@ public class QueryLimitTests(SharedApi shared)
         { "rules", 1000 },
         { "depth", 6 },
         { "depth", 15 },
+        { "depth", 31 },
+        { "depth", 200 },
         { "wide", 60 },
         { "sort", 11 },
     };
@@ -78,7 +80,10 @@ public class QueryLimitTests(SharedApi shared)
     public async Task Query_OverTheLimit_Returns400(string kind, int size)
     {
         var zoya = await Api.AsAsync("zoya");
-        var response = await zoya.PostAsJsonAsync("/api/products/query", Build(kind, size));
+
+        // Sent as text: HttpClient's own serializer refuses to write JSON deeper than 64.
+        var json = Build(kind, size).ToJsonString(new System.Text.Json.JsonSerializerOptions { MaxDepth = 1024 });
+        var response = await zoya.PostAsync("/api/products/query", new StringContent(json, System.Text.Encoding.UTF8, "application/json"));
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 

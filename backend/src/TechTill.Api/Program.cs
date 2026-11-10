@@ -45,6 +45,11 @@ builder.Services
     {
         options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
         options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+
+        // The deepest legitimate body, a filter at its 5 group limit, nests about 12 levels.
+        // A parse error is filed under its JSON path, and a path past ModelState's depth of 32
+        // threw a 500, so the parser stops well before that and returns a plain 400.
+        options.JsonSerializerOptions.MaxDepth = 24;
     });
 
 // Model binding failures are returned in the same ProblemDetails shape as everything else.
