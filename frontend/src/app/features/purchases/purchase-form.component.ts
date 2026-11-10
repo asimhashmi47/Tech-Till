@@ -157,6 +157,14 @@ export class PurchaseFormComponent {
     this.paidNow.set(this.total());
   }
 
+  /** Credit means nothing is paid now, which the API also insists on. */
+  onMethodChange(method: PaymentMethod): void {
+    this.method.set(method);
+    if (method === 'Credit') {
+      this.paidNow.set(0);
+    }
+  }
+
   save(): void {
     const shopId = this.shopId();
 

@@ -156,7 +156,7 @@
           <div class="block min-w-0">
             <label class="label" for="method">Paying by</label>
             <select id="method" class="select" name="method"
-                    [ngModel]="method()" (ngModelChange)="method.set($event)">
+                    [ngModel]="method()" (ngModelChange)="onMethodChange($event)">
               <option value="Bank">Bank</option>
               <option value="Cash">Cash, from the drawer</option>
               <option value="Card">Card</option>
@@ -168,9 +168,9 @@
             <label class="label" for="paid">Paid now</label>
             <div class="inline-add">
               <input id="paid" class="input text-right tabular" type="number" step="0.01" min="0"
-                     [max]="total()" name="paidNow"
+                     [max]="total()" name="paidNow" [disabled]="method() === 'Credit'"
                      [ngModel]="paidNow()" (ngModelChange)="paidNow.set(+$event)" />
-              <button type="button" class="btn btn-neutral" (click)="payFull()">Full</button>
+              <button type="button" class="btn btn-neutral" (click)="payFull()" [disabled]="method() === 'Credit'">Full</button>
             </div>
             <p class="hint">Leave at zero to put the whole bill on the supplier account.</p>
           </div>
