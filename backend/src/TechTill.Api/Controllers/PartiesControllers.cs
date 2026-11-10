@@ -20,6 +20,7 @@ public sealed class SuppliersController(SupplierService suppliers, LedgerService
     public async Task<IActionResult> Export(QueryRequest request, CancellationToken ct)
         => Excel(await suppliers.ExportAsync(request, ct).ConfigureAwait(false), "suppliers");
 
+    [RequireAnyPermission(Access.Read, Module.Suppliers, Module.Purchases)]
     [HttpGet("lookup")]
     public Task<List<SupplierDto>> Lookup(CancellationToken ct) => suppliers.LookupAsync(ct);
 
@@ -71,6 +72,7 @@ public sealed class CustomersController(
     public async Task<IActionResult> Export(QueryRequest request, CancellationToken ct)
         => Excel(await customers.ExportAsync(request, ct).ConfigureAwait(false), "customers");
 
+    [RequireAnyPermission(Access.Read, Module.Customers, Module.Pos)]
     [HttpGet("lookup")]
     public Task<List<CustomerDto>> Lookup(CancellationToken ct) => customers.LookupAsync(ct);
 

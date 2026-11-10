@@ -98,7 +98,7 @@ public class AccessControlTests(SharedApi shared)
     private static readonly HashSet<string> OpenToAnySignedInUser =
     [
         "Auth.Login", "Auth.Refresh", "Auth.Logout", "Auth.ChangePassword", "Auth.Me",
-        "Suppliers.Lookup", "Customers.Lookup", "Categories.Lookup", "Shops.Lookup",
+        "Categories.Lookup", "Shops.Lookup",
         "Expenses.Categories", "Settings.Get",
     ];
 
@@ -112,7 +112,8 @@ public class AccessControlTests(SharedApi shared)
             .Where(x => x.Method.GetCustomAttributes().Any(a => a is Microsoft.AspNetCore.Mvc.Routing.HttpMethodAttribute))
             .Where(x => x.Type.GetCustomAttribute<AdminOnlyAttribute>() is null
                 && x.Method.GetCustomAttribute<AdminOnlyAttribute>() is null
-                && x.Method.GetCustomAttribute<RequirePermissionAttribute>() is null)
+                && x.Method.GetCustomAttribute<RequirePermissionAttribute>() is null
+                && x.Method.GetCustomAttribute<RequireAnyPermissionAttribute>() is null)
             .Select(x => $"{x.Type.Name.Replace("Controller", "", StringComparison.Ordinal)}.{x.Method.Name}")
             .Where(name => !OpenToAnySignedInUser.Contains(name))
             .ToList();

@@ -62,6 +62,7 @@ public sealed class SupplierService(
         return excel.Build("Suppliers", rows, Spec, request.Columns);
     }
 
+    /// <summary>For pickers only, so contact details stay behind the Suppliers module.</summary>
     public Task<List<SupplierDto>> LookupAsync(CancellationToken ct = default)
         => db.Suppliers
             .AsNoTracking()
@@ -71,8 +72,6 @@ public sealed class SupplierService(
             {
                 Id = s.Id,
                 Name = s.Name,
-                Phone = s.Phone,
-                Address = s.Address,
                 IsActive = s.IsActive,
                 Payable = 0m
             })
@@ -213,6 +212,7 @@ public sealed class CustomerService(
         return excel.Build("Customers", rows, Spec, request.Columns);
     }
 
+    /// <summary>For the till's picker only, so contact details stay behind the Customers module.</summary>
     public Task<List<CustomerDto>> LookupAsync(CancellationToken ct = default)
         => db.Customers
             .AsNoTracking()
@@ -223,8 +223,6 @@ public sealed class CustomerService(
             {
                 Id = c.Id,
                 Name = c.Name,
-                Phone = c.Phone,
-                Address = c.Address,
                 IsWalkIn = c.IsWalkIn,
                 IsActive = c.IsActive,
                 Receivable = 0m

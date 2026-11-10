@@ -55,6 +55,56 @@ public sealed class RequirePermissionAttribute(Module module, Access access)
     }
 }
 
+/// <summary>
+/// For shared pickers, such as the customer list at the till: open to anyone holding the
+/// access on at least one of the modules that need it, and to nobody else.
+/// </summary>
+[AttributeUsage(AttributeTargets.Method)]
+public sealed class RequireAnyPermissionAttribute(Access access, params Module[] modules)
+    : Attribute, IAsyncAuthorizationFilter
+{
+    public IReadOnlyList<Module> Modules { get; } = modules;
+
+    public Access Access { get; } = access;
+
+    public async Task OnAuthorizationAsync(AuthorizationFilterContext context)
+    {
+        var services = context.HttpContext.RequestServices;
+        var currentUser = services.GetRequiredService<ICurrentUser>();
+
+        if (currentUser.UserId is not { } userId)
+        {
+            context.Result = new UnauthorizedResult();
+            return;
+        }
+
+        if (currentUser.IsAdmin)
+        {
+            return;
+        }
+
+        var permissions = services.GetRequiredService<IPermissionService>();
+        foreach (var module in Modules)
+        {
+            if (await permissions.HasAccessAsync(userId, module, Access, context.HttpContext.RequestAborted).ConfigureAwait(false))
+            {
+                return;
+            }
+        }
+
+        context.Result = new ObjectResult(new ProblemDetails
+        {
+            Status = StatusCodes.Status403Forbidden,
+            Title = "Forbidden",
+            Detail = $"Your account needs {Access} access to one of: {string.Join(", ", Modules)}.",
+            Instance = context.HttpContext.Request.Path
+        })
+        {
+            StatusCode = StatusCodes.Status403Forbidden
+        };
+    }
+}
+
 /// <summary>Shorthand for the two admin only modules.</summary>
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method)]
 public sealed class AdminOnlyAttribute : Attribute, IAuthorizationFilter

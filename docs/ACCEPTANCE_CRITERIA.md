@@ -41,6 +41,7 @@ Every criterion has at least one test tagged with its id: `[Trait("AC", "SALE-01
 | PERM-05 | Invalidate makes a permission change effective immediately |
 | PERM-06 | Every endpoint needs a token except login, refresh and health |
 | PERM-07 | Every action declares a module permission, admin-only, or is on the reviewed allow-list; a low-privilege token gets 403 |
+| PERM-09 | Customer and supplier pickers need read on a module that uses them and return no contact details |
 | PERM-08 | A detail read for another shop's record returns 404 and a shop-scoped write returns 403 |
 
 ## Grid and query contract
