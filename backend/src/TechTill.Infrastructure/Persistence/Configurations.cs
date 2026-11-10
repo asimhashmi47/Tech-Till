@@ -240,6 +240,11 @@ public sealed class SalesInvoiceConfiguration : IEntityTypeConfiguration<SalesIn
             .IsUnique()
             .HasFilter("\"IdempotencyKey\" IS NOT NULL");
         builder.HasIndex(i => i.InvoiceDate);
+
+        // The invoice grid counts a shop's live invoices and pages them newest first; this
+        // answers both from the index instead of reading and sorting the whole shop. IsDeleted
+        // goes last: the grid filters it with NOT, which would break the date order if earlier.
+        builder.HasIndex(i => new { i.ShopId, i.InvoiceDate, i.IsDeleted });
         builder.HasIndex(i => i.CustomerId);
         builder.HasIndex(i => i.Status);
 

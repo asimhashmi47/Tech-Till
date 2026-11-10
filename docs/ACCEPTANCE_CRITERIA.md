@@ -162,6 +162,7 @@ Every criterion has at least one test tagged with its id: `[Trait("AC", "SALE-01
 | RPT-06 | Report, ledger and dashboard dates must fall in 2000 to 2099 and span at most 10 years, or return 400 |
 | DSH-01 | Dashboard swaps a reversed range, buckets by month past 62 days, and scopes to shop |
 | PERF-01 | Users who see the same shops share one cached dashboard, and concurrent misses build it once |
+| PERF-02 | Counting a shop's invoices reads only an index, and the newest page is read in index order |
 | DOC-01 | Document numbers are per shop, per month, and increase |
 | XLS-01 | Excel export honours the column whitelist and writes user text as text, not formulas |
 

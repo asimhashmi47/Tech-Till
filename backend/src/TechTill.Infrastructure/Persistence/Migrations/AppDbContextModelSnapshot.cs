@@ -733,6 +733,8 @@ namespace TechTill.Infrastructure.Persistence.Migrations
                         .IsUnique()
                         .HasFilter("\"IdempotencyKey\" IS NOT NULL");
 
+                    b.HasIndex("ShopId", "InvoiceDate", "IsDeleted");
+
                     b.ToTable("SalesInvoices");
                 });
 
