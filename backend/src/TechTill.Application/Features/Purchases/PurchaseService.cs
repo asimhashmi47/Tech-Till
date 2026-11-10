@@ -1,3 +1,4 @@
+using TechTill.Application.Common;
 using Microsoft.EntityFrameworkCore;
 using TechTill.Application.Common.Exceptions;
 using TechTill.Application.Common.Interfaces;
@@ -247,6 +248,8 @@ public sealed class PurchaseService(
                 "A bill on credit has nothing paid now. Pick Cash, Card or Bank for the part paid.");
         }
 
+        DateBounds.EnsureBookable(request.BillDate, nameof(request.BillDate), clock.UtcNow, currentUser.IsAdmin);
+
         await using var tx = await db.BeginTransactionAsync(ct).ConfigureAwait(false);
 
         var bill = new PurchaseBill
@@ -358,6 +361,8 @@ public sealed class PurchaseService(
         {
             throw ValidationFailedException.ForField(nameof(request.Method), "A payment moves money. Pick Cash, Card or Bank.");
         }
+
+        DateBounds.EnsureBookable(request.PaidAt, nameof(request.PaidAt), clock.UtcNow, currentUser.IsAdmin);
 
         var payable = await SupplierBalanceAsync(request.SupplierId, request.ShopId, ct).ConfigureAwait(false);
         if (request.Amount > payable)

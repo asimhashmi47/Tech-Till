@@ -1,3 +1,4 @@
+using TechTill.Application.Common;
 using Microsoft.EntityFrameworkCore;
 using TechTill.Application.Common.Exceptions;
 using TechTill.Application.Common.Interfaces;
@@ -125,6 +126,7 @@ public sealed class PettyCashService(
         }
 
         var entryDate = DateTime.SpecifyKind(request.EntryDate, DateTimeKind.Utc);
+        DateBounds.EnsureBookable(entryDate, nameof(request.EntryDate), clock.UtcNow, currentUser.IsAdmin);
 
         if (request.Direction == PettyCashDirection.Out)
         {

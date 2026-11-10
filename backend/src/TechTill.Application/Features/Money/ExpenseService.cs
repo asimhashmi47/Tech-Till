@@ -1,3 +1,4 @@
+using TechTill.Application.Common;
 using Microsoft.EntityFrameworkCore;
 using TechTill.Application.Common.Exceptions;
 using TechTill.Application.Common.Interfaces;
@@ -118,6 +119,7 @@ public sealed class ExpenseService(
         await shopScope.EnsureWritableAsync(request.ShopId, ct).ConfigureAwait(false);
         Validate(request);
         await EnsureCategoryExistsAsync(request.ExpenseCategoryId, ct).ConfigureAwait(false);
+        DateBounds.EnsureBookable(request.ExpenseDate, nameof(request.ExpenseDate), clock.UtcNow, currentUser.IsAdmin);
 
         await using var tx = await db.BeginTransactionAsync(ct).ConfigureAwait(false);
 
@@ -180,6 +182,7 @@ public sealed class ExpenseService(
         await shopScope.EnsureWritableAsync(entity.ShopId, ct).ConfigureAwait(false);
         await shopScope.EnsureWritableAsync(request.ShopId, ct).ConfigureAwait(false);
         await EnsureCategoryExistsAsync(request.ExpenseCategoryId, ct).ConfigureAwait(false);
+        DateBounds.EnsureBookable(request.ExpenseDate, nameof(request.ExpenseDate), clock.UtcNow, currentUser.IsAdmin);
 
         var before = $"{entity.Amount:0.00}/{entity.Method}";
 

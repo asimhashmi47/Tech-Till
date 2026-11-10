@@ -24,6 +24,35 @@ public static class DateBounds
         }
     }
 
+    public const int StaffBackdateDays = 31;
+
+    /// <summary>
+    /// Money records may be backdated, which is normal for a late receipt, but not so far that
+    /// closed periods quietly change: staff get a month, the owner back to 2000, nobody the future.
+    /// </summary>
+    public static void EnsureBookable(DateTime date, string field, DateTime now, bool isOwner)
+    {
+        var day = date.Date;
+        var today = now.Date;
+
+        if (day > today.AddDays(1))
+        {
+            throw ValidationFailedException.ForField(field, "That date is in the future.");
+        }
+
+        if (isOwner && day < Earliest)
+        {
+            throw ValidationFailedException.ForField(field, $"Pick a date from {Earliest:yyyy} on.");
+        }
+
+        if (!isOwner && day < today.AddDays(-StaffBackdateDays))
+        {
+            throw ValidationFailedException.ForField(
+                field,
+                $"Staff can date an entry at most {StaffBackdateDays} days back. Ask the owner for anything older.");
+        }
+    }
+
     private static void Ensure(DateTime? value, string field)
     {
         if (value is { } date && (date < Earliest || date >= Latest))

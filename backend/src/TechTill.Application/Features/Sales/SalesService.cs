@@ -1,3 +1,4 @@
+using TechTill.Application.Common;
 using Microsoft.EntityFrameworkCore;
 using TechTill.Application.Common.Exceptions;
 using TechTill.Application.Common.Interfaces;
@@ -569,6 +570,8 @@ public sealed class SalesService(
         {
             throw ValidationFailedException.ForField(nameof(request.Method), "A receipt is money received. Pick Cash, Card or Bank.");
         }
+
+        DateBounds.EnsureBookable(request.ReceivedAt, nameof(request.ReceivedAt), clock.UtcNow, currentUser.IsAdmin);
 
         var owed = await db.SalesInvoices
             .Where(i => i.CustomerId == request.CustomerId && i.ShopId == request.ShopId

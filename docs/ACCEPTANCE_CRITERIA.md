@@ -114,6 +114,7 @@ Every criterion has at least one test tagged with its id: `[Trait("AC", "SALE-01
 | PET-03 | A drawer entry owned by an expense cannot be deleted directly |
 | PET-04 | A drawer entry written by a sale, receipt or payment cannot be deleted directly |
 
+| DATE-01 | Receipts, payments, bills, expenses and drawer entries cannot be dated in the future; staff can backdate 31 days, the owner back to 2000 |
 | PAY-01 | Receipts and payments cannot be marked Credit, credit sales and bills take nothing now, and Credit rows never count as cash |
 
 ## Master data
