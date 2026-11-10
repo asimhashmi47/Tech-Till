@@ -38,6 +38,7 @@ public sealed class MemoryCacheService(IMemoryCache cache) : ICacheService
 {
     private static readonly TimeSpan DefaultTtl = TimeSpan.FromMinutes(5);
     private readonly ConcurrentDictionary<string, ConcurrentDictionary<string, byte>> _groups = new();
+    private readonly ConcurrentDictionary<string, Lazy<Task<object?>>> _building = new();
 
     public async Task<T> GetOrCreateAsync<T>(string key, Func<Task<T>> factory, TimeSpan? ttl = null)
     {
@@ -46,10 +47,24 @@ public sealed class MemoryCacheService(IMemoryCache cache) : ICacheService
             return hit;
         }
 
-        var value = await factory().ConfigureAwait(false);
-        cache.Set(key, value, ttl ?? DefaultTtl);
-        Track(key);
-        return value;
+        // Single flight: callers that miss together wait for one build rather than each
+        // starting their own, which is what turned one slow dashboard into a pile-up.
+        var build = _building.GetOrAdd(key, _ => new Lazy<Task<object?>>(async () =>
+        {
+            var value = await factory().ConfigureAwait(false);
+            cache.Set(key, value, ttl ?? DefaultTtl);
+            Track(key);
+            return value;
+        }));
+
+        try
+        {
+            return (T)(await build.Value.ConfigureAwait(false))!;
+        }
+        finally
+        {
+            _building.TryRemove(new KeyValuePair<string, Lazy<Task<object?>>>(key, build));
+        }
     }
 
     public void Remove(string key)

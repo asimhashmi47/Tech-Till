@@ -61,13 +61,18 @@ public sealed class DashboardService(
         DateTime? to,
         CancellationToken ct = default)
     {
-        var userId = currentUser.UserId ?? throw new ForbiddenException("Not signed in.");
+        _ = currentUser.UserId ?? throw new ForbiddenException("Not signed in.");
         var (start, endExclusive) = ResolveRange(from, to);
 
-        var key = $"{CacheKeys.Dashboards(shopId, userId)}:{start:yyyyMMdd}:{endExclusive:yyyyMMdd}";
+        // The figures depend only on which shops are in view, so everyone looking at the same
+        // shops shares one copy. Resolving first also refuses a shop outside the assignment.
+        var shopIds = await shopScope.ResolveAsync(shopId, ct).ConfigureAwait(false);
+        var scope = string.Join('-', shopIds.Order());
+        var key = $"{CacheKeys.Dashboard}:{scope}:{start:yyyyMMdd}:{endExclusive:yyyyMMdd}";
 
+        // Shared by every waiting caller, so one caller hanging up must not cancel it for the rest.
         return await cache
-            .GetOrCreateAsync(key, () => BuildAsync(shopId, start, endExclusive, ct), CacheWindow)
+            .GetOrCreateAsync(key, () => BuildAsync(shopId, shopIds, start, endExclusive, CancellationToken.None), CacheWindow)
             .ConfigureAwait(false);
     }
 
@@ -94,11 +99,11 @@ public sealed class DashboardService(
 
     private async Task<DashboardDto> BuildAsync(
         long? shopId,
+        IReadOnlyList<long> shopIds,
         DateTime start,
         DateTime endExclusive,
         CancellationToken ct)
     {
-        var shopIds = await shopScope.ResolveAsync(shopId, ct).ConfigureAwait(false);
         var today = DateTime.SpecifyKind(clock.UtcNow.Date, DateTimeKind.Utc);
         var days = (int)(endExclusive - start).TotalDays;
         var byMonth = days > DailyBucketLimit;
@@ -106,37 +111,34 @@ public sealed class DashboardService(
         // Balances are "as at" the end of the range, so a past range reads as it did then.
         var asAt = endExclusive;
 
-        var invoices = await db.SalesInvoices
+        var invoicesToDate = db.SalesInvoices
             .AsNoTracking()
             .Where(i => !i.IsDeleted && i.Status != InvoiceStatus.Void && shopIds.Contains(i.ShopId)
-                && i.InvoiceDate < asAt)
+                && i.InvoiceDate < asAt);
+
+        // Only the range is loaded; the all-time figures are summed in the database rather
+        // than by reading every invoice ever raised into memory.
+        var inRange = await invoicesToDate
+            .Where(i => i.InvoiceDate >= start && i.InvoiceDate < endExclusive)
             .Select(i => new
             {
                 i.ShopId,
                 i.InvoiceDate,
                 i.Total,
-                i.PaidAmount,
                 Cogs = i.Items.Sum(x => x.Qty * x.UnitCost)
             })
             .ToListAsync(ct)
             .ConfigureAwait(false);
 
-        var expenses = await db.Expenses
+        var receivables = await invoicesToDate.SumAsync(i => i.Total - i.PaidAmount, ct).ConfigureAwait(false);
+        var todaySales = await invoicesToDate.Where(i => i.InvoiceDate >= today).SumAsync(i => i.Total, ct).ConfigureAwait(false);
+
+        var expensesInRange = await db.Expenses
             .AsNoTracking()
-            .Where(e => !e.IsDeleted && shopIds.Contains(e.ShopId) && e.ExpenseDate < asAt)
+            .Where(e => !e.IsDeleted && shopIds.Contains(e.ShopId) && e.ExpenseDate >= start && e.ExpenseDate < endExclusive)
             .Select(e => new { e.ExpenseDate, e.Amount })
             .ToListAsync(ct)
             .ConfigureAwait(false);
-
-        var inRange = invoices
-            .Where(i => i.InvoiceDate >= start && i.InvoiceDate < endExclusive)
-            .ToList();
-
-        var expensesInRange = expenses
-            .Where(e => e.ExpenseDate >= start && e.ExpenseDate < endExclusive)
-            .ToList();
-
-        var receivables = invoices.Sum(i => i.Total - i.PaidAmount);
 
         var payables = await db.PurchaseBills
             .AsNoTracking()
@@ -159,7 +161,7 @@ public sealed class DashboardService(
             .ConfigureAwait(false);
 
         var kpi = new KpiDto(
-            invoices.Where(i => i.InvoiceDate >= today).Sum(i => i.Total),
+            todaySales,
             inRange.Sum(i => i.Total),
             inRange.Sum(i => i.Total - i.Cogs),
             expensesInRange.Sum(e => e.Amount),
@@ -175,17 +177,19 @@ public sealed class DashboardService(
             ? new DateTime(value.Year, value.Month, 1, 0, 0, 0, DateTimeKind.Utc)
             : DateTime.SpecifyKind(value.Date, DateTimeKind.Utc);
 
+        // Grouped once, then looked up per bucket, rather than scanning every row per bucket.
+        var salesByBucket = inRange.GroupBy(i => KeyOf(i.InvoiceDate)).ToDictionary(g => g.Key, g => g.Sum(i => i.Total));
+        var expensesByBucket = expensesInRange.GroupBy(e => KeyOf(e.ExpenseDate)).ToDictionary(g => g.Key, g => g.Sum(e => e.Amount));
+
         var salesVsExpenses = buckets
             .Select(bucket => new DualSeriesPointDto(
                 Label(bucket, byMonth),
-                inRange.Where(i => KeyOf(i.InvoiceDate) == bucket).Sum(i => i.Total),
-                expensesInRange.Where(e => KeyOf(e.ExpenseDate) == bucket).Sum(e => e.Amount)))
+                salesByBucket.GetValueOrDefault(bucket),
+                expensesByBucket.GetValueOrDefault(bucket)))
             .ToList();
 
         var dailySales = buckets
-            .Select(bucket => new SeriesPointDto(
-                Label(bucket, byMonth),
-                inRange.Where(i => KeyOf(i.InvoiceDate) == bucket).Sum(i => i.Total)))
+            .Select(bucket => new SeriesPointDto(Label(bucket, byMonth), salesByBucket.GetValueOrDefault(bucket)))
             .ToList();
 
         var categoryTotals = await db.SalesItems
