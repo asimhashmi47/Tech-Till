@@ -78,6 +78,7 @@ Every criterion has at least one test tagged with its id: `[Trait("AC", "SALE-01
 | SALE-14 | A failure part way through a sale rolls everything back |
 | SALE-15 | Parallel voids of one invoice succeed once and restore stock and cash once |
 | SALE-16 | The same Idempotency-Key from one cashier bills once and returns the same invoice; a different cart on that key returns 409 |
+| SALE-19 | An inactive product cannot be sold |
 | SALE-18 | Voiding an invoice moves the part paid by on-account receipts to the customer's next open invoices |
 | SALE-17 | A staff cart cannot total more than 10% below list price, the owner has no limit, and any override records list and charged in the audit log |
 

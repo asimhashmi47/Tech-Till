@@ -326,7 +326,7 @@ public sealed class SalesService(
 
         var productIds = request.Items.Select(i => i.ProductId).Distinct().ToList();
         var products = await db.Products
-            .Where(p => productIds.Contains(p.Id) && !p.IsDeleted)
+            .Where(p => productIds.Contains(p.Id) && !p.IsDeleted && p.IsActive)
             .ToDictionaryAsync(p => p.Id, ct)
             .ConfigureAwait(false);
 
