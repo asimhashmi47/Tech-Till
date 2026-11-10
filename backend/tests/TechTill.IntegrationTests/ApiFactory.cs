@@ -69,6 +69,7 @@ public sealed class ApiFactory : WebApplicationFactory<CurrentUser>
     public FaultInjector Fault { get; } = new();
 
     private readonly Dictionary<string, string> _settings;
+    private Action<IServiceCollection>? _extraServices;
 
     private ApiFactory(string database, string environment, Dictionary<string, string>? settings = null)
     {
@@ -96,7 +97,10 @@ public sealed class ApiFactory : WebApplicationFactory<CurrentUser>
         return Task.FromResult(factory);
     }
 
-    public static async Task<ApiFactory> StartAsync(string environment = "Testing", Dictionary<string, string>? settings = null)
+    public static async Task<ApiFactory> StartAsync(
+        string environment = "Testing",
+        Dictionary<string, string>? settings = null,
+        Action<IServiceCollection>? services = null)
     {
         Directory.CreateDirectory(Folder);
         await TemplateLock.WaitAsync();
@@ -120,7 +124,7 @@ public sealed class ApiFactory : WebApplicationFactory<CurrentUser>
 
         var copy = Path.Combine(Folder, Guid.NewGuid().ToString("N") + ".db");
         File.Copy(_template, copy);
-        var factory = new ApiFactory(copy, environment, settings);
+        var factory = new ApiFactory(copy, environment, settings) { _extraServices = services };
         _ = factory.Services;
         return factory;
     }
@@ -142,7 +146,10 @@ public sealed class ApiFactory : WebApplicationFactory<CurrentUser>
         }
 
         builder.ConfigureTestServices(services =>
-            services.ConfigureDbContext<AppDbContext>(options => options.AddInterceptors(Fault)));
+        {
+            services.ConfigureDbContext<AppDbContext>(options => options.AddInterceptors(Fault));
+            _extraServices?.Invoke(services);
+        });
     }
 
     public HttpClient Anonymous() => CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });

@@ -140,7 +140,9 @@ Settings come from `appsettings.json`, then the environment, then user secrets.
 |---|---|---|
 | `Jwt:Secret` | `JWT__SECRET` | Required, at least 32 characters. The app refuses to start without it |
 | `Bootstrap:AdminPassword` | `BOOTSTRAP__ADMINPASSWORD` | Required outside Development when the database is new: the `admin` password, at least 12 characters. A new database then gets only that account and the walk-in customer |
-| `RateLimits:SignInPerIpPerMinute` | `RATELIMITS__SIGNINPERIPPERMINUTE` | Default 60. Behind a reverse proxy every client shares one address until forwarded headers are configured |
+| `RateLimits:SignInPerIpPerMinute` | `RATELIMITS__SIGNINPERIPPERMINUTE` | Default 60, per client address |
+| `ReverseProxy:KnownProxies` | `REVERSEPROXY__KNOWNPROXIES__0` | Addresses of your reverse proxies. Their `X-Forwarded-For` gives the real client address to the limits and the audit log; nobody else's is believed |
+| `Https:RedirectHttp` | `HTTPS__REDIRECTHTTP` | Default `false`. Set `true` when the API itself serves HTTPS; leave it off behind a proxy that terminates TLS |
 | `RateLimits:RefreshPerIpPerMinute` | `RATELIMITS__REFRESHPERIPPERMINUTE` | Default 120 |
 | `RateLimits:RequestsPerUserPerMinute` | `RATELIMITS__REQUESTSPERUSERPERMINUTE` | Default 600 |
 | `RateLimits:ExportsPerUserPerMinute` | `RATELIMITS__EXPORTSPERUSERPERMINUTE` | Default 10 |
@@ -158,7 +160,7 @@ dotnet user-secrets set "Jwt:Secret" "replace-this-with-at-least-32-characters"
 
 **Rebuilding on Windows.** Windows holds an exclusive lock on the host executable of a running app, so a Debug build stops the previous instance first. Pass `-p:StopRunningApiBeforeBuild=false` to keep a running instance alive.
 
-**Production build.** The client builds to `frontend/dist/techtill-web`. The demo helper and its seeded password are removed from production bundles.
+**Production build.** The client builds to `frontend/dist/techtill-web`. The demo helper and its seeded password are removed from production bundles. The API does not serve these files, so the web server that does must send its own security headers: at least `Content-Security-Policy: default-src 'self'; connect-src 'self' <api origin>; img-src 'self' data:; style-src 'self' 'unsafe-inline'; frame-ancestors 'none'`, `X-Content-Type-Options: nosniff` and `Strict-Transport-Security`.
 
 ```bash
 cd frontend && npm run build
