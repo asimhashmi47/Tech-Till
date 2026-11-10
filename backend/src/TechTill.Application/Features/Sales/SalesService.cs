@@ -282,6 +282,13 @@ public sealed class SalesService(
                 "Amount paid must be between zero and the invoice total.");
         }
 
+        if (request.PaymentMethod == PaymentMethod.Credit && request.PaidNow > 0)
+        {
+            throw ValidationFailedException.ForField(
+                nameof(request.PaidNow),
+                "A credit sale takes nothing now. Pick Cash, Card or Bank for the part paid.");
+        }
+
         // A walk-in customer settles at the counter, so credit is not offered to them.
         if (customer.IsWalkIn && request.PaidNow < total)
         {
@@ -545,6 +552,11 @@ public sealed class SalesService(
         if (request.Amount <= 0)
         {
             throw ValidationFailedException.ForField(nameof(request.Amount), "Enter an amount above zero.");
+        }
+
+        if (request.Method == PaymentMethod.Credit)
+        {
+            throw ValidationFailedException.ForField(nameof(request.Method), "A receipt is money received. Pick Cash, Card or Bank.");
         }
 
         var owed = await db.SalesInvoices

@@ -240,6 +240,13 @@ public sealed class PurchaseService(
                 "Paid now must be between zero and the bill total.");
         }
 
+        if (request.PaymentMethod == PaymentMethod.Credit && request.PaidNow > 0)
+        {
+            throw ValidationFailedException.ForField(
+                nameof(request.PaidNow),
+                "A bill on credit has nothing paid now. Pick Cash, Card or Bank for the part paid.");
+        }
+
         await using var tx = await db.BeginTransactionAsync(ct).ConfigureAwait(false);
 
         var bill = new PurchaseBill
@@ -345,6 +352,11 @@ public sealed class PurchaseService(
         if (request.Amount <= 0)
         {
             throw ValidationFailedException.ForField(nameof(request.Amount), "Enter an amount above zero.");
+        }
+
+        if (request.Method == PaymentMethod.Credit)
+        {
+            throw ValidationFailedException.ForField(nameof(request.Method), "A payment moves money. Pick Cash, Card or Bank.");
         }
 
         var payable = await SupplierBalanceAsync(request.SupplierId, request.ShopId, ct).ConfigureAwait(false);

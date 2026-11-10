@@ -129,7 +129,7 @@ public sealed class ReportService(
 
         var receipts = await db.CustomerPayments
             .AsNoTracking()
-            .Where(p => !p.IsDeleted && shopIds.Contains(p.ShopId) && p.ReceivedAt >= from && p.ReceivedAt < to)
+            .Where(p => !p.IsDeleted && p.Method != PaymentMethod.Credit && shopIds.Contains(p.ShopId) && p.ReceivedAt >= from && p.ReceivedAt < to)
             .Select(p => new { p.ReceivedAt, p.Amount })
             .ToListAsync(ct)
             .ConfigureAwait(false);
@@ -288,13 +288,13 @@ public sealed class ReportService(
 
         var receipts = await db.CustomerPayments
             .AsNoTracking()
-            .Where(p => !p.IsDeleted && shopIds.Contains(p.ShopId) && p.ReceivedAt >= from && p.ReceivedAt < to)
+            .Where(p => !p.IsDeleted && p.Method != PaymentMethod.Credit && shopIds.Contains(p.ShopId) && p.ReceivedAt >= from && p.ReceivedAt < to)
             .SumAsync(p => p.Amount, ct)
             .ConfigureAwait(false);
 
         var supplierPayments = await db.SupplierPayments
             .AsNoTracking()
-            .Where(p => !p.IsDeleted && shopIds.Contains(p.ShopId) && p.PaidAt >= from && p.PaidAt < to)
+            .Where(p => !p.IsDeleted && p.Method != PaymentMethod.Credit && shopIds.Contains(p.ShopId) && p.PaidAt >= from && p.PaidAt < to)
             .SumAsync(p => p.Amount, ct)
             .ConfigureAwait(false);
 
@@ -342,15 +342,16 @@ public sealed class ReportService(
     /// </summary>
     private async Task<decimal> CashAtAsync(IReadOnlyList<long> shopIds, DateTime before, CancellationToken ct)
     {
+        // Rows marked Credit predate the validation that now refuses them, and moved no money.
         var receipts = await db.CustomerPayments
             .AsNoTracking()
-            .Where(p => !p.IsDeleted && shopIds.Contains(p.ShopId) && p.ReceivedAt < before)
+            .Where(p => !p.IsDeleted && p.Method != PaymentMethod.Credit && shopIds.Contains(p.ShopId) && p.ReceivedAt < before)
             .SumAsync(p => p.Amount, ct)
             .ConfigureAwait(false);
 
         var supplierPayments = await db.SupplierPayments
             .AsNoTracking()
-            .Where(p => !p.IsDeleted && shopIds.Contains(p.ShopId) && p.PaidAt < before)
+            .Where(p => !p.IsDeleted && p.Method != PaymentMethod.Credit && shopIds.Contains(p.ShopId) && p.PaidAt < before)
             .SumAsync(p => p.Amount, ct)
             .ConfigureAwait(false);
 

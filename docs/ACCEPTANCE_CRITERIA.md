@@ -112,6 +112,8 @@ Every criterion has at least one test tagged with its id: `[Trait("AC", "SALE-01
 | PET-02 | Day view shows opening, in, out and closing per shop |
 | PET-03 | A drawer entry owned by an expense cannot be deleted directly |
 
+| PAY-01 | Receipts and payments cannot be marked Credit, credit sales and bills take nothing now, and Credit rows never count as cash |
+
 ## Master data
 
 | Id | Criterion |
