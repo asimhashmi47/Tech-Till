@@ -52,6 +52,9 @@ public sealed class LedgerService(
     IExcelExportService excel,
     IDateTimeProvider clock)
 {
+    /// <summary>The statuses that can still owe money.</summary>
+    private static readonly InvoiceStatus[] OpenStatuses = [InvoiceStatus.Unpaid, InvoiceStatus.Partial];
+
     public static QuerySpec<AgeingRowDto> AgeingSpec { get; } = new QuerySpec<AgeingRowDto>()
         .Text("partyName", a => a.PartyName, "Name")
         .Text("documentNo", a => a.DocumentNo, "Document")
@@ -207,8 +210,10 @@ public sealed class LedgerService(
         var open = receivable
             ? await db.SalesInvoices
                 .AsNoTracking()
-                .Where(i => !i.IsDeleted && i.Status != InvoiceStatus.Void
-                    && shopIds.Contains(i.ShopId) && i.Total - i.PaidAmount > 0m && i.InvoiceDate < endOfDay)
+                // Only unpaid and partly paid invoices can owe anything; filtering on status lets
+                // the index skip the paid history instead of reading every invoice.
+                .Where(i => OpenStatuses.Contains(i.Status)
+                    && !i.IsDeleted && shopIds.Contains(i.ShopId) && i.Total - i.PaidAmount > 0m && i.InvoiceDate < endOfDay)
                 .Select(i => new OpenDoc(i.CustomerId, i.Customer.Name, i.InvoiceNo, i.InvoiceDate, i.Total - i.PaidAmount))
                 .ToListAsync(ct)
                 .ConfigureAwait(false)

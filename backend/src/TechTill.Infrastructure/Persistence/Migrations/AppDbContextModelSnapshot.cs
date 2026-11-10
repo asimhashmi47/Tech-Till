@@ -735,6 +735,8 @@ namespace TechTill.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("ShopId", "InvoiceDate", "IsDeleted");
 
+                    b.HasIndex("ShopId", "Status", "InvoiceDate");
+
                     b.ToTable("SalesInvoices");
                 });
 

@@ -50,6 +50,9 @@ public sealed class DashboardService(
     StockService stock,
     SalesService sales)
 {
+    /// <summary>The statuses that can still owe money.</summary>
+    private static readonly InvoiceStatus[] OpenStatuses = [InvoiceStatus.Unpaid, InvoiceStatus.Partial];
+
     private static readonly TimeSpan CacheWindow = TimeSpan.FromSeconds(60);
 
     /// <summary>Longer than this and the charts bucket by month rather than by day.</summary>
@@ -130,7 +133,11 @@ public sealed class DashboardService(
             .ToListAsync(ct)
             .ConfigureAwait(false);
 
-        var receivables = await invoicesToDate.SumAsync(i => i.Total - i.PaidAmount, ct).ConfigureAwait(false);
+        // Paid invoices owe nothing, so only open ones are summed, through the status index.
+        var receivables = await invoicesToDate
+            .Where(i => OpenStatuses.Contains(i.Status))
+            .SumAsync(i => i.Total - i.PaidAmount, ct)
+            .ConfigureAwait(false);
         var todaySales = await invoicesToDate.Where(i => i.InvoiceDate >= today).SumAsync(i => i.Total, ct).ConfigureAwait(false);
 
         var expensesInRange = await db.Expenses

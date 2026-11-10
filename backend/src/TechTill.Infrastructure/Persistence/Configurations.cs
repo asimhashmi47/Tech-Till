@@ -245,6 +245,9 @@ public sealed class SalesInvoiceConfiguration : IEntityTypeConfiguration<SalesIn
         // answers both from the index instead of reading and sorting the whole shop. IsDeleted
         // goes last: the grid filters it with NOT, which would break the date order if earlier.
         builder.HasIndex(i => new { i.ShopId, i.InvoiceDate, i.IsDeleted });
+
+        // Receivables and ageing read only the open invoices of the shops in view, up to a date.
+        builder.HasIndex(i => new { i.ShopId, i.Status, i.InvoiceDate });
         builder.HasIndex(i => i.CustomerId);
         builder.HasIndex(i => i.Status);
 

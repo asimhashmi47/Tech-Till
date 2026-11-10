@@ -164,6 +164,7 @@ Every criterion has at least one test tagged with its id: `[Trait("AC", "SALE-01
 | PERF-01 | Users who see the same shops share one cached dashboard, and concurrent misses build it once |
 | PERF-02 | Counting a shop's invoices reads only an index, and the newest page is read in index order |
 | PERF-03 | Opening an invoice runs no full table scan |
+| PERF-04 | Dashboard receivables and receivable ageing read only unpaid and partly paid invoices |
 | DOC-01 | Document numbers are per shop, per month, and increase |
 | XLS-01 | Excel export honours the column whitelist and writes user text as text, not formulas |
 

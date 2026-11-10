@@ -1,3 +1,4 @@
+using System.Net.Http.Json;
 using Microsoft.EntityFrameworkCore;
 
 namespace TechTill.IntegrationTests;
@@ -62,6 +63,63 @@ public class QueryPlanTests(SharedApi shared)
             });
 
             Assert.DoesNotContain("SCAN", plan, StringComparison.Ordinal);
+        }
+    }
+
+    /// <summary>
+    /// Receivables and ageing summed every invoice ever raised, though only unpaid and partly
+    /// paid ones can owe anything: about 2 s per dashboard build at 200 users.
+    /// </summary>
+    [Theory]
+    [Trait("AC", "PERF-04")]
+    [InlineData("/api/dashboard")]
+    [InlineData("/api/ageing/receivable")]
+    public async Task OutstandingFigures_ReadOnlyOpenInvoices(string url)
+    {
+        await using var api = await ApiFactory.StartAsync();
+        var admin = await api.AsAsync("admin");
+        api.Fault.Seen.Clear();
+
+        if (url.Contains("ageing", StringComparison.Ordinal))
+        {
+            await admin.PostAsJsonAsync(url, new { }).ExpectOkAsync();
+        }
+        else
+        {
+            await admin.GetAsync(url).ExpectOkAsync();
+        }
+
+        var outstanding = api.Fault.Seen
+            .Where(s => s.Contains("FROM \"SalesInvoices\"", StringComparison.Ordinal) && s.Contains("\"PaidAmount\"", StringComparison.Ordinal)
+                && !s.Contains("\"InvoiceDate\" >= ", StringComparison.Ordinal))
+            .Distinct()
+            .ToList();
+        Assert.NotEmpty(outstanding);
+
+        foreach (var sql in outstanding)
+        {
+            var alias = System.Text.RegularExpressions.Regex.Match(sql, "FROM \"SalesInvoices\" AS \"(\\w+)\"").Groups[1].Value;
+            var plan = await api.DbAsync(async db =>
+            {
+                var connection = db.Database.GetDbConnection();
+                await connection.OpenAsync();
+                await using var command = connection.CreateCommand();
+                command.CommandText = "EXPLAIN QUERY PLAN " + sql;
+                await using var reader = await command.ExecuteReaderAsync();
+                var steps = new List<string>();
+                while (await reader.ReadAsync())
+                {
+                    steps.Add(reader.GetString(3));
+                }
+
+                return steps;
+            });
+
+            // A range on the date index still reads the whole history; the status index reads
+            // only the invoices that can owe anything.
+            Assert.True(
+                plan.Exists(step => step.StartsWith($"SEARCH {alias} USING INDEX IX_SalesInvoices_ShopId_Status_InvoiceDate (ShopId=? AND Status=?", StringComparison.Ordinal)),
+                $"Plan: {string.Join(" | ", plan)}{Environment.NewLine}SQL: {sql}");
         }
     }
 
