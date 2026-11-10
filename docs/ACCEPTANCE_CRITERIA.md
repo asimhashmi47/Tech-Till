@@ -112,6 +112,7 @@ Every criterion has at least one test tagged with its id: `[Trait("AC", "SALE-01
 | PET-01 | Cash in and out need an amount above zero; cash out cannot exceed the drawer |
 | PET-02 | Day view shows opening, in, out and closing per shop |
 | PET-03 | A drawer entry owned by an expense cannot be deleted directly |
+| PET-04 | A drawer entry written by a sale, receipt or payment cannot be deleted directly |
 
 | PAY-01 | Receipts and payments cannot be marked Credit, credit sales and bills take nothing now, and Credit rows never count as cash |
 

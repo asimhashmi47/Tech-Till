@@ -178,6 +178,11 @@ public sealed class PettyCashService(
             throw new ConflictException("This entry belongs to an expense. Remove the expense instead.");
         }
 
+        if (entity.IsSystemGenerated)
+        {
+            throw new ConflictException("This entry was written by a sale, receipt or payment. Void or reverse that instead.");
+        }
+
         entity.IsDeleted = true;
         entity.UpdatedAt = clock.UtcNow;
         entity.UpdatedBy = currentUser.Username;
