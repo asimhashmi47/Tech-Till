@@ -521,6 +521,10 @@ public sealed class SalesService(
             }
         }
 
+        // Part of what was paid may have come from a receipt taken on account rather than against
+        // this invoice. That money is still the customer's, so it moves to their next open invoice.
+        var onAccount = Math.Max(0m, invoice.PaidAmount - receipts.Sum(r => r.Amount));
+
         invoice.Status = InvoiceStatus.Void;
         invoice.PaidAmount = 0m;
         invoice.VoidedAt = clock.UtcNow;
@@ -530,6 +534,13 @@ public sealed class SalesService(
         invoice.UpdatedBy = currentUser.Username;
 
         await db.SaveChangesAsync(ct).ConfigureAwait(false);
+
+        if (onAccount > 0m)
+        {
+            await AllocateOldestFirstAsync(invoice.CustomerId, invoice.ShopId, onAccount, ct).ConfigureAwait(false);
+            await db.SaveChangesAsync(ct).ConfigureAwait(false);
+        }
+
         await tx.CommitAsync(ct).ConfigureAwait(false);
         cache.RemoveGroup(CacheKeys.Dashboard);
 
