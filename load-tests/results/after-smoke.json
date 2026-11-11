@@ -1,0 +1,377 @@
+{
+  "label": "after",
+  "profile": "smoke",
+  "users": 1000,
+  "seededInvoices": 150218,
+  "at": "2026-11-10T18:56:34.148Z",
+  "base": "http://localhost:5082",
+  "host": {
+    "logicalCpus": 8,
+    "sameMachineAsGenerator": true,
+    "busyPctMean": 89,
+    "busyPctPeak": 100
+  },
+  "generatorEventLoopP99Ms": 139,
+  "thresholds": {
+    "p95": 500,
+    "p99": 1500,
+    "errorPct": 1
+  },
+  "overall": {
+    "count": 2542,
+    "rps": 42.3,
+    "p50": 18672,
+    "p95": 30092,
+    "p99": 30231.7,
+    "max": 30838.6,
+    "errorPct": 32.4,
+    "statuses": {
+      "0": 824,
+      "200": 1718
+    }
+  },
+  "pass": false,
+  "broke": null,
+  "socketErrors": {
+    "timeout": 1703,
+    "ECONNRESET": 13
+  },
+  "login": {
+    "count": 1000,
+    "rps": 8.3,
+    "p50": 30021.8,
+    "p95": 30223.5,
+    "p99": 30435.8,
+    "max": 30838.8,
+    "errorPct": 86.2,
+    "statuses": {
+      "0": 862,
+      "200": 138
+    }
+  },
+  "perEndpoint": {
+    "login": {
+      "count": 512,
+      "rps": 8.5,
+      "p50": 30023.3,
+      "p95": 30261.5,
+      "p99": 30367.4,
+      "max": 30838.8,
+      "errorPct": 100,
+      "statuses": {
+        "0": 512
+      }
+    },
+    "products-query": {
+      "count": 346,
+      "rps": 5.8,
+      "p50": 22145.7,
+      "p95": 30132.7,
+      "p99": 30247.3,
+      "max": 30837.9,
+      "errorPct": 37,
+      "statuses": {
+        "0": 128,
+        "200": 218
+      }
+    },
+    "pos-search": {
+      "count": 556,
+      "rps": 9.3,
+      "p50": 22783.8,
+      "p95": 30110.2,
+      "p99": 30229,
+      "max": 30391.5,
+      "errorPct": 38.1,
+      "statuses": {
+        "0": 212,
+        "200": 344
+      }
+    },
+    "invoices-query": {
+      "count": 217,
+      "rps": 3.6,
+      "p50": 24531.4,
+      "p95": 30119.4,
+      "p99": 30406.4,
+      "max": 30838.6,
+      "errorPct": 41.9,
+      "statuses": {
+        "0": 91,
+        "200": 126
+      }
+    },
+    "customers-query": {
+      "count": 86,
+      "rps": 1.4,
+      "p50": 29659,
+      "p95": 30161.9,
+      "p99": 30226.7,
+      "max": 30226.7,
+      "errorPct": 47.7,
+      "statuses": {
+        "0": 41,
+        "200": 45
+      }
+    },
+    "pos-sale": {
+      "count": 254,
+      "rps": 4.2,
+      "p50": 27060.1,
+      "p95": 30141.7,
+      "p99": 30261.9,
+      "max": 30287.2,
+      "errorPct": 44.1,
+      "statuses": {
+        "0": 112,
+        "200": 142
+      }
+    },
+    "dashboard": {
+      "count": 107,
+      "rps": 1.8,
+      "p50": 23598.1,
+      "p95": 30067,
+      "p99": 30230.6,
+      "max": 30533.1,
+      "errorPct": 42.1,
+      "statuses": {
+        "0": 45,
+        "200": 62
+      }
+    },
+    "stock-query": {
+      "count": 205,
+      "rps": 3.4,
+      "p50": 20009.4,
+      "p95": 30045.3,
+      "p99": 30200.6,
+      "max": 30261.9,
+      "errorPct": 33.7,
+      "statuses": {
+        "0": 69,
+        "200": 136
+      }
+    },
+    "customer-create": {
+      "count": 35,
+      "rps": 0.6,
+      "p50": 20974.3,
+      "p95": 30090.2,
+      "p99": 30564.4,
+      "max": 30564.4,
+      "errorPct": 37.1,
+      "statuses": {
+        "0": 13,
+        "200": 22
+      }
+    },
+    "dashboard-poll": {
+      "count": 705,
+      "rps": 11.7,
+      "p50": 12456.6,
+      "p95": 30024.1,
+      "p99": 30190.3,
+      "max": 30360.2,
+      "errorPct": 14.3,
+      "statuses": {
+        "0": 101,
+        "200": 604
+      }
+    },
+    "customer-update": {
+      "count": 10,
+      "rps": 0.2,
+      "p50": 11580.5,
+      "p95": 30007.8,
+      "p99": 30007.8,
+      "max": 30007.8,
+      "errorPct": 10,
+      "statuses": {
+        "0": 1,
+        "200": 9
+      }
+    },
+    "me": {
+      "count": 21,
+      "rps": 0.3,
+      "p50": 30005.3,
+      "p95": 30215.8,
+      "p99": 30224.4,
+      "max": 30224.4,
+      "errorPct": 52.4,
+      "statuses": {
+        "0": 11,
+        "200": 10
+      }
+    }
+  },
+  "stepResults": [],
+  "runtime": {
+    "cpuPctMean": 58,
+    "cpuPctPeak": 92.3,
+    "workingSetMbPeak": 329,
+    "gcHeapMbPeak": 92,
+    "gcPauseMsTotal": 1659,
+    "gen2": 3,
+    "threadPoolThreadsPeak": 36,
+    "threadPoolQueuePeak": 2845,
+    "openConnectionsPeak": 35,
+    "lockWaitMsTotal": 143989,
+    "lockWaitMaxMs": 2831
+  },
+  "slowestQueries": [
+    {
+      "sql": "SELECT \"c\".\"Name\", COALESCE(ef_sum(ef_multiply(CAST(\"s\".\"Qty\" AS REAL), \"s\".\"UnitPrice\")), '0.0') AS \"Value\"  FROM \"SalesItems\" AS \"s\"  INNER JOIN \"SalesInvoices\" AS \"s0\" ON \"s\".\"SalesInvoiceId\" = \"s0\".\"Id\"  INNER JOIN \"Products\" AS \"p\" ON \"s\".\"ProductId\" = \"p\".\"Id\"  INNER JOIN \"Categories\" AS \"c\" ON \"p\".\"CategoryId\" = \"c\".\"Id\"  WHERE NOT (\"s0\".\"IsDeleted\") AND \"s0\".\"Status\" <> 4 AND \"s0\".\"ShopId\" = @shopIds1 AND \"s0\".\"InvoiceDate\" >= @start AND \"s0\".\"InvoiceDate\" < @endExclusive  GROUP BY \"c\".\"Name\"",
+      "count": 58,
+      "totalMs": 21034,
+      "maxMs": 1119,
+      "slowCount": 58
+    },
+    {
+      "sql": "SELECT \"p\".\"Name\", COALESCE(ef_sum(ef_multiply(CAST(\"s\".\"Qty\" AS REAL), \"s\".\"UnitPrice\")), '0.0') AS \"Value\"  FROM \"SalesItems\" AS \"s\"  INNER JOIN \"SalesInvoices\" AS \"s0\" ON \"s\".\"SalesInvoiceId\" = \"s0\".\"Id\"  INNER JOIN \"Products\" AS \"p\" ON \"s\".\"ProductId\" = \"p\".\"Id\"  WHERE NOT (\"s0\".\"IsDeleted\") AND \"s0\".\"Status\" <> 4 AND \"s0\".\"ShopId\" = @shopIds1 AND \"s0\".\"InvoiceDate\" >= @start AND \"s0\".\"InvoiceDate\" < @endExclusive  GROUP BY \"p\".\"Name\"",
+      "count": 58,
+      "totalMs": 19238,
+      "maxMs": 1034,
+      "slowCount": 58
+    },
+    {
+      "sql": "SELECT \"u2\".\"Id\", \"u2\".\"CreatedAt\", \"u2\".\"CreatedBy\", \"u2\".\"FullName\", \"u2\".\"IsActive\", \"u2\".\"IsDeleted\", \"u2\".\"LastLoginAt\", \"u2\".\"PasswordHash\", \"u2\".\"Role\", \"u2\".\"TokenVersion\", \"u2\".\"UpdatedAt\", \"u2\".\"UpdatedBy\", \"u2\".\"Username\", \"s0\".\"Id\", \"s0\".\"ShopId\", \"s0\".\"UserId\", \"s0\".\"Id0\", \"s0\".\"Address\", \"s0\".\"Code\", \"s0\".\"CreatedAt\", \"s0\".\"CreatedBy\", \"s0\".\"IsActive\", \"s0\".\"IsDeleted\", \"s0\".\"Name\", \"s0\".\"Phone\", \"s0\".\"UpdatedAt\", \"s0\".\"UpdatedBy\", \"u1\".\"Id\", \"u1\".\"CanRead\", \"u1\".\"CanWrite\", \"u1\".\"Module\", \"u1\".\"UserId\"  FROM (      SELECT \"u\".\"Id\", \"u\".\"CreatedAt\", \"u\".\"CreatedBy\", \"u\".\"FullName\", \"u\".\"IsActive\", \"u\".\"IsDeleted\", \"u\".\"LastLoginAt\", \"u\".\"PasswordHash\", \"u\".\"Role\", \"u\".\"TokenVersion\", \"u\".\"UpdatedAt\", \"u\".\"UpdatedBy\", \"u\".\"Username\"      FROM \"Users\" AS \"u\"      WHERE \"u\".\"Username\" = @request_Username AND NOT (\"u\".\"IsDeleted\")      LIMIT 1  ) AS \"u2\"  LEFT JOIN (      SELECT \"u0\".\"Id\", \"u0\".\"ShopId\", \"u0\".\"UserId\", \"s\".\"Id\" AS \"Id0\", \"s\".\"Address\", \"s\".\"Code\", \"s\".\"CreatedAt\", \"s\".\"CreatedBy\", \"s\".\"IsActive\", \"s\".\"IsDeleted\", \"s\".\"Name\", \"s\".\"Phone\", \"s\".\"UpdatedAt\", \"s\".\"UpdatedBy\"      FROM \"UserShops\" AS \"u0\"      INNER JOIN \"Shops\" AS \"s\" ON \"u0\".\"ShopId\" = \"s\".\"Id\"  ) AS \"s0\" ON \"u2\".\"Id\" = \"s0\".\"UserId\"  LEFT JOIN \"UserPermissions\" AS \"u1\" ON \"u2\".\"Id\" = \"u1\".\"UserId\"  ORDER BY \"u2\".\"Id\", \"s0\".\"Id\", \"s0\".\"Id0\"",
+      "count": 816,
+      "totalMs": 18429,
+      "maxMs": 255,
+      "slowCount": 10
+    },
+    {
+      "sql": "INSERT INTO \"AuditLogs\" (\"Action\", \"At\", \"CorrelationId\", \"Entity\", \"EntityId\", \"Ip\", \"Module\", \"ShopId\", \"Summary\", \"UserId\", \"Username\")  VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8, @p9, @p10)  RETURNING \"Id\";  ",
+      "count": 1142,
+      "totalMs": 18173,
+      "maxMs": 1770,
+      "slowCount": 51
+    },
+    {
+      "sql": "INSERT INTO \"Customers\" (\"Address\", \"CreatedAt\", \"CreatedBy\", \"IsActive\", \"IsDeleted\", \"IsWalkIn\", \"Name\", \"Phone\", \"UpdatedAt\", \"UpdatedBy\")  VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8, @p9)  RETURNING \"Id\";  ",
+      "count": 42,
+      "totalMs": 16132,
+      "maxMs": 2100,
+      "slowCount": 23
+    },
+    {
+      "sql": "SELECT \"s\".\"InvoiceNo\"  FROM \"SalesInvoices\" AS \"s\"  WHERE \"s\".\"ShopId\" = @shopId AND \"s\".\"InvoiceNo\" LIKE @prefix_startswith ESCAPE '\\'",
+      "count": 270,
+      "totalMs": 12046,
+      "maxMs": 251,
+      "slowCount": 17
+    },
+    {
+      "sql": "SELECT COUNT(*)  FROM \"SalesInvoices\" AS \"s\"  WHERE NOT (\"s\".\"IsDeleted\") AND \"s\".\"ShopId\" = @shopIds1",
+      "count": 245,
+      "totalMs": 10610,
+      "maxMs": 290,
+      "slowCount": 13
+    },
+    {
+      "sql": "UPDATE \"Customers\" SET \"Name\" = @p0, \"Phone\" = @p1, \"UpdatedAt\" = @p2, \"UpdatedBy\" = @p3  WHERE \"Id\" = @p4  RETURNING 1;  ",
+      "count": 16,
+      "totalMs": 10076,
+      "maxMs": 1697,
+      "slowCount": 9
+    },
+    {
+      "sql": "SELECT COALESCE(ef_sum(CASE      WHEN \"p\".\"Direction\" = 1 THEN \"p\".\"Amount\"      ELSE ef_negate(\"p\".\"Amount\")  END), '0.0')  FROM \"PettyCashEntries\" AS \"p\"  WHERE NOT (\"p\".\"IsDeleted\") AND \"p\".\"ShopId\" = @shopIds1 AND \"p\".\"EntryDate\" < @asAt",
+      "count": 59,
+      "totalMs": 8522,
+      "maxMs": 1736,
+      "slowCount": 27
+    },
+    {
+      "sql": "SELECT \"p0\".\"Id\", \"p0\".\"Sku\", \"p0\".\"Name\", \"c\".\"Name\" AS \"CategoryName\", \"p0\".\"SalePrice\", (      SELECT COALESCE(SUM(\"s\".\"Qty\"), 0)      FROM \"StockLevels\" AS \"s\"      WHERE \"s\".\"ProductId\" = \"p0\".\"Id\" AND \"s\".\"ShopId\" = @shopId) AS \"Qty\"  FROM (      SELECT \"p\".\"Id\", \"p\".\"CategoryId\", \"p\".\"Name\", \"p\".\"SalePrice\", \"p\".\"Sku\"      FROM \"Products\" AS \"p\"      WHERE \"p\".\"IsActive\" AND NOT (\"p\".\"IsDeleted\") AND (\"p\".\"Sku\" LIKE @needle OR \"p\".\"Name\" LIKE @needle OR (\"p\".\"Brand\" IS NOT NULL AND \"p\".\"Brand\" LIKE @needle))      ORDER BY \"p\".\"Name\"      LIMIT @p  ) AS \"p0\"  INNER JOIN \"Categories\" AS \"c\" ON \"p0\".\"CategoryId\" = \"c\".\"Id\"  ORDER BY \"p0\".\"Name\"",
+      "count": 673,
+      "totalMs": 4432,
+      "maxMs": 67,
+      "slowCount": 0
+    },
+    {
+      "sql": "SELECT COUNT(*)  FROM \"StockLevels\" AS \"s\"  INNER JOIN \"Products\" AS \"p\" ON \"s\".\"ProductId\" = \"p\".\"Id\"  WHERE \"s\".\"ShopId\" = @shopIds1 AND NOT (\"p\".\"IsDeleted\")",
+      "count": 223,
+      "totalMs": 1402,
+      "maxMs": 47,
+      "slowCount": 0
+    },
+    {
+      "sql": "SELECT COUNT(*)  FROM \"Products\" AS \"p\"  WHERE NOT (\"p\".\"IsDeleted\")",
+      "count": 252,
+      "totalMs": 1035,
+      "maxMs": 40,
+      "slowCount": 0
+    }
+  ],
+  "timeline": [
+    {
+      "t": 0,
+      "count": 3,
+      "rps": 0.1,
+      "p50": 15742.7,
+      "p95": 15800.7,
+      "p99": 15800.7,
+      "max": 15800.7,
+      "errorPct": 0,
+      "statuses": {
+        "200": 3
+      }
+    },
+    {
+      "t": 30,
+      "count": 50,
+      "rps": 1.7,
+      "p50": 24730.1,
+      "p95": 30072.8,
+      "p99": 30115.1,
+      "max": 30115.1,
+      "errorPct": 34,
+      "statuses": {
+        "0": 17,
+        "200": 33
+      }
+    },
+    {
+      "t": 60,
+      "count": 485,
+      "rps": 16.2,
+      "p50": 30018.9,
+      "p95": 30224.4,
+      "p99": 30435.4,
+      "max": 30838.6,
+      "errorPct": 99.2,
+      "statuses": {
+        "0": 481,
+        "200": 4
+      }
+    },
+    {
+      "t": 90,
+      "count": 2057,
+      "rps": 68.6,
+      "p50": 13948.4,
+      "p95": 30025.7,
+      "p99": 30142.5,
+      "max": 30331.6,
+      "errorPct": 16.7,
+      "statuses": {
+        "0": 343,
+        "200": 1714
+      }
+    },
+    {
+      "t": 120,
+      "count": 0,
+      "rps": 0,
+      "p50": 0,
+      "p95": 0,
+      "p99": 0,
+      "max": 0,
+      "errorPct": 0,
+      "statuses": {}
+    }
+  ]
+}

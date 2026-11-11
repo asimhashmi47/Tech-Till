@@ -1,0 +1,737 @@
+{
+  "label": "after",
+  "profile": "load",
+  "users": 1000,
+  "seededInvoices": 150218,
+  "at": "2026-11-10T19:11:46.183Z",
+  "base": "http://localhost:5082",
+  "host": {
+    "logicalCpus": 8,
+    "sameMachineAsGenerator": true,
+    "busyPctMean": 65,
+    "busyPctPeak": 97
+  },
+  "generatorEventLoopP99Ms": 39,
+  "thresholds": {
+    "p95": 500,
+    "p99": 1500,
+    "errorPct": 1
+  },
+  "overall": {
+    "count": 91816,
+    "rps": 153,
+    "p50": 2017.3,
+    "p95": 6274.6,
+    "p99": 30006.9,
+    "max": 30048,
+    "errorPct": 1.9,
+    "statuses": {
+      "0": 1701,
+      "200": 90115
+    }
+  },
+  "pass": false,
+  "broke": null,
+  "socketErrors": {
+    "timeout": 1724,
+    "ECONNRESET": 74
+  },
+  "login": {
+    "count": 1000,
+    "rps": 1.1,
+    "p50": 1657.9,
+    "p95": 6724.7,
+    "p99": 8996.4,
+    "max": 21357,
+    "errorPct": 0,
+    "statuses": {
+      "200": 1000
+    }
+  },
+  "perEndpoint": {
+    "login": {
+      "count": 18,
+      "rps": 0,
+      "p50": 6448.7,
+      "p95": 21357,
+      "p99": 21357,
+      "max": 21357,
+      "errorPct": 0,
+      "statuses": {
+        "200": 18
+      }
+    },
+    "pos-search": {
+      "count": 24395,
+      "rps": 40.6,
+      "p50": 1772.4,
+      "p95": 3787.1,
+      "p99": 4901.6,
+      "max": 6228.6,
+      "errorPct": 0,
+      "statuses": {
+        "200": 24395
+      }
+    },
+    "products-query": {
+      "count": 14613,
+      "rps": 24.3,
+      "p50": 1801.3,
+      "p95": 3815.4,
+      "p99": 4929.6,
+      "max": 6246.2,
+      "errorPct": 0,
+      "statuses": {
+        "200": 14613
+      }
+    },
+    "customers-query": {
+      "count": 4089,
+      "rps": 6.8,
+      "p50": 1914.6,
+      "p95": 3811.2,
+      "p99": 5037.2,
+      "max": 5952.3,
+      "errorPct": 0,
+      "statuses": {
+        "200": 4089
+      }
+    },
+    "stock-query": {
+      "count": 9788,
+      "rps": 16.3,
+      "p50": 1776,
+      "p95": 3796.2,
+      "p99": 4881.1,
+      "max": 6208.7,
+      "errorPct": 0,
+      "statuses": {
+        "200": 9788
+      }
+    },
+    "invoices-query": {
+      "count": 9657,
+      "rps": 16.1,
+      "p50": 1872.4,
+      "p95": 3849.9,
+      "p99": 4898.9,
+      "max": 6026.8,
+      "errorPct": 0,
+      "statuses": {
+        "200": 9657
+      }
+    },
+    "dashboard": {
+      "count": 4870,
+      "rps": 8.1,
+      "p50": 2324.6,
+      "p95": 4322.1,
+      "p99": 5269.5,
+      "max": 7087.3,
+      "errorPct": 0,
+      "statuses": {
+        "200": 4870
+      }
+    },
+    "pos-sale": {
+      "count": 8899,
+      "rps": 14.8,
+      "p50": 3943.7,
+      "p95": 30010.2,
+      "p99": 30014.9,
+      "max": 30048,
+      "errorPct": 14.8,
+      "statuses": {
+        "0": 1321,
+        "200": 7578
+      }
+    },
+    "me": {
+      "count": 826,
+      "rps": 1.4,
+      "p50": 1880.3,
+      "p95": 3735.3,
+      "p99": 5037.9,
+      "max": 5717.5,
+      "errorPct": 0,
+      "statuses": {
+        "200": 826
+      }
+    },
+    "invoice-get": {
+      "count": 2476,
+      "rps": 4.1,
+      "p50": 1811.7,
+      "p95": 3843.4,
+      "p99": 5084,
+      "max": 6026.2,
+      "errorPct": 0,
+      "statuses": {
+        "200": 2476
+      }
+    },
+    "dashboard-poll": {
+      "count": 9202,
+      "rps": 15.3,
+      "p50": 2374.4,
+      "p95": 4420.5,
+      "p99": 5367.7,
+      "max": 7157.4,
+      "errorPct": 0,
+      "statuses": {
+        "200": 9202
+      }
+    },
+    "customer-create": {
+      "count": 1609,
+      "rps": 2.7,
+      "p50": 3720.4,
+      "p95": 30009.5,
+      "p99": 30014.5,
+      "max": 30040.5,
+      "errorPct": 13.1,
+      "statuses": {
+        "0": 211,
+        "200": 1398
+      }
+    },
+    "customer-update": {
+      "count": 1392,
+      "rps": 2.3,
+      "p50": 3608.3,
+      "p95": 30009.2,
+      "p99": 30014.8,
+      "max": 30029.5,
+      "errorPct": 12.1,
+      "statuses": {
+        "0": 169,
+        "200": 1223
+      }
+    }
+  },
+  "stepResults": [],
+  "runtime": {
+    "cpuPctMean": 47,
+    "cpuPctPeak": 59.8,
+    "workingSetMbPeak": 543,
+    "gcHeapMbPeak": 163,
+    "gcPauseMsTotal": 21584,
+    "gen2": 63,
+    "threadPoolThreadsPeak": 342,
+    "threadPoolQueuePeak": 435,
+    "openConnectionsPeak": 644,
+    "lockWaitMsTotal": 65119899,
+    "lockWaitMaxMs": 59950
+  },
+  "slowestQueries": [
+    {
+      "sql": "INSERT INTO \"Customers\" (\"Address\", \"CreatedAt\", \"CreatedBy\", \"IsActive\", \"IsDeleted\", \"IsWalkIn\", \"Name\", \"Phone\", \"UpdatedAt\", \"UpdatedBy\")  VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8, @p9)  RETURNING \"Id\";  ",
+      "count": 1979,
+      "totalMs": 11419679,
+      "maxMs": 60054,
+      "slowCount": 1363
+    },
+    {
+      "sql": "INSERT INTO \"AuditLogs\" (\"Action\", \"At\", \"CorrelationId\", \"Entity\", \"EntityId\", \"Ip\", \"Module\", \"ShopId\", \"Summary\", \"UserId\", \"Username\")  VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8, @p9, @p10)  RETURNING \"Id\";  ",
+      "count": 15179,
+      "totalMs": 10771407,
+      "maxMs": 59588,
+      "slowCount": 1045
+    },
+    {
+      "sql": "UPDATE \"Customers\" SET \"Name\" = @p0, \"Phone\" = @p1, \"UpdatedAt\" = @p2, \"UpdatedBy\" = @p3  WHERE \"Id\" = @p4  RETURNING 1;  ",
+      "count": 1778,
+      "totalMs": 9282341,
+      "maxMs": 59360,
+      "slowCount": 1121
+    },
+    {
+      "sql": "SELECT COUNT(*)  FROM \"SalesInvoices\" AS \"s\"  WHERE NOT (\"s\".\"IsDeleted\") AND \"s\".\"ShopId\" = @shopIds1",
+      "count": 12434,
+      "totalMs": 507798,
+      "maxMs": 600,
+      "slowCount": 601
+    },
+    {
+      "sql": "SELECT \"s\".\"InvoiceNo\"  FROM \"SalesInvoices\" AS \"s\"  WHERE \"s\".\"ShopId\" = @shopId AND \"s\".\"InvoiceNo\" LIKE @prefix_startswith ESCAPE '\\'",
+      "count": 10668,
+      "totalMs": 378218,
+      "maxMs": 372,
+      "slowCount": 134
+    },
+    {
+      "sql": "SELECT \"c\".\"Name\", COALESCE(ef_sum(ef_multiply(CAST(\"s\".\"Qty\" AS REAL), \"s\".\"UnitPrice\")), '0.0') AS \"Value\"  FROM \"SalesItems\" AS \"s\"  INNER JOIN \"SalesInvoices\" AS \"s0\" ON \"s\".\"SalesInvoiceId\" = \"s0\".\"Id\"  INNER JOIN \"Products\" AS \"p\" ON \"s\".\"ProductId\" = \"p\".\"Id\"  INNER JOIN \"Categories\" AS \"c\" ON \"p\".\"CategoryId\" = \"c\".\"Id\"  WHERE NOT (\"s0\".\"IsDeleted\") AND \"s0\".\"Status\" <> 4 AND \"s0\".\"ShopId\" = @shopIds1 AND \"s0\".\"InvoiceDate\" >= @start AND \"s0\".\"InvoiceDate\" < @endExclusive  GROUP BY \"c\".\"Name\"",
+      "count": 1136,
+      "totalMs": 351427,
+      "maxMs": 1130,
+      "slowCount": 1136
+    },
+    {
+      "sql": "SELECT \"p\".\"Name\", COALESCE(ef_sum(ef_multiply(CAST(\"s\".\"Qty\" AS REAL), \"s\".\"UnitPrice\")), '0.0') AS \"Value\"  FROM \"SalesItems\" AS \"s\"  INNER JOIN \"SalesInvoices\" AS \"s0\" ON \"s\".\"SalesInvoiceId\" = \"s0\".\"Id\"  INNER JOIN \"Products\" AS \"p\" ON \"s\".\"ProductId\" = \"p\".\"Id\"  WHERE NOT (\"s0\".\"IsDeleted\") AND \"s0\".\"Status\" <> 4 AND \"s0\".\"ShopId\" = @shopIds1 AND \"s0\".\"InvoiceDate\" >= @start AND \"s0\".\"InvoiceDate\" < @endExclusive  GROUP BY \"p\".\"Name\"",
+      "count": 1136,
+      "totalMs": 348276,
+      "maxMs": 1104,
+      "slowCount": 1136
+    },
+    {
+      "sql": "SELECT \"p0\".\"Id\", \"p0\".\"Sku\", \"p0\".\"Name\", \"c\".\"Name\" AS \"CategoryName\", \"p0\".\"SalePrice\", (      SELECT COALESCE(SUM(\"s\".\"Qty\"), 0)      FROM \"StockLevels\" AS \"s\"      WHERE \"s\".\"ProductId\" = \"p0\".\"Id\" AND \"s\".\"ShopId\" = @shopId) AS \"Qty\"  FROM (      SELECT \"p\".\"Id\", \"p\".\"CategoryId\", \"p\".\"Name\", \"p\".\"SalePrice\", \"p\".\"Sku\"      FROM \"Products\" AS \"p\"      WHERE \"p\".\"IsActive\" AND NOT (\"p\".\"IsDeleted\") AND (\"p\".\"Sku\" LIKE @needle OR \"p\".\"Name\" LIKE @needle OR (\"p\".\"Brand\" IS NOT NULL AND \"p\".\"Brand\" LIKE @needle))      ORDER BY \"p\".\"Name\"      LIMIT @p  ) AS \"p0\"  INNER JOIN \"Categories\" AS \"c\" ON \"p0\".\"CategoryId\" = \"c\".\"Id\"  ORDER BY \"p0\".\"Name\"",
+      "count": 31214,
+      "totalMs": 166231,
+      "maxMs": 197,
+      "slowCount": 9
+    },
+    {
+      "sql": "SELECT COALESCE(ef_sum(CASE      WHEN \"p\".\"Direction\" = 1 THEN \"p\".\"Amount\"      ELSE ef_negate(\"p\".\"Amount\")  END), '0.0')  FROM \"PettyCashEntries\" AS \"p\"  WHERE NOT (\"p\".\"IsDeleted\") AND \"p\".\"ShopId\" = @shopIds1 AND \"p\".\"EntryDate\" < @asAt",
+      "count": 1136,
+      "totalMs": 108194,
+      "maxMs": 825,
+      "slowCount": 526
+    },
+    {
+      "sql": "SELECT COUNT(*)  FROM \"StockLevels\" AS \"s\"  INNER JOIN \"Products\" AS \"p\" ON \"s\".\"ProductId\" = \"p\".\"Id\"  WHERE \"s\".\"ShopId\" = @shopIds1 AND NOT (\"p\".\"IsDeleted\")",
+      "count": 12598,
+      "totalMs": 64011,
+      "maxMs": 123,
+      "slowCount": 2
+    },
+    {
+      "sql": "SELECT COUNT(*)  FROM \"Products\" AS \"p\"  WHERE NOT (\"p\".\"IsDeleted\")",
+      "count": 12571,
+      "totalMs": 42798,
+      "maxMs": 96,
+      "slowCount": 0
+    },
+    {
+      "sql": "SELECT COUNT(*)  FROM \"Customers\" AS \"c\"  WHERE NOT (\"c\".\"IsDeleted\")",
+      "count": 5229,
+      "totalMs": 33706,
+      "maxMs": 144,
+      "slowCount": 2
+    }
+  ],
+  "timeline": [
+    {
+      "t": 0,
+      "count": 395,
+      "rps": 13.2,
+      "p50": 27.6,
+      "p95": 1176.4,
+      "p99": 2291,
+      "max": 2993.6,
+      "errorPct": 0,
+      "statuses": {
+        "200": 395
+      }
+    },
+    {
+      "t": 30,
+      "count": 1184,
+      "rps": 39.5,
+      "p50": 32.2,
+      "p95": 980.5,
+      "p99": 1894.1,
+      "max": 2923.3,
+      "errorPct": 0,
+      "statuses": {
+        "200": 1184
+      }
+    },
+    {
+      "t": 60,
+      "count": 1977,
+      "rps": 65.9,
+      "p50": 12,
+      "p95": 718.5,
+      "p99": 1202.6,
+      "max": 2647.7,
+      "errorPct": 0,
+      "statuses": {
+        "200": 1977
+      }
+    },
+    {
+      "t": 90,
+      "count": 2722,
+      "rps": 90.7,
+      "p50": 37.5,
+      "p95": 850.8,
+      "p99": 1251.4,
+      "max": 1947,
+      "errorPct": 0,
+      "statuses": {
+        "200": 2722
+      }
+    },
+    {
+      "t": 120,
+      "count": 3071,
+      "rps": 102.4,
+      "p50": 372.1,
+      "p95": 1719.8,
+      "p99": 2038.3,
+      "max": 6484.4,
+      "errorPct": 0,
+      "statuses": {
+        "200": 3071
+      }
+    },
+    {
+      "t": 150,
+      "count": 2621,
+      "rps": 87.4,
+      "p50": 2577.8,
+      "p95": 4422.4,
+      "p99": 4892.6,
+      "max": 5075.5,
+      "errorPct": 0,
+      "statuses": {
+        "200": 2621
+      }
+    },
+    {
+      "t": 180,
+      "count": 2343,
+      "rps": 78.1,
+      "p50": 2981.2,
+      "p95": 9288.9,
+      "p99": 9940.3,
+      "max": 10828.5,
+      "errorPct": 0,
+      "statuses": {
+        "200": 2343
+      }
+    },
+    {
+      "t": 210,
+      "count": 3638,
+      "rps": 121.3,
+      "p50": 2680.6,
+      "p95": 4424.2,
+      "p99": 5088.9,
+      "max": 8843.9,
+      "errorPct": 0,
+      "statuses": {
+        "200": 3638
+      }
+    },
+    {
+      "t": 240,
+      "count": 3899,
+      "rps": 130,
+      "p50": 2558.2,
+      "p95": 4305.4,
+      "p99": 5869,
+      "max": 12455.5,
+      "errorPct": 0,
+      "statuses": {
+        "200": 3899
+      }
+    },
+    {
+      "t": 270,
+      "count": 3714,
+      "rps": 123.8,
+      "p50": 4117.5,
+      "p95": 5129,
+      "p99": 7123.7,
+      "max": 16467.2,
+      "errorPct": 0,
+      "statuses": {
+        "200": 3714
+      }
+    },
+    {
+      "t": 300,
+      "count": 4464,
+      "rps": 148.8,
+      "p50": 3189.7,
+      "p95": 5046.6,
+      "p99": 7304.3,
+      "max": 24788.1,
+      "errorPct": 0,
+      "statuses": {
+        "200": 4464
+      }
+    },
+    {
+      "t": 330,
+      "count": 4867,
+      "rps": 162.2,
+      "p50": 2299,
+      "p95": 3599.5,
+      "p99": 11157.2,
+      "max": 30015.4,
+      "errorPct": 0,
+      "statuses": {
+        "0": 2,
+        "200": 4865
+      }
+    },
+    {
+      "t": 360,
+      "count": 4553,
+      "rps": 151.8,
+      "p50": 2780.5,
+      "p95": 4063.8,
+      "p99": 20811.1,
+      "max": 30015.5,
+      "errorPct": 0.6,
+      "statuses": {
+        "0": 28,
+        "200": 4525
+      }
+    },
+    {
+      "t": 390,
+      "count": 4741,
+      "rps": 158,
+      "p50": 2161.9,
+      "p95": 4319.4,
+      "p99": 22335.6,
+      "max": 30014.9,
+      "errorPct": 0.6,
+      "statuses": {
+        "0": 28,
+        "200": 4713
+      }
+    },
+    {
+      "t": 420,
+      "count": 4807,
+      "rps": 160.2,
+      "p50": 1888.7,
+      "p95": 5610.4,
+      "p99": 26669.9,
+      "max": 30014.5,
+      "errorPct": 0.9,
+      "statuses": {
+        "0": 42,
+        "200": 4765
+      }
+    },
+    {
+      "t": 450,
+      "count": 4628,
+      "rps": 154.3,
+      "p50": 2117.9,
+      "p95": 4581,
+      "p99": 30004,
+      "max": 30014.9,
+      "errorPct": 1.2,
+      "statuses": {
+        "0": 55,
+        "200": 4573
+      }
+    },
+    {
+      "t": 480,
+      "count": 4572,
+      "rps": 152.4,
+      "p50": 1859.8,
+      "p95": 6226.1,
+      "p99": 30007.5,
+      "max": 30020.4,
+      "errorPct": 1.6,
+      "statuses": {
+        "0": 74,
+        "200": 4498
+      }
+    },
+    {
+      "t": 510,
+      "count": 4706,
+      "rps": 156.9,
+      "p50": 1914,
+      "p95": 5987.2,
+      "p99": 30006.6,
+      "max": 30031.4,
+      "errorPct": 1.7,
+      "statuses": {
+        "0": 78,
+        "200": 4628
+      }
+    },
+    {
+      "t": 540,
+      "count": 4682,
+      "rps": 156.1,
+      "p50": 1649.6,
+      "p95": 7807.4,
+      "p99": 30005.6,
+      "max": 30015.9,
+      "errorPct": 1.6,
+      "statuses": {
+        "0": 73,
+        "200": 4609
+      }
+    },
+    {
+      "t": 570,
+      "count": 4435,
+      "rps": 147.8,
+      "p50": 2202.1,
+      "p95": 11271.5,
+      "p99": 30010.6,
+      "max": 30024.7,
+      "errorPct": 2.9,
+      "statuses": {
+        "0": 129,
+        "200": 4306
+      }
+    },
+    {
+      "t": 600,
+      "count": 4873,
+      "rps": 162.4,
+      "p50": 1577.7,
+      "p95": 4458.3,
+      "p99": 30006.3,
+      "max": 30029.5,
+      "errorPct": 1.8,
+      "statuses": {
+        "0": 86,
+        "200": 4787
+      }
+    },
+    {
+      "t": 630,
+      "count": 4543,
+      "rps": 151.4,
+      "p50": 1745,
+      "p95": 11505.5,
+      "p99": 30009.3,
+      "max": 30015.8,
+      "errorPct": 2.3,
+      "statuses": {
+        "0": 104,
+        "200": 4439
+      }
+    },
+    {
+      "t": 660,
+      "count": 3679,
+      "rps": 122.6,
+      "p50": 3026.2,
+      "p95": 17476.9,
+      "p99": 30011,
+      "max": 30048,
+      "errorPct": 2.9,
+      "statuses": {
+        "0": 107,
+        "200": 3572
+      }
+    },
+    {
+      "t": 690,
+      "count": 4266,
+      "rps": 142.2,
+      "p50": 2502.9,
+      "p95": 14327.5,
+      "p99": 30009.9,
+      "max": 30026.9,
+      "errorPct": 2.6,
+      "statuses": {
+        "0": 113,
+        "200": 4153
+      }
+    },
+    {
+      "t": 720,
+      "count": 4717,
+      "rps": 157.2,
+      "p50": 1584.5,
+      "p95": 10923.9,
+      "p99": 30008.1,
+      "max": 30024.6,
+      "errorPct": 2.6,
+      "statuses": {
+        "0": 121,
+        "200": 4596
+      }
+    },
+    {
+      "t": 750,
+      "count": 4952,
+      "rps": 165.1,
+      "p50": 1377.8,
+      "p95": 7786.4,
+      "p99": 30007.1,
+      "max": 30018.4,
+      "errorPct": 2.3,
+      "statuses": {
+        "0": 112,
+        "200": 4840
+      }
+    },
+    {
+      "t": 780,
+      "count": 4368,
+      "rps": 145.6,
+      "p50": 1792.4,
+      "p95": 13447.6,
+      "p99": 30010.9,
+      "max": 30026.3,
+      "errorPct": 3.3,
+      "statuses": {
+        "0": 144,
+        "200": 4224
+      }
+    },
+    {
+      "t": 810,
+      "count": 4512,
+      "rps": 150.4,
+      "p50": 1933.9,
+      "p95": 12076.4,
+      "p99": 30009.4,
+      "max": 30026.4,
+      "errorPct": 2.9,
+      "statuses": {
+        "0": 133,
+        "200": 4379
+      }
+    },
+    {
+      "t": 840,
+      "count": 4831,
+      "rps": 161,
+      "p50": 1389.6,
+      "p95": 10151.2,
+      "p99": 30008.3,
+      "max": 30040.5,
+      "errorPct": 2.6,
+      "statuses": {
+        "0": 125,
+        "200": 4706
+      }
+    },
+    {
+      "t": 870,
+      "count": 4614,
+      "rps": 153.8,
+      "p50": 1839.7,
+      "p95": 14620.2,
+      "p99": 30010,
+      "max": 30022.6,
+      "errorPct": 3.1,
+      "statuses": {
+        "0": 145,
+        "200": 4469
+      }
+    },
+    {
+      "t": 900,
+      "count": 56,
+      "rps": 1.9,
+      "p50": 7.9,
+      "p95": 29360.2,
+      "p99": 30001.2,
+      "max": 30001.2,
+      "errorPct": 3.6,
+      "statuses": {
+        "0": 2,
+        "200": 54
+      }
+    }
+  ]
+}
